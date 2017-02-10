@@ -13,11 +13,17 @@ type Msg
     = Replace String
 
 
-glue : String
-glue =
-    """
-     ffInt
-"""
+glueStart : String
+glueStart =
+    String.trim """
+
+                 """ ++ "\n"
+glueEnd : String
+glueEnd =
+    String.trim
+        """
+         end
+         """
 
 init : String
 init =
@@ -87,31 +93,6 @@ update action model =
             m
 
 
-withChild : a -> List (Html Msg) -> Html Msg
-withChild title children =
-    li []
-        [ pre [] [ text <| toString title ]
-        , ul [] children
-        ]
-
-
-expression : Expression -> Html Msg
-expression e =
-    case e of
-        -- List es ->
-        --     withChild e (List.map expression es)
-
-        -- Application e1 e2 ->
-        --     withChild e
-        --         [ expression e1
-        --         , expression e2
-        --         ]
-
-        e ->
-            div [] [ pre [] [ text <| toString (elixirE e) ] ]
-
-
-
 typespec : Type -> String
 typespec t =
     case t of
@@ -122,9 +103,9 @@ typespec t =
         other ->
             ""
 
-statement : Statement -> Html Msg
+statement : Statement -> String
 statement s =
-    text (elixirS s 0)
+    elixirS s 0
 
 
 ind : Int -> String
@@ -159,6 +140,8 @@ elixirE e i =
             toString value
         -- Maybe.Just a ->
         --     "{:ok, " ++ a ++ "}"
+        String value ->
+            toString value
         Variable [name] ->
             name
         BinOp (Variable ["::"]) a b ->
@@ -185,7 +168,9 @@ tree : String -> Html Msg
 tree m =
     case Ast.parse m of
         ( Ok (_, _, statements)) ->
-            pre [] (List.map statement statements)
+            pre [] [text ((List.map statement statements) |> (List.foldr (++) "")
+                         |> flip (++) glueEnd
+                         |> (++) glueStart)]
 
         err ->
             div [] [ text <| toString err ]
