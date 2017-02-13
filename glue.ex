@@ -1,4 +1,4 @@
-defmodule Glue do
+defmodule Elmchemist.Glue do
 
   defmacro defun(definition, opts \\ [], do: body) do
     {fun, args} = Macro.decompose_call(definition)

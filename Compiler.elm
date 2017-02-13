@@ -16,7 +16,7 @@ type Msg
 glueStart : String
 glueStart =
     String.trim """
-
+import Elmchemist.Glue\n
                  """ ++ "\n"
 glueEnd : String
 glueEnd =
