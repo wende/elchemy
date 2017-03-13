@@ -8,3 +8,5 @@ install:
   - elm-package install -y
   - npm install -g elm-test
 script: elm-test
+notifications:
+  email: false
