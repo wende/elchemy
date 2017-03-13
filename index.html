@@ -12089,7 +12089,10 @@ var _user$project$Compiler$typespec = function (t) {
 	} while(false);
 	return '';
 };
-var _user$project$Compiler$glueEnd = _elm_lang$core$String$trim('\n         end\n         ');
+var _user$project$Compiler$glueEnd = A2(
+	_elm_lang$core$Basics_ops['++'],
+	'\n',
+	_elm_lang$core$String$trim('\n         end\n         '));
 var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_elm_lang$core$String$trim('\nimport Elmchemist.Glue\n\n                 '),

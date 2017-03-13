@@ -13,10 +13,12 @@ all =
          describe "Code compilation"
              [ test "simple definition" <|
                    \() ->
-
+                       Expect.equal
+                           (Compiler.tree "module MyModule exposing (..)")
+                           "import Elmchemist.Glue\ndefmodule MyModule do\nend"
              ]
 
-         describe "Unit test examples"
+        , describe "Unit test examples"
             [ test "Addition" <|
                 \() ->
                     Expect.equal (3 + 7) 10
