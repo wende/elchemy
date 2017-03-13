@@ -1,5 +1,5 @@
 dev:
-	elm-make Compiler.elm
+	elm-make Main.elm
 	open -g index.html
 
 compile:
