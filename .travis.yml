@@ -1,7 +1,9 @@
 language: haskell
-node_js:
-  - "node"
 install:
+  - . $HOME/.nvm/nvm.sh
+  - nvm install stable
+  - nvm use stable
+  - npm install
   - npm install -g elm
   - elm-package install -y
   - npm install -g elm-test
