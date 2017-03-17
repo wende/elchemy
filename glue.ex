@@ -6,6 +6,9 @@ defmodule Elmchemist.Glue do
       def unquote(fun)() do
         unquote(curry(args, body))
       end
+      def unquote(fun)(unquote_splicing(args)) do
+        unquote(body)
+      end
     end
   end
 

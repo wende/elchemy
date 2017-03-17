@@ -12067,27 +12067,61 @@ var _user$project$Compiler$ind = function (i) {
 			'',
 			A2(_elm_lang$core$List$repeat, (i + 1) * 2, ' ')));
 };
-var _user$project$Compiler$typespec = function (t) {
+var _user$project$Compiler$elixirT = function (t) {
 	var _p0 = t;
-	_v0_2:
-	do {
-		switch (_p0.ctor) {
-			case 'TypeApplication':
-				return A2(
-					_elm_lang$core$Basics_ops['++'],
-					_user$project$Compiler$typespec(_p0._0),
-					_user$project$Compiler$typespec(_p0._1));
-			case 'TypeConstructor':
-				if (((_p0._0.ctor === '::') && (_p0._0._1.ctor === '[]')) && (_p0._1.ctor === '[]')) {
-					return A2(_elm_lang$core$Basics_ops['++'], ' -> ', _p0._0._0);
-				} else {
-					break _v0_2;
-				}
-			default:
-				break _v0_2;
-		}
-	} while(false);
-	return '';
+	if (_p0 === 'Int') {
+		return 'int()';
+	} else {
+		return A2(_elm_lang$core$Basics_ops['++'], _p0, '.t()');
+	}
+};
+var _user$project$Compiler$typespec_ = F2(
+	function (t, start) {
+		var _p1 = t;
+		_v1_3:
+		do {
+			switch (_p1.ctor) {
+				case 'TypeApplication':
+					if ((((((((_p1._0.ctor === 'TypeConstructor') && (_p1._0._0.ctor === '::')) && (_p1._0._0._1.ctor === '[]')) && (_p1._0._1.ctor === '[]')) && (_p1._1.ctor === 'TypeConstructor')) && (_p1._1._0.ctor === '::')) && (_p1._1._0._1.ctor === '[]')) && (_p1._1._1.ctor === '[]')) {
+						return A2(
+							_elm_lang$core$Basics_ops['++'],
+							start ? '(' : '',
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								_user$project$Compiler$elixirT(_p1._0._0._0),
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									') :: ',
+									_user$project$Compiler$elixirT(_p1._1._0._0))));
+					} else {
+						return A2(
+							_elm_lang$core$Basics_ops['++'],
+							start ? '(' : '',
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								A2(_user$project$Compiler$typespec_, _p1._0, false),
+								A2(_user$project$Compiler$typespec_, _p1._1, false)));
+					}
+				case 'TypeConstructor':
+					if (((_p1._0.ctor === '::') && (_p1._0._1.ctor === '[]')) && (_p1._1.ctor === '[]')) {
+						return A2(
+							_elm_lang$core$Basics_ops['++'],
+							start ? ' :: ' : '',
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								_user$project$Compiler$elixirT(_p1._0._0),
+								start ? '' : ', '));
+					} else {
+						break _v1_3;
+					}
+				default:
+					break _v1_3;
+			}
+		} while(false);
+		return '';
+	});
+var _user$project$Compiler$typespec = function (t) {
+	return A2(_user$project$Compiler$typespec_, t, true);
 };
 var _user$project$Compiler$glueEnd = A2(
 	_elm_lang$core$Basics_ops['++'],
@@ -12095,7 +12129,7 @@ var _user$project$Compiler$glueEnd = A2(
 	_elm_lang$core$String$trim('\n         end\n         '));
 var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
-	_elm_lang$core$String$trim('\nimport Elmchemist.Glue\n\n                 '),
+	_elm_lang$core$String$trim('\nuse Elmchemist.Glue\n\n                 '),
 	'\n');
 var _user$project$Compiler$Lower = function (a) {
 	return {ctor: 'Lower', _0: a};
@@ -12104,9 +12138,9 @@ var _user$project$Compiler$Upper = function (a) {
 	return {ctor: 'Upper', _0: a};
 };
 var _user$project$Compiler$maybeUpper = function (string) {
-	var _p1 = _elm_lang$core$String$uncons(string);
-	if (_p1.ctor === 'Just') {
-		return _elm_lang$core$Char$isUpper(_p1._0._0) ? _user$project$Compiler$Upper(string) : _user$project$Compiler$Lower(string);
+	var _p2 = _elm_lang$core$String$uncons(string);
+	if (_p2.ctor === 'Just') {
+		return _elm_lang$core$Char$isUpper(_p2._0._0) ? _user$project$Compiler$Upper(string) : _user$project$Compiler$Lower(string);
 	} else {
 		return _user$project$Compiler$Lower('');
 	}
@@ -12114,27 +12148,27 @@ var _user$project$Compiler$maybeUpper = function (string) {
 var _user$project$Compiler$isTuple = function (a) {
 	isTuple:
 	while (true) {
-		var _p2 = a;
-		_v2_2:
+		var _p3 = a;
+		_v3_2:
 		do {
-			switch (_p2.ctor) {
+			switch (_p3.ctor) {
 				case 'Application':
-					var _v3 = _p2._0;
-					a = _v3;
+					var _v4 = _p3._0;
+					a = _v4;
 					continue isTuple;
 				case 'Variable':
-					if ((_p2._0.ctor === '::') && (_p2._0._1.ctor === '[]')) {
-						var _p3 = _user$project$Compiler$maybeUpper(_p2._0._0);
-						if (_p3.ctor === 'Upper') {
+					if ((_p3._0.ctor === '::') && (_p3._0._1.ctor === '[]')) {
+						var _p4 = _user$project$Compiler$maybeUpper(_p3._0._0);
+						if (_p4.ctor === 'Upper') {
 							return true;
 						} else {
 							return false;
 						}
 					} else {
-						break _v2_2;
+						break _v3_2;
 					}
 				default:
-					break _v2_2;
+					break _v3_2;
 			}
 		} while(false);
 		return false;
@@ -12142,115 +12176,115 @@ var _user$project$Compiler$isTuple = function (a) {
 };
 var _user$project$Compiler$nestedTuple = F3(
 	function (a, i, alreadyIn) {
-		var _p4 = (_user$project$Compiler$isTuple(a) && (!alreadyIn)) ? {ctor: '_Tuple2', _0: '{', _1: '}'} : {ctor: '_Tuple2', _0: '', _1: ''};
-		var prefix = _p4._0;
-		var suffix = _p4._1;
+		var _p5 = (_user$project$Compiler$isTuple(a) && (!alreadyIn)) ? {ctor: '_Tuple2', _0: '{', _1: '}'} : {ctor: '_Tuple2', _0: '', _1: ''};
+		var prefix = _p5._0;
+		var suffix = _p5._1;
 		return A2(
 			_elm_lang$core$Basics_ops['++'],
 			prefix,
 			A2(
 				_elm_lang$core$Basics_ops['++'],
 				function () {
-					var _p5 = a;
-					_v5_2:
+					var _p6 = a;
+					_v6_2:
 					do {
-						if (_p5.ctor === 'Application') {
-							switch (_p5._0.ctor) {
+						if (_p6.ctor === 'Application') {
+							switch (_p6._0.ctor) {
 								case 'Variable':
-									if ((_p5._0._0.ctor === '::') && (_p5._0._0._1.ctor === '[]')) {
-										var _p7 = _p5._1;
-										var _p6 = _user$project$Compiler$maybeUpper(_p5._0._0._0);
-										if (_p6.ctor === 'Upper') {
+									if ((_p6._0._0.ctor === '::') && (_p6._0._0._1.ctor === '[]')) {
+										var _p8 = _p6._1;
+										var _p7 = _user$project$Compiler$maybeUpper(_p6._0._0._0);
+										if (_p7.ctor === 'Upper') {
 											return A2(
 												_elm_lang$core$Basics_ops['++'],
 												':',
 												A2(
 													_elm_lang$core$Basics_ops['++'],
-													_elm_lang$core$String$toLower(_p6._0),
+													_elm_lang$core$String$toLower(_p7._0),
 													A2(
 														_elm_lang$core$Basics_ops['++'],
 														', ',
-														A2(_user$project$Compiler$elixirE, _p7, i))));
+														A2(_user$project$Compiler$elixirE, _p8, i))));
 										} else {
 											return A2(
 												_elm_lang$core$Basics_ops['++'],
-												_p6._0,
+												_p7._0,
 												A2(
 													_elm_lang$core$Basics_ops['++'],
 													'.(',
 													A2(
 														_elm_lang$core$Basics_ops['++'],
-														A2(_user$project$Compiler$elixirE, _p7, i + 1),
+														A2(_user$project$Compiler$elixirE, _p8, i + 1),
 														')')));
 										}
 									} else {
-										break _v5_2;
+										break _v6_2;
 									}
 								case 'Application':
 									return A2(
 										_elm_lang$core$Basics_ops['++'],
-										A3(_user$project$Compiler$nestedTuple, _p5._0, i, true),
+										A3(_user$project$Compiler$nestedTuple, _p6._0, i, true),
 										A2(
 											_elm_lang$core$Basics_ops['++'],
 											', ',
-											A2(_user$project$Compiler$elixirE, _p5._1, i)));
+											A2(_user$project$Compiler$elixirE, _p6._1, i)));
 								default:
-									break _v5_2;
+									break _v6_2;
 							}
 						} else {
 							return A2(
 								_user$project$Compiler$elixirE,
-								A2(_elm_lang$core$Debug$log, 'Other', _p5),
+								A2(_elm_lang$core$Debug$log, 'Other', _p6),
 								i);
 						}
 					} while(false);
 					return A2(
 						_elm_lang$core$Basics_ops['++'],
-						A2(_user$project$Compiler$elixirE, _p5._0, i),
+						A2(_user$project$Compiler$elixirE, _p6._0, i),
 						A2(
 							_elm_lang$core$Basics_ops['++'],
 							',',
-							A3(_user$project$Compiler$nestedTuple, _p5._1, i, true)));
+							A3(_user$project$Compiler$nestedTuple, _p6._1, i, true)));
 				}(),
 				suffix));
 	});
 var _user$project$Compiler$elixirE = F2(
 	function (e, i) {
-		var _p8 = e;
-		_v7_10:
+		var _p9 = e;
+		_v8_10:
 		do {
-			switch (_p8.ctor) {
+			switch (_p9.ctor) {
 				case 'Application':
-					if ((((_p8._0.ctor === 'Variable') && (_p8._0._0.ctor === '::')) && (_p8._0._0._0 === 'Just')) && (_p8._0._0._1.ctor === '[]')) {
+					if ((((_p9._0.ctor === 'Variable') && (_p9._0._0.ctor === '::')) && (_p9._0._0._0 === 'Just')) && (_p9._0._0._1.ctor === '[]')) {
 						return A2(
 							_elm_lang$core$Basics_ops['++'],
 							'{:ok, ',
 							A2(
 								_elm_lang$core$Basics_ops['++'],
-								A3(_user$project$Compiler$nestedTuple, _p8._1, i, true),
+								A3(_user$project$Compiler$nestedTuple, _p9._1, i, true),
 								'}'));
 					} else {
-						return A3(_user$project$Compiler$nestedTuple, _p8, i, false);
+						return A3(_user$project$Compiler$nestedTuple, _p9, i, false);
 					}
 				case 'Integer':
-					return _elm_lang$core$Basics$toString(_p8._0);
+					return _elm_lang$core$Basics$toString(_p9._0);
 				case 'String':
-					return _elm_lang$core$Basics$toString(_p8._0);
+					return _elm_lang$core$Basics$toString(_p9._0);
 				case 'Variable':
-					if ((_p8._0.ctor === '::') && (_p8._0._1.ctor === '[]')) {
-						if (_p8._0._0 === 'Nothing') {
+					if ((_p9._0.ctor === '::') && (_p9._0._1.ctor === '[]')) {
+						if (_p9._0._0 === 'Nothing') {
 							return A2(
 								_elm_lang$core$Basics_ops['++'],
 								'{:error, ',
 								A2(_elm_lang$core$Basics_ops['++'], _user$project$Compiler$nothing, '}'));
 						} else {
-							return _p8._0._0;
+							return _p9._0._0;
 						}
 					} else {
-						break _v7_10;
+						break _v8_10;
 					}
 				case 'BinOp':
-					if ((((_p8._0.ctor === 'Variable') && (_p8._0._0.ctor === '::')) && (_p8._0._0._0 === '::')) && (_p8._0._0._1.ctor === '[]')) {
+					if ((((_p9._0.ctor === 'Variable') && (_p9._0._0.ctor === '::')) && (_p9._0._0._0 === '::')) && (_p9._0._0._1.ctor === '[]')) {
 						return A2(
 							_elm_lang$core$Basics_ops['++'],
 							'[',
@@ -12266,7 +12300,7 @@ var _user$project$Compiler$elixirE = F2(
 										},
 										{
 											ctor: '::',
-											_0: _p8._1,
+											_0: _p9._1,
 											_1: {
 												ctor: '::',
 												_0: _brainrape$elm_ast$Ast_Expression$Variable(
@@ -12277,7 +12311,7 @@ var _user$project$Compiler$elixirE = F2(
 													}),
 												_1: {
 													ctor: '::',
-													_0: _p8._2,
+													_0: _p9._2,
 													_1: {ctor: '[]'}
 												}
 											}
@@ -12294,30 +12328,30 @@ var _user$project$Compiler$elixirE = F2(
 								},
 								{
 									ctor: '::',
-									_0: _p8._1,
+									_0: _p9._1,
 									_1: {
 										ctor: '::',
-										_0: _p8._0,
+										_0: _p9._0,
 										_1: {
 											ctor: '::',
-											_0: _p8._2,
+											_0: _p9._2,
 											_1: {ctor: '[]'}
 										}
 									}
 								}));
 					}
 				case 'Case':
-					return A3(_user$project$Compiler$caseE, _p8._0, _p8._1, i + 1);
+					return A3(_user$project$Compiler$caseE, _p9._0, _p9._1, i + 1);
 				case 'Lambda':
-					return A3(_user$project$Compiler$lambda, _p8._0, _p8._1, i);
+					return A3(_user$project$Compiler$lambda, _p9._0, _p9._1, i);
 				default:
-					break _v7_10;
+					break _v8_10;
 			}
 		} while(false);
 		return A2(
 			_elm_lang$core$Basics_ops['++'],
 			'Not implemented yet for expression: ',
-			_elm_lang$core$Basics$toString(_p8));
+			_elm_lang$core$Basics$toString(_p9));
 	});
 var _user$project$Compiler$caseE = F3(
 	function ($var, body, i) {
@@ -12365,20 +12399,20 @@ var _user$project$Compiler$caseInstance = F2(
 	});
 var _user$project$Compiler$lambda = F3(
 	function (args, body, i) {
-		var _p9 = args;
-		if (_p9.ctor === '::') {
+		var _p10 = args;
+		if (_p10.ctor === '::') {
 			return A2(
 				_elm_lang$core$Basics_ops['++'],
 				'fn(',
 				A2(
 					_elm_lang$core$Basics_ops['++'],
-					_p9._0,
+					_p10._0,
 					A2(
 						_elm_lang$core$Basics_ops['++'],
 						') -> ',
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							A3(_user$project$Compiler$lambda, _p9._1, body, i),
+							A3(_user$project$Compiler$lambda, _p10._1, body, i),
 							' end'))));
 		} else {
 			return A2(_user$project$Compiler$elixirE, body, i);
@@ -12386,83 +12420,110 @@ var _user$project$Compiler$lambda = F3(
 	});
 var _user$project$Compiler$elixirS = F2(
 	function (s, i) {
-		var _p10 = s;
-		_v9_6:
-		do {
-			switch (_p10.ctor) {
-				case 'TypeDeclaration':
-					return '';
-				case 'TypeAliasDeclaration':
-					return '';
-				case 'FunctionTypeDeclaration':
-					return A2(
-						_elm_lang$core$Basics_ops['++'],
-						_user$project$Compiler$ind(i),
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							'@spec ',
-							A2(
-								_elm_lang$core$Basics_ops['++'],
-								_p10._0,
-								_user$project$Compiler$typespec(_p10._1))));
-				case 'FunctionDeclaration':
-					return A2(
-						_elm_lang$core$Basics_ops['++'],
-						_user$project$Compiler$ind(i),
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							'defun ',
-							A2(
-								_elm_lang$core$Basics_ops['++'],
-								_p10._0,
-								A2(
-									_elm_lang$core$Basics_ops['++'],
-									'(',
-									A2(
-										_elm_lang$core$Basics_ops['++'],
-										A2(_elm_lang$core$String$join, ',', _p10._1),
-										A2(
-											_elm_lang$core$Basics_ops['++'],
-											') do',
-											A2(
-												_elm_lang$core$Basics_ops['++'],
-												_user$project$Compiler$ind(i + 1),
-												A2(
-													_elm_lang$core$Basics_ops['++'],
-													A2(_user$project$Compiler$elixirE, _p10._2, i + 1),
-													A2(
-														_elm_lang$core$Basics_ops['++'],
-														_user$project$Compiler$ind(i),
-														'end\n')))))))));
-				case 'ModuleDeclaration':
-					if ((_p10._0.ctor === '::') && (_p10._0._1.ctor === '[]')) {
+		elixirS:
+		while (true) {
+			var _p11 = s;
+			_v10_8:
+			do {
+				switch (_p11.ctor) {
+					case 'TypeDeclaration':
+						return '';
+					case 'TypeAliasDeclaration':
+						return '';
+					case 'FunctionTypeDeclaration':
 						return A2(
 							_elm_lang$core$Basics_ops['++'],
-							'defmodule ',
-							A2(_elm_lang$core$Basics_ops['++'], _p10._0._0, ' do'));
-					} else {
-						break _v9_6;
-					}
-				case 'Comment':
-					return A2(
-						_elm_lang$core$Basics_ops['++'],
-						_user$project$Compiler$ind(i),
-						A2(_elm_lang$core$Basics_ops['++'], '%% ', _p10._0));
-				default:
-					break _v9_6;
-			}
-		} while(false);
-		return A2(
-			_elm_lang$core$Basics_ops['++'],
-			'Not implemented yet for statement: ',
-			_elm_lang$core$Basics$toString(_p10));
+							_user$project$Compiler$ind(i),
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								'@spec ',
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									_p11._0,
+									_user$project$Compiler$typespec(_p11._1))));
+					case 'FunctionDeclaration':
+						return A2(
+							_elm_lang$core$Basics_ops['++'],
+							_user$project$Compiler$ind(i),
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								'defun ',
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									_p11._0,
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										'(',
+										A2(
+											_elm_lang$core$Basics_ops['++'],
+											A2(_elm_lang$core$String$join, ',', _p11._1),
+											A2(
+												_elm_lang$core$Basics_ops['++'],
+												') do',
+												A2(
+													_elm_lang$core$Basics_ops['++'],
+													_user$project$Compiler$ind(i + 1),
+													A2(
+														_elm_lang$core$Basics_ops['++'],
+														A2(_user$project$Compiler$elixirE, _p11._2, i + 1),
+														A2(
+															_elm_lang$core$Basics_ops['++'],
+															_user$project$Compiler$ind(i),
+															'end\n')))))))));
+					case 'ModuleDeclaration':
+						if ((_p11._0.ctor === '::') && (_p11._0._1.ctor === '[]')) {
+							return A2(
+								_elm_lang$core$Basics_ops['++'],
+								'defmodule ',
+								A2(_elm_lang$core$Basics_ops['++'], _p11._0._0, ' do'));
+						} else {
+							break _v10_8;
+						}
+					case 'Comment':
+						return A2(
+							_elm_lang$core$Basics_ops['++'],
+							_user$project$Compiler$ind(i),
+							A2(_elm_lang$core$Basics_ops['++'], '%% ', _p11._0));
+					case 'ImportStatement':
+						if (_p11._1.ctor === 'Nothing') {
+							if (_p11._2.ctor === 'Nothing') {
+								return A2(
+									_elm_lang$core$Basics_ops['++'],
+									_user$project$Compiler$ind(i),
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										'import ',
+										A2(_elm_lang$core$String$join, '.', _p11._0)));
+							} else {
+								if (_p11._2._0.ctor === 'AllExport') {
+									var _v11 = A3(_brainrape$elm_ast$Ast_Statement$ImportStatement, _p11._0, _elm_lang$core$Maybe$Nothing, _elm_lang$core$Maybe$Nothing),
+										_v12 = i;
+									s = _v11;
+									i = _v12;
+									continue elixirS;
+								} else {
+									break _v10_8;
+								}
+							}
+						} else {
+							break _v10_8;
+						}
+					default:
+						break _v10_8;
+				}
+			} while(false);
+			return A2(
+				_elm_lang$core$Basics_ops['++'],
+				'Not implemented yet for statement: ',
+				_elm_lang$core$Basics$toString(_p11));
+		}
 	});
 var _user$project$Compiler$statement = function (s) {
 	return A2(_user$project$Compiler$elixirS, s, 0);
 };
 var _user$project$Compiler$tree = function (m) {
-	var _p11 = _brainrape$elm_ast$Ast$parse(m);
-	if ((_p11.ctor === 'Ok') && (_p11._0.ctor === '_Tuple3')) {
+	var _p12 = _brainrape$elm_ast$Ast$parse(m);
+	if ((_p12.ctor === 'Ok') && (_p12._0.ctor === '_Tuple3')) {
 		return A2(
 			F2(
 				function (x, y) {
@@ -12483,9 +12544,9 @@ var _user$project$Compiler$tree = function (m) {
 							return A2(_elm_lang$core$Basics_ops['++'], x, y);
 						}),
 					'',
-					A2(_elm_lang$core$List$map, _user$project$Compiler$statement, _p11._0._2))));
+					A2(_elm_lang$core$List$map, _user$project$Compiler$statement, _p12._0._2))));
 	} else {
-		return _elm_lang$core$Basics$toString(_p11);
+		return _elm_lang$core$Basics$toString(_p12);
 	}
 };
 var _user$project$Main$update = F2(
@@ -12497,7 +12558,7 @@ var _user$project$Main$update = F2(
 			return '';
 		}
 	});
-var _user$project$Main$init = 'module Main exposing (..)\nf : Int -> Int\nf x = x + 1\nadd : Int -> Int -> Int\nadd a b = a + Just b\nh = wende g + hajto cichocinski 10\ncasa t =\n    case t of\n        wende -> 1\n        cichocinski ->\n            \\a -> 1 + 2\n-- (Notice that record types use colon and record values use equals.)\n\n-- You can give existing types a nice name with a type alias.\ntype alias Point3D =\n  { x : Float, y : Float, z : Float }\n\n-- If you alias a record, you can use the name as a constructor function.\notherOrigin : Point3D\notherOrigin =\n  Point3D 0 0 0\n\n-- But it\'s still the same type, so you can equate them.\n\n-- By contrast, defining a union type creates a type that didn\'t exist before.\n-- A union type is so called because it can be one of many possibilities.\n-- Each of the possibilities is represented as a \"tag\".\ntype Direction =\n  North | South | East | West\n\n-- Tags can carry other values of known type. This can work recursively.\ntype IntTree =\n  Leaf | Node Int IntTree IntTree\n-- \"Leaf\" and \"Node\" are the tags. Everything following a tag is a type.\n\n-- Tags can be used as values or functions.\nroot : IntTree\nroot =\n  Node 7 Leaf Leaf\n\n-- Union types (and type aliases) can use type variables.\ntype Tree a =\n  Leaf | Node a (Tree a) (Tree a)\n-- \"The type tree-of-a is a leaf, or a node of a, tree-of-a, and tree-of-a.\"\n\n-- Pattern match union tags. The uppercase tags will be matched exactly. The\n-- lowercase variables will match anything. Underscore also matches anything,\n-- but signifies that you aren\'t using it.\nleftmostElement : Tree a -> Maybe a\nleftmostElement tree =\n  case tree of\n    Leaf -> Nothing\n    Node x Leaf _ -> Just x\n    Node _ subtree _ -> leftmostElement subtree\n\n\n';
+var _user$project$Main$init = 'module Main exposing (..)\nimport Elixir.Glue exposing (..)\nf : Int -> Int\nf x = x + 1\nadd : Int -> Int -> Int\nadd a b = a + Just b\nh = wende g + hajto cichocinski 10\ncasa t =\n    case t of\n        wende -> 1\n        cichocinski ->\n            \\a -> 1 + 2\n-- (Notice that record types use colon and record values use equals.)\n\n-- You can give existing types a nice name with a type alias.\ntype alias Point3D =\n  { x : Float, y : Float, z : Float }\n\n-- If you alias a record, you can use the name as a constructor function.\notherOrigin : Point3D\notherOrigin =\n  Point3D 0 0 0\n\n-- But it\'s still the same type, so you can equate them.\n\n-- By contrast, defining a union type creates a type that didn\'t exist before.\n-- A union type is so called because it can be one of many possibilities.\n-- Each of the possibilities is represented as a \"tag\".\ntype Direction =\n  North | South | East | West\n\n-- Tags can carry other values of known type. This can work recursively.\ntype IntTree =\n  Leaf | Node Int IntTree IntTree\n-- \"Leaf\" and \"Node\" are the tags. Everything following a tag is a type.\n\n-- Tags can be used as values or functions.\nroot : Tree\nroot =\n  Node 7 Leaf Leaf\n\n-- Union types (and type aliases) can use type variables.\ntype Tree a =\n  Leaf | Node a (Tree a) (Tree a)\n-- \"The type tree-of-a is a leaf, or a node of a, tree-of-a, and tree-of-a.\"\n\n-- Pattern match union tags. The uppercase tags will be matched exactly. The\n-- lowercase variables will match anything. Underscore also matches anything,\n-- but signifies that you aren\'t using it.\nleftmostElement : Tree a -> Maybe a\nleftmostElement tree =\n  case tree of\n    Leaf -> Nothing\n    Node x Leaf _ -> Just x\n    Node _ subtree _ -> leftmostElement subtree\n\n\n';
 var _user$project$Main$String = {ctor: 'String'};
 var _user$project$Main$Replace = function (a) {
 	return {ctor: 'Replace', _0: a};

@@ -29,6 +29,7 @@ main =
 init : String
 init =
     """module Main exposing (..)
+import Elixir.Glue exposing (..)
 f : Int -> Int
 f x = x + 1
 add : Int -> Int -> Int
@@ -64,7 +65,7 @@ type IntTree =
 -- "Leaf" and "Node" are the tags. Everything following a tag is a type.
 
 -- Tags can be used as values or functions.
-root : IntTree
+root : Tree
 root =
   Node 7 Leaf Leaf
 
