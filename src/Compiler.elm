@@ -52,7 +52,7 @@ elixirS s i =
         ModuleDeclaration [name] _ ->
             "defmodule " ++ name ++ " do"
         Comment content ->
-            (ind i) ++ "%% " ++ content
+            (ind i) ++ "# " ++ content
         s ->
             "Not implemented yet for statement: " ++ toString s
 
