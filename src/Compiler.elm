@@ -5,7 +5,6 @@ import Ast
 import Ast.Expression exposing (..)
 import Ast.Statement exposing (..)
 import List exposing (..)
-import TestMod
 
 -- type alias .T = List Int
 
