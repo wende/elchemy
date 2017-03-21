@@ -4,11 +4,15 @@ import Char
 import Ast
 import Ast.Expression exposing (..)
 import Ast.Statement exposing (..)
+import List exposing (..)
+import TestMod
+
+-- type alias .T = List Int
 
 glueStart : String
 glueStart =
     String.trim """
-import Elmchemist.Glue\n
+use Elmchemist.Glue\n
                  """ ++ "\n"
 glueEnd : String
 glueEnd =
@@ -17,16 +21,37 @@ glueEnd =
          end
          """
 
-
 typespec : Type -> String
-typespec t =
+typespec t = typespec_ True t
+
+typespecf : Type -> String
+typespecf t = typespec_ False t
+
+typespec_ : Bool -> Type -> String
+typespec_ start t =
     case t of
+        -- Last aruments
+        TypeApplication (TypeConstructor pre_last []) (TypeConstructor last []) ->
+            (if start then "(" else "") ++
+            elixirT pre_last ++ ") :: " ++ elixirT last
         TypeApplication tc t ->
-            typespec tc ++ typespec t
-        TypeConstructor [t] [] ->
-            " -> " ++ t
-        other ->
-            ""
+            (if start then "(" else "") ++
+            typespecf tc ++ typespecf t
+        TypeConstructor t [] ->
+            (if start then " :: " else "") ++
+            elixirT t ++
+            (if start then "" else ", ")
+        other ->  "Not implemented for " ++ (toString other)
+
+elixirT : List String -> String
+elixirT t =
+    case t of
+        ["Int"] -> "int()"
+        t ->
+            case List.reverse t of
+                "T" :: rest -> (rest |> reverse |> String.join ".") ++ ".t()"
+                whole -> (whole |> reverse |> String.join ".")
+
 
 statement : Statement -> String
 statement s =
@@ -53,6 +78,11 @@ elixirS s i =
             "defmodule " ++ name ++ " do"
         Comment content ->
             (ind i) ++ "%% " ++ content
+        -- That's not a real import. In elixir it's by default
+        ImportStatement path Nothing Nothing ->
+            (ind i) ++ "import " ++ String.join "." path
+        ImportStatement path Nothing (Just AllExport) ->
+            elixirS (ImportStatement path Nothing Nothing) i
         s ->
             "Not implemented yet for statement: " ++ toString s
 
@@ -81,7 +111,10 @@ elixirE e i =
         Variable [name] ->
             name
         BinOp (Variable ["::"]) a b ->
-            "[" ++ String.join " " (List.map (\a -> elixirE a (i + 1)) [a, Variable ["|"], b] ) ++ "]"
+            "[" ++
+            String.join " "
+                (List.map (\a -> elixirE a (i + 1)) [a, Variable ["|"], b] ) ++
+            "]"
         BinOp op a b ->
             String.join " " (List.map (\a -> elixirE a (i + 1)) [a, op, b] )
         Case var body ->
@@ -134,6 +167,7 @@ maybeUpper string =
             else Lower string
         Nothing -> Lower ""
 
+isTuple : Expression -> Bool
 isTuple a =
     case a of
         Application a _ -> isTuple a
@@ -143,6 +177,7 @@ isTuple a =
                 Lower _ -> False
         other -> False
 
+nestedTuple : Expression -> Int -> Bool -> String
 nestedTuple a i alreadyIn =
     let
         (prefix, suffix) = if isTuple a && not alreadyIn then ("{", "}") else ("", "")
@@ -165,3 +200,7 @@ nestedTuple a i alreadyIn =
 
 nothing : String
 nothing = "\"No value in Maybe\""
+
+notImplemented : a -> String
+notImplemented value =
+    "[ERROR: No implementation for " ++ toString value ++ "yet]"
