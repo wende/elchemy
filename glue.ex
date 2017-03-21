@@ -1,6 +1,6 @@
 defmodule Elmchemist.Glue do
 
-  defmacro defun(definition, opts \\ [], do: body) do
+  defmacro defcurry(definition, opts \\ [], do: body) do
     {fun, args} = Macro.decompose_call(definition)
     quote do
       def unquote(fun)() do

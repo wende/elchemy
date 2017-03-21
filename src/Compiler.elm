@@ -70,7 +70,7 @@ elixirS s i =
         FunctionTypeDeclaration name t ->
             (ind i) ++ "@spec " ++ name ++ (typespec t)
         FunctionDeclaration a b e ->
-             (ind i) ++ "defun " ++ a
+             (ind i) ++ "defcurry " ++ a
                  ++ "(" ++ (String.join "," b) ++ ") do" ++ (ind <| i + 1)
                  ++ (elixirE e (i + 1)) ++ (ind i) ++ "end\n"
         ModuleDeclaration [name] _ ->
