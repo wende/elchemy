@@ -76,7 +76,7 @@ elixirS s i =
         ModuleDeclaration [name] _ ->
             "defmodule " ++ name ++ " do"
         Comment content ->
-            (ind i) ++ "%% " ++ content
+            (ind i) ++ "# " ++ content
         -- That's not a real import. In elixir it's by default
         ImportStatement path Nothing Nothing ->
             (ind i) ++ "import " ++ String.join "." path
