@@ -15,7 +15,7 @@ all =
                    \() ->
                        Expect.equal
                            (Compiler.tree "module MyModule exposing (..)")
-                           "import Elmchemist.Glue\ndefmodule MyModule do\nend"
+                           "use Elmchemist.Glue\ndefmodule MyModule do\nend"
              ]
         , describe "Unit test examples"
             [ test "Addition" <|
