@@ -36,20 +36,20 @@ use Elmchemist.Glue
 defmodule Main do
   import Elixir.Glue
   @spec f(int()) :: int()
-  defun f(x) do
+  def f(x) do
     x + 1
   end
 
   @spec add(int(), int()) :: int()
-  defun add(a,b) do
+  def add(a,b) do
     a + {:ok, b}
   end
 
-  defun h() do
+  def h() do
     wende.(g) + hajto.(cichocinski), 10
   end
 
-  defun casa(t) do
+  def casa(t) do
     case t do
       wende -> 1
       cichocinski -> fn(a) -> 1 + 2 end
