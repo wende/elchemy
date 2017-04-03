@@ -10,4 +10,7 @@ compile:
 	var a = fs.readFileSync(process.argv[2]).toString(); \
 	console.log(_user$$project$$Compiler$$tree(a))/' compiled.js > elmchemy.js
 	rm compiled.js
-	elm-make example.elm && node elmchemy.js example.elm > output.ex
+	elm-make ./src/Example.elm && node elmchemy.js ./src/Example.elm > output.ex
+
+dev-watch:
+	find . | grep -v .# | entr make compile

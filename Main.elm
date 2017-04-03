@@ -3,6 +3,7 @@ import Html.Events exposing (..)
 import Json.Decode as JD
 import Html exposing (..)
 import Html
+import Html.Attributes
 
 import Compiler
 
@@ -10,11 +11,25 @@ type Msg
     = Replace String | String
 
 
+divStyle : Attribute msg
+divStyle =
+    Html.Attributes.style
+    [ ("display", "inline-flex")
+    , ("width", "100%")
+    ]
+
+codeStyle : Attribute msg
+codeStyle =
+    Html.Attributes.style
+    [("width", "50%")
+    ,("margin", "10px")]
+
+
 view : String -> Html Msg
 view model =
-    div []
-        [ textarea [ on "input" (JD.map Replace targetValue) ] [ text model ]
-        ,  pre [] [text (Compiler.tree model)]
+    div [divStyle]
+        [ textarea [ codeStyle, on "input" (JD.map Replace targetValue) ] [ text model ]
+        ,  pre [codeStyle] [text (Compiler.tree model)]
         ]
 
 
@@ -62,27 +77,10 @@ type Direction =
 -- Tags can carry other values of known type. This can work recursively.
 type IntTree =
   Leaf | Node Int IntTree IntTree
--- "Leaf" and "Node" are the tags. Everything following a tag is a type.
-
--- Tags can be used as values or functions.
-root : Tree
-root =
-  Node 7 Leaf Leaf
-
--- Union types (and type aliases) can use type variables.
-type Tree a =
-  Leaf | Node a (Tree a) (Tree a)
--- "The type tree-of-a is a leaf, or a node of a, tree-of-a, and tree-of-a."
+-- "Leaf" and "Node" are the tags. Everything following a tag is a typ
 
 -- Pattern match union tags. The uppercase tags will be matched exactly. The
 -- lowercase variables will match anything. Underscore also matches anything,
--- but signifies that you aren't using it.
-leftmostElement : Tree a -> Maybe a
-leftmostElement tree =
-  case tree of
-    Leaf -> Nothing
-    Node x Leaf _ -> Just x
-    Node _ subtree _ -> leftmostElement subtree
 
 
 """
