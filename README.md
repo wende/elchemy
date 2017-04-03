@@ -66,12 +66,12 @@ end
 
 # Targeted values:
 - Fully readable and indented elixir code generated from compilation
-- Seamless and stressless interop with existing Elixir code, preferably with magically workng type safety
+- Seamless and stressless interop with existing Elixir code, preferably with magically working type safety
 - Full integration with entire elm syntax for editors and compilers magic
 
 # TODO (priority desc)
 - [X] Saving and reading from files
-- [ ] Basic API (operators, functions, monadic types [Maybe, Just etc])
+- [X] Basic API (operators, functions, monadic types [Maybe, Just etc])
+- [X] Simple Elixir/Erlang interop
 - [ ] Compiler built-in into elixir ecosystem
-- [ ] Glue code for Elmchemist interop
-- [ ] Glue code for Elixir interop
+
