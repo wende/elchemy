@@ -38,26 +38,45 @@ typespec_ : Bool -> Type -> String
 typespec_ start t =
     case t of
         -- Last aruments
-        TypeApplication (TypeConstructor _ _ as pre_last) (TypeConstructor _ _ as last) ->
+        TypeApplication other (TypeApplication _ _ as app) ->
+            (if start then "(" else "") ++
+            typespecf other ++ typespecf app
+
+        TypeApplication (pre_last) (last) ->
             (if start then "(" else "") ++
             elixirT pre_last ++ ") :: " ++ elixirT last
-        TypeApplication tc t ->
-            (if start then "(" else "") ++
-            typespecf tc ++ typespecf t
+        --TypeApplication tc t ->
+
         TypeConstructor _ _ as t  ->
             (if start then " :: " else "") ++
             elixirT t ++
             (if start then "" else ", ")
-        TypeVariable name ->
-            (if start then " :: " else ")")
-            ++ "any()"
+        TypeVariable _ as t->
+            (if start then " :: " else "") ++
+            elixirT t ++
+            (if start then "" else ", ")
         other ->  notImplemented other
+
+typealias : Type -> String
+typealias t =
+    case t of
+        TypeApplication tc t ->
+            typealias tc ++ typealias t
+        TypeConstructor _ _ as t ->
+            elixirT t
+        TypeVariable name ->
+            name
+        other -> notImplemented other
 
 elixirT : Type -> String
 elixirT t =
     case t of
+        TypeTuple ([a, b]) ->
+            "{" ++ elixirT a ++ ", " ++ elixirT b ++ "}"
+        TypeVariable "number" -> "number"
         TypeConstructor ["Int"] [] -> "int"
         TypeConstructor ["List"] [t] -> "list(" ++ elixirT t ++ ")"
+        TypeConstructor ["T"] [] -> "t"
         TypeConstructor t [] ->
             (String.join "." t) ++ ".t"
             -- case List.reverse t of
@@ -79,21 +98,24 @@ ind i = "\n" ++ (List.repeat ((i + 1)*2) " " |> String.join "")
 elixirS : Statement -> Context -> String
 elixirS s c =
     case s of
-        TypeDeclaration _ _ ->
-            ""
+        TypeDeclaration name types ->
+            (ind c.indent)
+            ++ "@type "
+            ++ (typealias name)
+            ++ " :: "
+            ++ ((map (typealias) types) |> String.join " | ")
+
         TypeAliasDeclaration _ _ ->
-            ""
+            "alias?"
         FunctionTypeDeclaration name t ->
             (ind c.indent) ++ "@spec " ++ name ++ (typespec t)
         FunctionDeclaration name args body as fd->
-            if isMacro body then
-               elixirM fd c.indent
-            else
-                (ind c.indent) ++ (defOrDefp c name) ++ name
-                    ++ "(" ++ (String.join "," args) ++ ") do"
-                    ++ (ind <| c.indent + 1)
-                    ++ (elixirE body (c.indent + 1))
-                    ++ (ind  c.indent) ++ "end\n"
+            (ind c.indent)
+            ++ (defOrDefp c name) ++ name
+            ++ "(" ++ (String.join "," args) ++ ") do"
+            ++ (ind <| c.indent + 1)
+            ++ (elixirE body (c.indent + 1))
+            ++ (ind  c.indent) ++ "end\n"
         Comment content ->
             (ind c.indent) ++ "#" ++ content
         -- That's not a real import. In elixir it's called alias
@@ -102,8 +124,9 @@ elixirS s c =
         ImportStatement path Nothing (Just AllExport) ->
             (ind c.indent) ++ "import " ++ String.join "." path
         s ->
-            "Not implemented yet for statement: " ++ toString s
+            notImplemented s
 
+defOrDefp : Context -> String -> String
 defOrDefp context name =
     case context.exports of
         SubsetExport exports ->
@@ -114,22 +137,6 @@ defOrDefp context name =
             "def "
         other ->
             Debug.crash "No such export"
-elixirM : Statement -> Int -> String
-elixirM m i =
-    case m of
-        FunctionDeclaration name args body ->
-            "\n" ++ (ind i) ++ "def " ++ name ++ "("
-                ++ String.join ", " args
-                ++ "), do: " ++ ffi body args
-        other -> Debug.crash "Not a macro but handled like one"
-
-ffi : Expression -> List String -> String
-ffi e args =
-    case flattenApplication e of
-        [Variable ["ffi"], String m, String f, _] ->
-            m ++ "." ++ f ++ "(" ++ (String.join "," args) ++ ")"
-        other -> Debug.crash "ffi" (toString other)
-
 elixirE : Expression -> Int -> String
 elixirE e i =
     case e of
@@ -295,6 +302,13 @@ tupleOrFunction a i  =
              BinOp (Variable [","]) _ _ as args ] ->
             mod ++ "." ++ fun ++ "(" ++ combineComas args ++ ")"
 
+        -- One arg fun
+        [Variable ["ffi"],
+             String mod,
+             String fun,
+             any] ->
+            mod ++ "." ++ fun ++ "(" ++ elixirE any i ++ ")"
+
         Variable [name] :: rest ->
             "{:"
             ++ String.toLower name
@@ -324,9 +338,6 @@ isMacro e =
         Variable ["ffi"] -> True
         other -> False
 
-
-nothing : String
-nothing = "\"No value in Maybe\""
 
 notImplemented : a -> String
 notImplemented value =
