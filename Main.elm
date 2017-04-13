@@ -76,6 +76,11 @@ test num =
         1 -> "cichocinski"
         number -> ("wende", number)
 
+add a b =
+    case a of
+        1 -> a
+        _ -> b
+
 """
 update : Msg -> String -> String
 update action model =

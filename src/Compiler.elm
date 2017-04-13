@@ -119,13 +119,16 @@ elixirS s c =
         FunctionTypeDeclaration name t ->
             (ind c.indent) ++ "@spec " ++ name ++ (typespec t)
         FunctionDeclaration name args body as fd ->
-            case body of
-                Case _ expressions ->
-                    expressions
-                        |> List.map (\(left, right) -> genElixirFunc c name [elixirE left c.indent] right)
-                        |> List.foldr (++) ""
-                _ ->
-                    genElixirFunc c name args body
+            if List.length args > 1 then
+                genElixirFunc c name args body
+            else
+                case body of
+                    Case _ expressions ->
+                        expressions
+                            |> List.map (\(left, right) -> genElixirFunc c name [elixirE left c.indent] right)
+                            |> List.foldr (++) ""
+                    _ ->
+                        genElixirFunc c name args body
         Comment content ->
             (ind c.indent) ++ "#" ++ content
         -- That's not a real import. In elixir it's called alias
