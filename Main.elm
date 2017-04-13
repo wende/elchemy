@@ -69,6 +69,13 @@ otherOrigin =
 
 
 type T = Int | String
+
+test : Int -> String
+test num =
+    case num of
+        1 -> "cichocinski"
+        number -> ("wende", number)
+
 """
 update : Msg -> String -> String
 update action model =

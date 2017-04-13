@@ -95,6 +95,15 @@ moduleStatement s =
 ind : Int -> String
 ind i = "\n" ++ (List.repeat ((i + 1)*2) " " |> String.join "")
 
+genElixirFunc : Context -> String -> List String -> Expression -> String
+genElixirFunc c name args body =
+    (ind c.indent)
+    ++ (defOrDefp c name) ++ name
+    ++ "(" ++ (String.join "," args) ++ ") do"
+    ++ (ind <| c.indent + 1)
+    ++ (elixirE body (c.indent + 1))
+    ++ (ind c.indent) ++ "end\n"
+
 elixirS : Statement -> Context -> String
 elixirS s c =
     case s of
@@ -109,13 +118,14 @@ elixirS s c =
             "alias?"
         FunctionTypeDeclaration name t ->
             (ind c.indent) ++ "@spec " ++ name ++ (typespec t)
-        FunctionDeclaration name args body as fd->
-            (ind c.indent)
-            ++ (defOrDefp c name) ++ name
-            ++ "(" ++ (String.join "," args) ++ ") do"
-            ++ (ind <| c.indent + 1)
-            ++ (elixirE body (c.indent + 1))
-            ++ (ind  c.indent) ++ "end\n"
+        FunctionDeclaration name args body as fd ->
+            case body of
+                Case _ expressions ->
+                    expressions
+                        |> List.map (\(left, right) -> genElixirFunc c name [elixirE left c.indent] right)
+                        |> List.foldr (++) ""
+                _ ->
+                    genElixirFunc c name args body
         Comment content ->
             (ind c.indent) ++ "#" ++ content
         -- That's not a real import. In elixir it's called alias
