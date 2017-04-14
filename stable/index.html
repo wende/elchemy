@@ -12443,8 +12443,8 @@ var _user$project$Compiler$notImplemented = function (value) {
 	return _elm_lang$core$Native_Utils.crash(
 		'Compiler',
 		{
-			start: {line: 504, column: 5},
-			end: {line: 504, column: 16}
+			start: {line: 505, column: 5},
+			end: {line: 505, column: 16}
 		})(
 		A2(
 			_elm_lang$core$Basics_ops['++'],
@@ -12530,8 +12530,8 @@ var _user$project$Compiler$defOrDefp = F2(
 				return _elm_lang$core$Native_Utils.crashCase(
 					'Compiler',
 					{
-						start: {line: 247, column: 5},
-						end: {line: 258, column: 41}
+						start: {line: 244, column: 5},
+						end: {line: 255, column: 41}
 					},
 					_p2)('No such export');
 		}
@@ -12660,8 +12660,8 @@ var _user$project$Compiler$elixirT = function (t) {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'Compiler',
 			{
-				start: {line: 127, column: 5},
-				end: {line: 166, column: 80}
+				start: {line: 124, column: 5},
+				end: {line: 163, column: 80}
 			},
 			_p4)(
 			A2(
@@ -12744,20 +12744,11 @@ var _user$project$Compiler$glueEnd = A2(
 	_elm_lang$core$Basics_ops['++'],
 	'\n',
 	_elm_lang$core$String$trim('\n         end\n         '));
-var _user$project$Compiler$version = '0.0.7';
 var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Compiler$ind(0),
-	A2(
-		_elm_lang$core$Basics_ops['++'],
-		'use Elmchemy',
-		A2(
-			_elm_lang$core$Basics_ops['++'],
-			'\n',
-			A2(
-				_elm_lang$core$Basics_ops['++'],
-				'# Compiled using Elmchemy v',
-				A2(_elm_lang$core$Basics_ops['++'], _user$project$Compiler$version, '\n')))));
+	A2(_elm_lang$core$Basics_ops['++'], 'use Elmchemy', '\n'));
+var _user$project$Compiler$version = '0.0.7';
 var _user$project$Compiler$Context = F3(
 	function (a, b, c) {
 		return {mod: a, exports: b, indent: c};
@@ -12774,8 +12765,8 @@ var _user$project$Compiler$moduleStatement = function (s) {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'Compiler',
 			{
-				start: {line: 171, column: 5},
-				end: {line: 176, column: 69}
+				start: {line: 168, column: 5},
+				end: {line: 173, column: 69}
 			},
 			_p8)('First statement must be module declaration');
 	}
@@ -12951,8 +12942,8 @@ var _user$project$Compiler$tupleOrFunction = F2(
 		return _elm_lang$core$Native_Utils.crashCase(
 			'Compiler',
 			{
-				start: {line: 451, column: 5},
-				end: {line: 471, column: 70}
+				start: {line: 452, column: 5},
+				end: {line: 472, column: 70}
 			},
 			_p16)(
 			A2(
@@ -13080,7 +13071,7 @@ var _user$project$Compiler$elixirE = F2(
 												A2(_user$project$Compiler$elixirE, _p19._1, i),
 												A2(
 													_elm_lang$core$Basics_ops['++'],
-													'!=',
+													' != ',
 													A2(_user$project$Compiler$elixirE, _p19._2, i)));
 										case ',':
 											return A2(
@@ -13391,41 +13382,37 @@ var _user$project$Compiler$tree = function (m) {
 		if (_p29.ctor === 'Ok') {
 			if ((_p29._0.ctor === '_Tuple3') && (_p29._0._2.ctor === '::')) {
 				var context = _user$project$Compiler$moduleStatement(_p29._0._2._0);
-				return A3(
-					_elm_lang$core$Basics$flip,
-					F2(
-						function (x, y) {
-							return A2(_elm_lang$core$Basics_ops['++'], x, y);
-						}),
-					_user$project$Compiler$glueEnd,
+				return A2(
+					_elm_lang$core$Basics_ops['++'],
+					A2(_elm_lang$core$Basics_ops['++'], '# Compiled using Elmchemy v', _user$project$Compiler$version),
 					A2(
-						F2(
-							function (x, y) {
-								return A2(_elm_lang$core$Basics_ops['++'], x, y);
-							}),
+						_elm_lang$core$Basics_ops['++'],
+						'\n',
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							'defmodule ',
-							A2(_elm_lang$core$Basics_ops['++'], context.mod, ' do')),
-						A2(
-							F2(
-								function (x, y) {
-									return A2(_elm_lang$core$Basics_ops['++'], x, y);
-								}),
-							_user$project$Compiler$glueStart,
-							A3(
-								_elm_lang$core$List$foldr,
-								F2(
-									function (x, y) {
-										return A2(_elm_lang$core$Basics_ops['++'], x, y);
-									}),
-								'',
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								'defmodule ',
+								A2(_elm_lang$core$Basics_ops['++'], context.mod, ' do')),
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								_user$project$Compiler$glueStart,
 								A2(
-									_elm_lang$core$List$map,
-									function (a) {
-										return A2(_user$project$Compiler$elixirS, a, context);
-									},
-									_p29._0._2._1)))));
+									_elm_lang$core$Basics_ops['++'],
+									A3(
+										_elm_lang$core$List$foldr,
+										F2(
+											function (x, y) {
+												return A2(_elm_lang$core$Basics_ops['++'], x, y);
+											}),
+										'',
+										A2(
+											_elm_lang$core$List$map,
+											function (a) {
+												return A2(_user$project$Compiler$elixirS, a, context);
+											},
+											_p29._0._2._1)),
+									_user$project$Compiler$glueEnd)))));
 			} else {
 				break _v23_2;
 			}
@@ -13443,8 +13430,8 @@ var _user$project$Compiler$tree = function (m) {
 	return _elm_lang$core$Native_Utils.crashCase(
 		'Compiler',
 		{
-			start: {line: 355, column: 5},
-			end: {line: 372, column: 39}
+			start: {line: 352, column: 5},
+			end: {line: 373, column: 39}
 		},
 		_p29)(
 		_elm_lang$core$Basics$toString(_p29));
@@ -13466,7 +13453,15 @@ var _user$project$Main$codeStyle = _elm_lang$html$Html_Attributes$style(
 		_1: {
 			ctor: '::',
 			_0: {ctor: '_Tuple2', _0: 'margin', _1: '10px'},
-			_1: {ctor: '[]'}
+			_1: {
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: 'font-family', _1: 'monospace'},
+				_1: {
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: 'font-size', _1: '13px'},
+					_1: {ctor: '[]'}
+				}
+			}
 		}
 	});
 var _user$project$Main$divStyle = _elm_lang$html$Html_Attributes$style(

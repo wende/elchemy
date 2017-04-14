@@ -15,7 +15,11 @@ compile:
 	var a = fs.readFileSync(process.argv[2]).toString(); \
 	console.log(_user$$project$$Compiler$$tree(a))/' compiled.js > elmchemy.js
 	rm compiled.js
-	elm-make ./src/MyList.elm && node elmchemy.js ./src/MyList.elm > output.ex
+
 
 compile-watch:
-	find . | grep -v .# | entr make compile
+	find . -name "*.elm" | grep -v "elm-stuff" | grep -v .# | entr make compile
+
+compile-std-watch:
+	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c \
+		"make compile && ./elmchemy compile src/elixir_std output"

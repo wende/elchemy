@@ -10,11 +10,12 @@ import Compiler
 all : Test
 all =
     describe "Code compilation"
-        [ test "simple definition" <|
+        [ test "Can compile successfully" <|
             \() ->
                 Expect.atLeast
                     1
                     (String.length
                         (Compiler.tree "module MyModule exposing (..)")
                     )
+
         ]

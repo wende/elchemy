@@ -26,6 +26,8 @@ codeStyle =
     Html.Attributes.style
         [ ( "width", "50%" )
         , ( "margin", "10px" )
+        , ( "font-family", "monospace" )
+        , ( "font-size", "13px")
         ]
 
 

@@ -28,9 +28,6 @@ glueStart =
     (ind 0)
         ++ "use Elmchemy"
         ++ "\n"
-        ++ "# Compiled using Elmchemy v"
-        ++ version
-        ++ "\n"
 
 
 glueEnd : String
@@ -308,7 +305,7 @@ elixirE e i =
 
         -- Basics
         BinOp (Variable [ "/=" ]) l r ->
-            elixirE l i ++ "!=" ++ elixirE r i
+            elixirE l i ++ " != " ++ elixirE r i
 
         -- It's tuple if it wasn't covered by list
         (BinOp (Variable [ "," ]) a b) as binop ->
@@ -358,11 +355,14 @@ tree m =
                 context =
                     moduleStatement first
             in
-                (List.map (\a -> elixirS a context) statements)
-                    |> (List.foldr (++) "")
-                    |> (++) glueStart
-                    |> (++) ("defmodule " ++ context.mod ++ " do")
-                    |> flip (++) glueEnd
+                ("# Compiled using Elmchemy v" ++ version)
+                    ++ "\n"
+                    ++ ("defmodule " ++ context.mod ++ " do")
+                    ++ glueStart
+                    ++ ((List.map (\a -> elixirS a context) statements)
+                            |> (List.foldr (++) "")
+                       )
+                    ++ glueEnd
 
         Err ( (), { input, position }, [ msg ] ) ->
             "]ERR> Compilation error at: "
