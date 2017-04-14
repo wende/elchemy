@@ -17,5 +17,5 @@ compile:
 	rm compiled.js
 	elm-make ./src/MyList.elm && node elmchemy.js ./src/MyList.elm > output.ex
 
-dev-watch:
+compile-watch:
 	find . | grep -v .# | entr make compile
