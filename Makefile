@@ -2,6 +2,11 @@ dev:
 	elm-make Main.elm
 	open -g index.html
 
+release:
+	elm-make Main.elm
+	mkdir -p stable
+	mv index.html stable/index.html
+
 compile:
 	elm-make Main.elm --output compiled.js
 	sed 's/var Elm = {}/&; \

@@ -2,7 +2,7 @@
 Fun project of transpiler of Elm to Elixir
 
 Test online at:
-https://wende.github.io/elmchemy/
+https://wende.github.io/elmchemy/stable/
 
 Type
 ```
@@ -74,4 +74,3 @@ end
 - [X] Basic API (operators, functions, monadic types [Maybe, Just etc])
 - [X] Simple Elixir/Erlang interop
 - [ ] Compiler built-in into elixir ecosystem
-

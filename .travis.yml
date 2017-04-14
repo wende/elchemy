@@ -3,7 +3,7 @@ language: haskell
 cache:
   directories:
     - test/elm-stuff/build-artifacts
-    - elm-stuff
+    - elm-stuff/
 install:
   - . $HOME/.nvm/nvm.sh
   - nvm install stable
