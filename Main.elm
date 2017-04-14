@@ -68,10 +68,13 @@ casa t =
         cichocinski ->
             \\a -> 1 + 2
 -- If you alias a record, you can use the name as a constructor function.
-otherOrigin : Point3D
+otherOrigin : Point3D Int Int Int
 otherOrigin =
-  Point3D 0 0 0
+    Point3D 0 0 0
 
+justPoint : Point3D
+justPoint =
+    Point3D.struct
 
 add a b =
     case a of

@@ -13,7 +13,7 @@ import List exposing (..)
 
 
 version =
-    "0.0.3"
+    "0.0.4"
 
 
 type alias Context =
@@ -279,14 +279,12 @@ elixirE e i =
 
         Variable [ name ] ->
             if isCapitilzed name then
-                atomize name
+                name
             else
                 toSnakeCase name
 
-        Variable (name :: rest) ->
-            elixirE (Variable [ name ]) i
-                ++ "."
-                ++ elixirE (Variable rest) i
+        Variable list ->
+            String.join "." list
 
         -- Primitive types
         (Application name arg) as application ->
@@ -503,16 +501,6 @@ isMacro e =
 notImplemented : a -> String
 notImplemented value =
     Debug.crash (" ## ERROR: No implementation for " ++ toString value ++ " yet" ++ "\n")
-
-
-getVariableName : Expression -> String
-getVariableName e =
-    case e of
-        Variable [ name ] ->
-            name
-
-        other ->
-            Debug.crash "jeb"
 
 
 combineComas : Expression -> String
