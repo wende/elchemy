@@ -11,6 +11,10 @@ join list a = "1" ++  ffi "Enum" "join" (list, (a, a))
 test1 : number -> (number, number) -> number
 test1 a b = a
 
-test : Int -> Int -> Int -> List Int -> String
-test a b c d =
-    toString (test1 1, (1, 2)) ++ join ["a", "b"] 1
+-- Make
+add a b = a + b
+
+testName : Int -> Int -> Int -> List Int -> String
+testName a b c d =
+    List.foldl (add) 0 [b]
+             |> toString

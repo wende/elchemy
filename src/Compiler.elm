@@ -10,6 +10,8 @@ import List exposing (..)
 
 -- type alias .T = List Int
 
+version = "0.0.1"
+
 type alias Context =
     {mod: String
     , exports: ExportSet
@@ -18,9 +20,9 @@ type alias Context =
 
 glueStart : String
 glueStart =
-    (ind 0) ++ String.trim """
-   use Elmchemist.Glue\n
-                 """ ++ "\n"
+    (ind 0)
+    ++ "use Elmchemy" ++ "\n"
+    ++ "# Compiled using Elmchemy v" ++ version ++ "\n"
 glueEnd : String
 glueEnd =
     "\n" ++ String.trim
@@ -74,8 +76,10 @@ elixirT t =
         TypeTuple ([a, b]) ->
             "{" ++ elixirT a ++ ", " ++ elixirT b ++ "}"
         TypeVariable "number" -> "number"
+        TypeVariable name -> "any"
         TypeConstructor ["Int"] [] -> "int"
         TypeConstructor ["List"] [t] -> "list(" ++ elixirT t ++ ")"
+        TypeConstructor ["Maybe"] [t] -> elixirT t ++ " | nil"
         TypeConstructor ["T"] [] -> "t"
         TypeConstructor t [] ->
             (String.join "." t) ++ ".t"
@@ -106,13 +110,13 @@ elixirS s c =
             ++ ((map (typealias) types) |> String.join " | ")
 
         TypeAliasDeclaration _ _ ->
-            "alias?"
+            "" --"alias?"
         FunctionTypeDeclaration name t ->
-            (ind c.indent) ++ "@spec " ++ name ++ (typespec t)
+            (ind c.indent) ++ "@spec " ++ toSnakeCase name ++ (typespec t)
         FunctionDeclaration name args body as fd->
             (ind c.indent)
-            ++ (defOrDefp c name) ++ name
-            ++ "(" ++ (String.join "," args) ++ ") do"
+            ++ (defOrDefp c name) ++ toSnakeCase name
+            ++ "(" ++ (String.join ", " args) ++ ") do"
             ++ (ind <| c.indent + 1)
             ++ (elixirE body (c.indent + 1))
             ++ (ind  c.indent) ++ "end\n"
@@ -162,7 +166,7 @@ elixirE e i =
             if isCapitilzed name then
                 atomize name
             else
-                name
+                toSnakeCase name
 
         Variable (name :: rest) ->
             elixirE (Variable [name]) i
@@ -180,6 +184,7 @@ elixirE e i =
         String value ->
             toString value
 
+        List [] -> "[]"
         List [value] ->
             "[" ++ combineComas value ++ "]"
 
@@ -187,6 +192,10 @@ elixirE e i =
 
         Access left [right] ->
             elixirE left i ++ "." ++ right
+
+        -- Basics
+        BinOp (Variable ["/="]) l r ->
+            elixirE l i ++ "!=" ++ elixirE r i
 
         -- It's tuple if it wasn't covered by list
         BinOp (Variable [","]) a b as binop ->
@@ -356,4 +365,17 @@ combineComas e =
             combineComas n ++ ", " ++ elixirE r 0
         BinOp (Variable [","]) l r ->
             elixirE l 0 ++ ", " ++ elixirE r 0
-        other -> Debug.crash (toString other)
+        other -> elixirE other 0
+
+toSnakeCase : String -> String
+toSnakeCase e =
+    let
+        withUpper = \a -> (first a |> Char.isUpper, first a, second a)
+    in
+    case String.uncons e |> Maybe.map withUpper of
+        Just (True, a, rest) ->
+            "_" ++ String.cons (Char.toLower a) (toSnakeCase rest)
+        Just (False, a, rest) ->
+             String.cons a (toSnakeCase rest)
+        Nothing ->
+            ""
