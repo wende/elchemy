@@ -125,8 +125,9 @@ typealias t =
 elixirT : Type -> String
 elixirT t =
     case t of
-        TypeTuple [a] ->
+        TypeTuple [ a ] ->
             elixirT a
+
         TypeTuple [ a, b ] ->
             "{" ++ elixirT a ++ ", " ++ elixirT b ++ "}"
 
@@ -151,12 +152,12 @@ elixirT t =
         TypeConstructor t [] ->
             (String.join "." t) ++ ".t"
 
-        TypeConstructor [t] list ->
-            "{" ++ atomize t
+        TypeConstructor [ t ] list ->
+            "{"
+                ++ atomize t
                 ++ ", "
                 ++ (map elixirT list |> String.join ", ")
-            ++  "}"
-
+                ++ "}"
 
         -- case List.reverse t of
         --     "T" :: rest -> (rest |> reverse |> String.join ".") ++ ".t()"
