@@ -13,7 +13,7 @@ import List exposing (..)
 
 
 version =
-    "0.0.2"
+    "0.0.3"
 
 
 type alias Context =
@@ -205,15 +205,18 @@ elixirS s c =
         (FunctionDeclaration name args body) as fd ->
             if List.length args > 1 then
                 genElixirFunc c name args body
+                ++ "\n"
             else
                 case body of
                     Case _ expressions ->
                         expressions
                             |> List.map (\( left, right ) -> genElixirFunc c name [ elixirE left c.indent ] right)
                             |> List.foldr (++) ""
+                            |> flip (++) "\n"
 
                     _ ->
                         genElixirFunc c name args body
+                            ++ "\n"
 
         Comment content ->
             (ind c.indent) ++ "#" ++ content

@@ -68,14 +68,6 @@ otherOrigin =
   Point3D 0 0 0
 
 
-type T = Int | String
-
-test : Int -> String
-test num =
-    case num of
-        1 -> "cichocinski"
-        number -> ("wende", number)
-
 add a b =
     case a of
         1 -> a

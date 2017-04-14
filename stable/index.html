@@ -12447,8 +12447,8 @@ var _user$project$Compiler$getVariableName = function (e) {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'Compiler',
 			{
-				start: {line: 497, column: 5},
-				end: {line: 502, column: 30}
+				start: {line: 500, column: 5},
+				end: {line: 505, column: 30}
 			},
 			_p1)('jeb');
 	}
@@ -12457,8 +12457,8 @@ var _user$project$Compiler$notImplemented = function (value) {
 	return _elm_lang$core$Native_Utils.crash(
 		'Compiler',
 		{
-			start: {line: 492, column: 5},
-			end: {line: 492, column: 16}
+			start: {line: 495, column: 5},
+			end: {line: 495, column: 16}
 		})(
 		A2(
 			_elm_lang$core$Basics_ops['++'],
@@ -12544,8 +12544,8 @@ var _user$project$Compiler$defOrDefp = F2(
 				return _elm_lang$core$Native_Utils.crashCase(
 					'Compiler',
 					{
-						start: {line: 234, column: 5},
-						end: {line: 245, column: 41}
+						start: {line: 237, column: 5},
+						end: {line: 248, column: 41}
 					},
 					_p4)('No such export');
 		}
@@ -12722,7 +12722,7 @@ var _user$project$Compiler$glueEnd = A2(
 	_elm_lang$core$Basics_ops['++'],
 	'\n',
 	_elm_lang$core$String$trim('\n         end\n         '));
-var _user$project$Compiler$version = '0.0.1';
+var _user$project$Compiler$version = '0.0.2';
 var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Compiler$ind(0),
@@ -12929,8 +12929,8 @@ var _user$project$Compiler$tupleOrFunction = F2(
 		return _elm_lang$core$Native_Utils.crashCase(
 			'Compiler',
 			{
-				start: {line: 439, column: 5},
-				end: {line: 459, column: 70}
+				start: {line: 442, column: 5},
+				end: {line: 462, column: 70}
 			},
 			_p18)(
 			A2(
@@ -13298,35 +13298,48 @@ var _user$project$Compiler$elixirS = F2(
 					if (_elm_lang$core$Native_Utils.cmp(
 						_elm_lang$core$List$length(_p28),
 						1) > 0) {
-						return A4(_user$project$Compiler$genElixirFunc, c, _p30, _p28, _p29);
+						return A2(
+							_elm_lang$core$Basics_ops['++'],
+							A4(_user$project$Compiler$genElixirFunc, c, _p30, _p28, _p29),
+							'\n');
 					} else {
 						var _p25 = _p29;
 						if (_p25.ctor === 'Case') {
 							return A3(
-								_elm_lang$core$List$foldr,
+								_elm_lang$core$Basics$flip,
 								F2(
 									function (x, y) {
 										return A2(_elm_lang$core$Basics_ops['++'], x, y);
 									}),
-								'',
-								A2(
-									_elm_lang$core$List$map,
-									function (_p26) {
-										var _p27 = _p26;
-										return A4(
-											_user$project$Compiler$genElixirFunc,
-											c,
-											_p30,
-											{
-												ctor: '::',
-												_0: A2(_user$project$Compiler$elixirE, _p27._0, c.indent),
-												_1: {ctor: '[]'}
-											},
-											_p27._1);
-									},
-									_p25._1));
+								'\n',
+								A3(
+									_elm_lang$core$List$foldr,
+									F2(
+										function (x, y) {
+											return A2(_elm_lang$core$Basics_ops['++'], x, y);
+										}),
+									'',
+									A2(
+										_elm_lang$core$List$map,
+										function (_p26) {
+											var _p27 = _p26;
+											return A4(
+												_user$project$Compiler$genElixirFunc,
+												c,
+												_p30,
+												{
+													ctor: '::',
+													_0: A2(_user$project$Compiler$elixirE, _p27._0, c.indent),
+													_1: {ctor: '[]'}
+												},
+												_p27._1);
+										},
+										_p25._1)));
 						} else {
-							return A4(_user$project$Compiler$genElixirFunc, c, _p30, _p28, _p29);
+							return A2(
+								_elm_lang$core$Basics_ops['++'],
+								A4(_user$project$Compiler$genElixirFunc, c, _p30, _p28, _p29),
+								'\n');
 						}
 					}
 				case 'Comment':
@@ -13422,8 +13435,8 @@ var _user$project$Compiler$tree = function (m) {
 	return _elm_lang$core$Native_Utils.crashCase(
 		'Compiler',
 		{
-			start: {line: 344, column: 5},
-			end: {line: 360, column: 39}
+			start: {line: 347, column: 5},
+			end: {line: 363, column: 39}
 		},
 		_p31)(
 		_elm_lang$core$Basics$toString(_p31));
@@ -13437,7 +13450,7 @@ var _user$project$Main$update = F2(
 			return '';
 		}
 	});
-var _user$project$Main$init = 'module Main exposing (..)\nimport Elixir.Glue exposing (..)\n\nf : Int -> Int\nf x = x + 1\n\ntupleAdd : (number, number) -> number\ntupleAdd tuple = first tuple + second tuple\n\nadd : number -> number -> number\nadd a b = a + Just b\n\nh = wende g + hajto cichocinski 10\n\ncasa t =\n    case t of\n        wende -> 1\n        cichocinski ->\n            \\a -> 1 + 2\n-- If you alias a record, you can use the name as a constructor function.\notherOrigin : Point3D\notherOrigin =\n  Point3D 0 0 0\n\n\ntype T = Int | String\n\ntest : Int -> String\ntest num =\n    case num of\n        1 -> \"cichocinski\"\n        number -> (\"wende\", number)\n\nadd a b =\n    case a of\n        1 -> a\n        _ -> b\n\n';
+var _user$project$Main$init = 'module Main exposing (..)\nimport Elixir.Glue exposing (..)\n\nf : Int -> Int\nf x = x + 1\n\ntupleAdd : (number, number) -> number\ntupleAdd tuple = first tuple + second tuple\n\nadd : number -> number -> number\nadd a b = a + Just b\n\nh = wende g + hajto cichocinski 10\n\ncasa t =\n    case t of\n        wende -> 1\n        cichocinski ->\n            \\a -> 1 + 2\n-- If you alias a record, you can use the name as a constructor function.\notherOrigin : Point3D\notherOrigin =\n  Point3D 0 0 0\n\n\nadd a b =\n    case a of\n        1 -> a\n        _ -> b\n\n';
 var _user$project$Main$codeStyle = _elm_lang$html$Html_Attributes$style(
 	{
 		ctor: '::',
