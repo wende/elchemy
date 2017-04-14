@@ -365,7 +365,8 @@ tree m =
                     |> flip (++) glueEnd
 
         Err ( (), { input, position }, [ msg ] ) ->
-            "]ERR> Compilation error at: " ++ input
+            "]ERR> Compilation error at: "
+                ++ input
                 ++ "\n"
 
         err ->
