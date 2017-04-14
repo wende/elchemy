@@ -205,7 +205,7 @@ elixirS s c =
         (FunctionDeclaration name args body) as fd ->
             if List.length args > 1 then
                 genElixirFunc c name args body
-                ++ "\n"
+                    ++ "\n"
             else
                 case body of
                     Case _ expressions ->

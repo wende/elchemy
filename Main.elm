@@ -1,35 +1,39 @@
 module Main exposing (main)
+
 import Html.Events exposing (..)
 import Json.Decode as JD
 import Html exposing (..)
 import Html
 import Html.Attributes
-
 import Compiler
 
+
 type Msg
-    = Replace String | String
+    = Replace String
+    | String
 
 
 divStyle : Attribute msg
 divStyle =
     Html.Attributes.style
-    [ ("display", "inline-flex")
-    , ("width", "100%")
-    ]
+        [ ( "display", "inline-flex" )
+        , ( "width", "100%" )
+        ]
+
 
 codeStyle : Attribute msg
 codeStyle =
     Html.Attributes.style
-    [("width", "50%")
-    ,("margin", "10px")]
+        [ ( "width", "50%" )
+        , ( "margin", "10px" )
+        ]
 
 
 view : String -> Html Msg
 view model =
-    div [divStyle]
+    div [ divStyle ]
         [ textarea [ codeStyle, on "input" (JD.map Replace targetValue) ] [ text model ]
-        ,  pre [codeStyle] [text (Compiler.tree model)]
+        , pre [ codeStyle ] [ text (Compiler.tree model) ]
         ]
 
 
@@ -40,6 +44,7 @@ main =
         , update = update
         , view = view
         }
+
 
 init : String
 init =
@@ -74,10 +79,13 @@ add a b =
         _ -> b
 
 """
+
+
 update : Msg -> String -> String
 update action model =
     case action of
         Replace m ->
             m
+
         String ->
             ""
