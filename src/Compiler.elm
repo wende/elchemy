@@ -13,7 +13,7 @@ import List exposing (..)
 
 
 version =
-    "0.0.5"
+    "0.0.7"
 
 
 type alias Context =
@@ -185,7 +185,7 @@ genElixirFunc : Context -> String -> List String -> Expression -> String
 genElixirFunc c name args body =
     (ind c.indent)
         ++ (defOrDefp c name)
-        ++ name
+        ++ toSnakeCase name
         ++ "("
         ++ (String.join "," args)
         ++ ") do"
@@ -366,6 +366,7 @@ tree m =
 
         Err ( (), { input, position }, [ msg ] ) ->
             "]ERR> Compilation error at: " ++ input
+                ++ "\n"
 
         err ->
             Debug.crash (toString err)
