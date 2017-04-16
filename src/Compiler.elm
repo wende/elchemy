@@ -13,7 +13,7 @@ import List exposing (..)
 
 
 version =
-    "0.0.7"
+    "0.0.8"
 
 
 type alias Context =
