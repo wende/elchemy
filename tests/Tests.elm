@@ -38,7 +38,6 @@ all =
         -- Currently ((1, 2), 3) will return (1, 2, 3). Error in parser
         -- , test "Other nested tuples" <| \() ->
         --       "tuple = ((1, 2), 3)" |> is "{{1, 2}, 3}"
-
         -- LISTS
         , test "Lists w spaces" <|
             \() ->

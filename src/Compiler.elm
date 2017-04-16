@@ -101,7 +101,7 @@ typespec_ start t =
 
         (TypeTuple _) as t ->
             (if start then
-                 " :: "
+                " :: "
              else
                 ""
             )
@@ -183,10 +183,11 @@ elixirT t =
                 ++ "}"
 
         TypeRecord fields ->
-            "%{" ++
-                (map (\(k, v) -> k ++ ": " ++ elixirT v) fields
-                |> String.join ", ")
-            ++ "}"
+            "%{"
+                ++ (map (\( k, v ) -> k ++ ": " ++ elixirT v) fields
+                        |> String.join ", "
+                   )
+                ++ "}"
 
         TypeApplication l r ->
             "("
@@ -364,16 +365,19 @@ elixirE e i =
 
         Record keyValuePairs ->
             "%{"
-                ++ (map (\(a, b) -> a ++ ": " ++ elixirE b i) keyValuePairs
-                    |> String.join ", ")
+                ++ (map (\( a, b ) -> a ++ ": " ++ elixirE b i) keyValuePairs
+                        |> String.join ", "
+                   )
                 ++ "}"
 
         RecordUpdate name keyValuePairs ->
-            "%{" ++ toSnakeCase name ++ " | "
-                ++ (map (\(a,b) -> a ++ ": " ++ elixirE b i) keyValuePairs
-                    |> String.join ", ")
+            "%{"
+                ++ toSnakeCase name
+                ++ " | "
+                ++ (map (\( a, b ) -> a ++ ": " ++ elixirE b i) keyValuePairs
+                        |> String.join ", "
+                   )
                 ++ "}"
-
 
         -- Primitive operators
         Access left [ right ] ->
@@ -603,17 +607,18 @@ combineComas e =
         |> map ((flip elixirE) 0)
         |> String.join ", "
 
+
 flatCommas : Expression -> List Expression
 flatCommas e =
     case e of
         BinOp (Variable [ "," ]) ((BinOp (Variable [ "," ]) l _) as n) r ->
-            flatCommas n ++ [r]
+            flatCommas n ++ [ r ]
 
         BinOp (Variable [ "," ]) l r ->
-            [l] ++ [r]
+            [ l ] ++ [ r ]
 
         other ->
-            [other]
+            [ other ]
 
 
 toSnakeCase : String -> String
@@ -632,16 +637,23 @@ toSnakeCase e =
             Nothing ->
                 ""
 
+
 generateMeta : Expression -> String
 generateMeta e =
     case e of
-        List [args] ->
-            map (\a ->
-                case a of
-                    String line -> line
-                    _ -> Debug.crash "Meta function has to have specific format")
-                (flatCommas args)
-            |> map ((++) (ind 0))
-            |> String.join ""
+        List [ args ] ->
+            map
+                (\a ->
+                    case a of
+                        String line ->
+                            line
 
-        _ -> Debug.crash "Meta function has to have specific format"
+                        _ ->
+                            Debug.crash "Meta function has to have specific format"
+                )
+                (flatCommas args)
+                |> map ((++) (ind 0))
+                |> String.join ""
+
+        _ ->
+            Debug.crash "Meta function has to have specific format"
