@@ -308,9 +308,9 @@ defOrDefp context name =
     case context.exports of
         SubsetExport exports ->
             if any (\exp -> exp == FunctionExport name) exports then
-                "defcurried "
+                "defcurry "
             else
-                "defcurredp "
+                "defcurryp "
 
         AllExport ->
             "def "
