@@ -99,8 +99,34 @@ typespec_ start t =
                         ", "
                    )
 
+        (TypeTuple _) as t ->
+            (if start then
+                 " :: "
+             else
+                ""
+            )
+                ++ elixirT t
+                ++ (if start then
+                        ""
+                    else
+                        ", "
+                   )
+
+        (TypeRecord _) as t ->
+            (if start then
+                " :: "
+             else
+                ""
+            )
+                ++ elixirT t
+                ++ (if start then
+                        ""
+                    else
+                        ", "
+                   )
+
         other ->
-            notImplemented other
+            notImplemented "typespec" other
 
 
 typealias : Type -> String
@@ -116,7 +142,7 @@ typealias t =
             name
 
         other ->
-            notImplemented other
+            notImplemented "typealias" other
 
 
 elixirT : Type -> String
@@ -156,11 +182,46 @@ elixirT t =
                 ++ (map elixirT list |> String.join ", ")
                 ++ "}"
 
+        TypeRecord fields ->
+            "%{" ++
+                (map (\(k, v) -> k ++ ": " ++ elixirT v) fields
+                |> String.join ", ")
+            ++ "}"
+
+        TypeApplication l r ->
+            "("
+                ++ (flattenTypeApplication r
+                        |> lastAndRest
+                        |> \( last, rest ) ->
+                            (map elixirT (l :: rest) |> String.join ", ")
+                                ++ " -> "
+                                ++ (Maybe.map elixirT last |> Maybe.withDefault "")
+                   )
+                ++ ")"
+
         -- case List.reverse t of
         --     "T" :: rest -> (rest |> reverse |> String.join ".") ++ ".t()"
         --     whole -> (whole |> reverse |> String.join ".")
         other ->
-            Debug.crash ("Type " ++ (toString other) ++ " not implemented yet")
+            notImplemented "type" other
+
+
+uncons : List a -> ( Maybe a, List a )
+uncons list =
+    case list of
+        a :: b ->
+            ( Just a, b )
+
+        [] ->
+            ( Nothing, [] )
+
+
+lastAndRest : List a -> ( Maybe a, List a )
+lastAndRest list =
+    list
+        |> List.reverse
+        |> uncons
+        |> Tuple.mapSecond List.reverse
 
 
 moduleStatement : Statement -> Context
@@ -210,7 +271,9 @@ elixirS s c =
             (ind c.indent) ++ "@spec " ++ toSnakeCase name ++ (typespec t)
 
         (FunctionDeclaration name args body) as fd ->
-            if List.length args > 1 then
+            if name == "meta" && args == [] then
+                generateMeta body
+            else if List.length args > 1 then
                 genElixirFunc c name args body
                     ++ "\n"
             else
@@ -236,7 +299,7 @@ elixirS s c =
             (ind c.indent) ++ "import " ++ String.join "." path
 
         s ->
-            notImplemented s
+            notImplemented "statement" s
 
 
 defOrDefp : Context -> String -> String
@@ -244,9 +307,9 @@ defOrDefp context name =
     case context.exports of
         SubsetExport exports ->
             if any (\exp -> exp == FunctionExport name) exports then
-                "def "
+                "defcurried "
             else
-                "defp "
+                "defcurredp "
 
         AllExport ->
             "def "
@@ -299,6 +362,19 @@ elixirE e i =
         List [ value ] ->
             "[" ++ combineComas value ++ "]"
 
+        Record keyValuePairs ->
+            "%{"
+                ++ (map (\(a, b) -> a ++ ": " ++ elixirE b i) keyValuePairs
+                    |> String.join ", ")
+                ++ "}"
+
+        RecordUpdate name keyValuePairs ->
+            "%{" ++ toSnakeCase name ++ " | "
+                ++ (map (\(a,b) -> a ++ ": " ++ elixirE b i) keyValuePairs
+                    |> String.join ", ")
+                ++ "}"
+
+
         -- Primitive operators
         Access left [ right ] ->
             elixirE left i ++ "." ++ right
@@ -330,7 +406,7 @@ elixirE e i =
 
         -- Rest
         e ->
-            notImplemented e
+            notImplemented "expression" e
 
 
 lambda : List String -> Expression -> Int -> String
@@ -487,6 +563,16 @@ flattenApplication application =
             [ other ]
 
 
+flattenTypeApplication : Type -> List Type
+flattenTypeApplication application =
+    case application of
+        TypeApplication left right ->
+            (flattenTypeApplication left) ++ [ right ]
+
+        other ->
+            [ other ]
+
+
 isMacro : Expression -> Bool
 isMacro e =
     case e of
@@ -500,22 +586,34 @@ isMacro e =
             False
 
 
-notImplemented : a -> String
-notImplemented value =
-    Debug.crash (" ## ERROR: No implementation for " ++ toString value ++ " yet" ++ "\n")
+notImplemented : String -> a -> String
+notImplemented feature value =
+    " ## ERROR: No "
+        ++ feature
+        ++ " implementation for "
+        ++ toString value
+        ++ " yet"
+        ++ "\n"
+        |> Debug.crash
 
 
 combineComas : Expression -> String
 combineComas e =
+    flatCommas e
+        |> map ((flip elixirE) 0)
+        |> String.join ", "
+
+flatCommas : Expression -> List Expression
+flatCommas e =
     case e of
         BinOp (Variable [ "," ]) ((BinOp (Variable [ "," ]) l _) as n) r ->
-            combineComas n ++ ", " ++ elixirE r 0
+            flatCommas n ++ [r]
 
         BinOp (Variable [ "," ]) l r ->
-            elixirE l 0 ++ ", " ++ elixirE r 0
+            [l] ++ [r]
 
         other ->
-            elixirE other 0
+            [other]
 
 
 toSnakeCase : String -> String
@@ -533,3 +631,17 @@ toSnakeCase e =
 
             Nothing ->
                 ""
+
+generateMeta : Expression -> String
+generateMeta e =
+    case e of
+        List [args] ->
+            map (\a ->
+                case a of
+                    String line -> line
+                    _ -> Debug.crash "Meta function has to have specific format")
+                (flatCommas args)
+            |> map ((++) (ind 0))
+            |> String.join ""
+
+        _ -> Debug.crash "Meta function has to have specific format"

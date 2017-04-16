@@ -3,6 +3,6 @@ defmodule ElmchemyTest do
   doctest Elmchemy
 
   test "the truth" do
-    assert 1 + 1 == 2
+    assert Elmchemy.Test.add().(1).(2) == Elmchemy.Test.add(1, 2)
   end
 end

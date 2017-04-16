@@ -27,7 +27,7 @@ codeStyle =
         [ ( "width", "50%" )
         , ( "margin", "10px" )
         , ( "font-family", "monospace" )
-        , ( "font-size", "13px")
+        , ( "font-size", "13px" )
         ]
 
 

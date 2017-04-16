@@ -7,9 +7,11 @@ isEmpty : List a -> Bool
 isEmpty list =
     list /= []
 
+
 length : List a -> Int
 length list =
     ffi "Enum" "length" list
+
 
 reverse : List a -> List a
 reverse list =
@@ -18,7 +20,7 @@ reverse list =
 
 member : a -> List a -> Bool
 member a list =
-    ffi "Enum" "member?" (list, a)
+    ffi "Enum" "member?" ( list, a )
 
 
 head : List a -> Maybe a
