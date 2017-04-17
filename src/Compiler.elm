@@ -265,19 +265,20 @@ elixirS s c =
     case s of
         TypeDeclaration name types ->
             ""
-            -- (ind c.indent)
-            --     ++ "@type "
-            --     ++ (typealias name)
-            --     ++ " :: "
-            --     ++ ((map (typealias) types) |> String.join " | ")
 
+        -- (ind c.indent)
+        --     ++ "@type "
+        --     ++ (typealias name)
+        --     ++ " :: "
+        --     ++ ((map (typealias) types) |> String.join " | ")
         TypeAliasDeclaration _ _ ->
             ""
 
         --"alias?"
         FunctionTypeDeclaration name t ->
-            ""-- (ind c.indent) ++ "@spec " ++ toSnakeCase name ++ (typespec t)
+            ""
 
+        -- (ind c.indent) ++ "@spec " ++ toSnakeCase name ++ (typespec t)
         (FunctionDeclaration name args body) as fd ->
             if name == "meta" && args == [] then
                 generateMeta body
@@ -548,14 +549,13 @@ tupleOrFunction a i =
         [ Variable [ "ffi" ], String mod, String fun, any ] ->
             mod ++ "." ++ fun ++ "(" ++ elixirE any i ++ ")"
 
-                -- Elmchemy hack
+        -- Elmchemy hack
         [ Variable [ "lffi" ], String fun, (BinOp (Variable [ "," ]) _ _) as args ] ->
             fun ++ "(" ++ combineComas args ++ ")"
 
         -- One arg fun
         [ Variable [ "lffi" ], String fun, any ] ->
             fun ++ "(" ++ elixirE any i ++ ")"
-
 
         (Variable [ name ]) :: rest ->
             "{"
@@ -643,12 +643,14 @@ flatCommas e =
 toSnakeCase : String -> String
 toSnakeCase s =
     let
-        res = toSnakeCase_ s
+        res =
+            toSnakeCase_ s
     in
         if String.startsWith "_" res && res /= "_" then
             res |> String.dropLeft 1
         else
             res
+
 
 toSnakeCase_ : String -> String
 toSnakeCase_ e =

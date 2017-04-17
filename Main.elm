@@ -98,8 +98,14 @@ handle_cast command state =
 
 """
 
-type Czlowiek a = List a
-type Wende = Czlowiek Int
+
+type Czlowiek a
+    = List a
+
+
+type Wende
+    = Czlowiek Int
+
 
 update : Msg -> String -> String
 update action model =
