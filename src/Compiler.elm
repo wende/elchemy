@@ -337,7 +337,7 @@ defOrDefp context name =
                 "defp "
 
         AllExport ->
-            "defcurry "
+            "def "
 
         other ->
             Debug.crash "No such export"
