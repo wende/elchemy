@@ -48,7 +48,7 @@ pop pid =
 handle_call : Command a -> Pid -> State a -> GenServerReturn a a
 handle_call command from state =
     case ( command, from, state ) of
-        ( Pop, _, (h :: t) ) ->
+        ( Pop, _, h :: t ) ->
             Reply h t
 
         ( request, from, state ) ->

@@ -276,18 +276,24 @@ elixirS s c =
                 generateMeta body
             else if List.length args > 1 then
                 (ind c.indent)
-                ++ "curry "
-                ++ name ++ "/" ++ toString (List.length args)
-                ++ genElixirFunc c name args body
+                    ++ "curry "
+                    ++ name
+                    ++ "/"
+                    ++ toString (List.length args)
+                    ++ genElixirFunc c name args body
                     ++ "\n"
             else
                 case body of
                     Case _ expressions ->
-                        (ind c.indent) ++ "curry " ++ name ++ "/1"
-                        ++ (expressions
-                            |> List.map (\( left, right ) -> genElixirFunc c name [ elixirE left c.indent ] right)
-                            |> List.foldr (++) ""
-                            |> flip (++) "\n")
+                        (ind c.indent)
+                            ++ "curry "
+                            ++ name
+                            ++ "/1"
+                            ++ (expressions
+                                    |> List.map (\( left, right ) -> genElixirFunc c name [ elixirE left c.indent ] right)
+                                    |> List.foldr (++) ""
+                                    |> flip (++) "\n"
+                               )
 
                     _ ->
                         genElixirFunc c name args body
