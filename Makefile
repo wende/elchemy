@@ -11,7 +11,6 @@ compile:
 	elm-make Main.elm --output compiled.js
 	sed 's/var Elm = {}/&; \
 	var fs = require(\"fs\"); \
-	console.warn(\"Compiling \" + process.argv[2]); \
 	var a = fs.readFileSync(process.argv[2]).toString(); \
 	console.log(_user$$project$$Compiler$$tree(a))/' compiled.js > elmchemy.js
 	rm compiled.js
@@ -23,3 +22,6 @@ compile-watch:
 compile-std-watch:
 	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c \
 		"make compile && ./elmchemy compile src/elixir_std output"
+
+tests-watch:
+	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr elm-test

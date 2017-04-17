@@ -160,6 +160,9 @@ elixirT t =
         TypeVariable name ->
             "any"
 
+        TypeConstructor [ "String" ] [] ->
+            "String.t"
+
         TypeConstructor [ "Int" ] [] ->
             "int"
 
@@ -171,6 +174,9 @@ elixirT t =
 
         TypeConstructor [ "T" ] [] ->
             "t"
+
+        TypeConstructor [ t ] [] ->
+            toSnakeCase t
 
         TypeConstructor t [] ->
             (String.join "." t) ++ ".t"
@@ -246,7 +252,7 @@ genElixirFunc c name args body =
         ++ (defOrDefp c name)
         ++ toSnakeCase name
         ++ "("
-        ++ (String.join "," args)
+        ++ (String.join ", " args)
         ++ ") do"
         ++ (ind <| c.indent + 1)
         ++ (elixirE body (c.indent + 1))
@@ -258,19 +264,21 @@ elixirS : Statement -> Context -> String
 elixirS s c =
     case s of
         TypeDeclaration name types ->
-            (ind c.indent)
-                ++ "@type "
-                ++ (typealias name)
-                ++ " :: "
-                ++ ((map (typealias) types) |> String.join " | ")
+            ""
 
+        -- (ind c.indent)
+        --     ++ "@type "
+        --     ++ (typealias name)
+        --     ++ " :: "
+        --     ++ ((map (typealias) types) |> String.join " | ")
         TypeAliasDeclaration _ _ ->
             ""
 
         --"alias?"
         FunctionTypeDeclaration name t ->
-            (ind c.indent) ++ "@spec " ++ toSnakeCase name ++ (typespec t)
+            ""
 
+        -- (ind c.indent) ++ "@spec " ++ toSnakeCase name ++ (typespec t)
         (FunctionDeclaration name args body) as fd ->
             if name == "meta" && args == [] then
                 generateMeta body
@@ -313,7 +321,7 @@ defOrDefp context name =
                 "defcurryp "
 
         AllExport ->
-            "def "
+            "defcurry "
 
         other ->
             Debug.crash "No such export"
@@ -340,7 +348,7 @@ elixirE e i =
 
         Variable [ name ] ->
             if isCapitilzed name then
-                name
+                ":" ++ toSnakeCase name
             else
                 toSnakeCase name
 
@@ -499,7 +507,7 @@ capitalize s =
 
 atomize : String -> String
 atomize s =
-    ":" ++ String.toLower s
+    ":" ++ toSnakeCase s
 
 
 isCapitilzed : String -> Bool
@@ -541,9 +549,17 @@ tupleOrFunction a i =
         [ Variable [ "ffi" ], String mod, String fun, any ] ->
             mod ++ "." ++ fun ++ "(" ++ elixirE any i ++ ")"
 
+        -- Elmchemy hack
+        [ Variable [ "lffi" ], String fun, (BinOp (Variable [ "," ]) _ _) as args ] ->
+            fun ++ "(" ++ combineComas args ++ ")"
+
+        -- One arg fun
+        [ Variable [ "lffi" ], String fun, any ] ->
+            fun ++ "(" ++ elixirE any i ++ ")"
+
         (Variable [ name ]) :: rest ->
-            "{:"
-                ++ String.toLower name
+            "{"
+                ++ atomize name
                 ++ ", "
                 ++ (map (\a -> elixirE a i) rest |> String.join ", ")
                 ++ "}"
@@ -586,6 +602,9 @@ isMacro e =
         Variable [ "ffi" ] ->
             True
 
+        Variable [ "lffi" ] ->
+            True
+
         other ->
             False
 
@@ -622,17 +641,29 @@ flatCommas e =
 
 
 toSnakeCase : String -> String
-toSnakeCase e =
+toSnakeCase s =
+    let
+        res =
+            toSnakeCase_ s
+    in
+        if String.startsWith "_" res && res /= "_" then
+            res |> String.dropLeft 1
+        else
+            res
+
+
+toSnakeCase_ : String -> String
+toSnakeCase_ e =
     let
         withUpper =
             \a -> ( first a |> Char.isUpper, first a, second a )
     in
         case String.uncons e |> Maybe.map withUpper of
             Just ( True, a, rest ) ->
-                "_" ++ String.cons (Char.toLower a) (toSnakeCase rest)
+                "_" ++ String.cons (Char.toLower a) (toSnakeCase_ rest)
 
             Just ( False, a, rest ) ->
-                String.cons a (toSnakeCase rest)
+                String.cons a (toSnakeCase_ rest)
 
             Nothing ->
                 ""
