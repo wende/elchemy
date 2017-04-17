@@ -283,15 +283,25 @@ elixirS s c =
             if name == "meta" && args == [] then
                 generateMeta body
             else if List.length args > 1 then
-                genElixirFunc c name args body
+                (ind c.indent)
+                    ++ "curry "
+                    ++ name
+                    ++ "/"
+                    ++ toString (List.length args)
+                    ++ genElixirFunc c name args body
                     ++ "\n"
             else
                 case body of
                     Case _ expressions ->
-                        expressions
-                            |> List.map (\( left, right ) -> genElixirFunc c name [ elixirE left c.indent ] right)
-                            |> List.foldr (++) ""
-                            |> flip (++) "\n"
+                        (ind c.indent)
+                            ++ "curry "
+                            ++ name
+                            ++ "/1"
+                            ++ (expressions
+                                    |> List.map (\( left, right ) -> genElixirFunc c name [ elixirE left c.indent ] right)
+                                    |> List.foldr (++) ""
+                                    |> flip (++) "\n"
+                               )
 
                     _ ->
                         genElixirFunc c name args body
@@ -316,9 +326,9 @@ defOrDefp context name =
     case context.exports of
         SubsetExport exports ->
             if any (\exp -> exp == FunctionExport name) exports then
-                "defcurry "
+                "def "
             else
-                "defcurryp "
+                "defp "
 
         AllExport ->
             "defcurry "

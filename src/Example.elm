@@ -1,33 +1,65 @@
-module Example exposing (..)
+module Stack exposing (..)
 
-import Ast.Statement
 import Elmchemy exposing (..)
-import String
 
 
-type alias Record =
-    { a : Int }
+meta =
+    [ "use GenServer" ]
 
 
-join : List String -> Int -> String
-join list a =
-    "1" ++ ffi "Enum" "join" ( list, ( a, a ) )
+type alias State a =
+    List a
 
 
-test1 : number -> ( number, number ) -> number
-test1 a b =
-    a
+type GenServerReturn a b
+    = Reply a (State b)
+    | NoReply (State b)
+
+
+type Command a
+    = Stack
+    | Push a
+    | Pop
 
 
 
--- Make
+-- Client
 
 
-add a b =
-    a + b
+startLink : a -> Pid
+startLink default =
+    ffi "GenServer" "start_link" ( Stack, default )
 
 
-testName : Int -> Int -> Int -> List Int -> String
-testName a b c d =
-    List.foldl (add) 0 [ b ]
-        |> toString
+push : Pid -> a -> a
+push pid item =
+    ffi "GenServer" "cast" ( pid, (Push item) )
+
+
+pop : Pid -> a
+pop pid =
+    ffi "GenServer" "call" ( pid, Pop )
+
+
+
+-- Server (callbacks)
+
+
+handle_call : Command a -> Pid -> State a -> GenServerReturn a a
+handle_call command from state =
+    case ( command, from, state ) of
+        ( Pop, _, h :: t ) ->
+            Reply h t
+
+        ( request, from, state ) ->
+            lffi "super" ( request, from, state )
+
+
+handle_cast : Command a -> State a -> GenServerReturn a a
+handle_cast command state =
+    case ( command, state ) of
+        ( Push item, state ) ->
+            NoReply (item :: state)
+
+        ( request, state ) ->
+            lffi "super" ( request, state )
