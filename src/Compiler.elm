@@ -362,7 +362,8 @@ elixirE e i =
         Variable list ->
             case lastAndRest list of
                 ( Just last, rest ) ->
-                    elixirE (Variable [last]) i
+                    elixirE (Variable [ last ]) i
+
                 _ ->
                     Debug.crash "Shouldn't ever happen"
 
@@ -542,12 +543,15 @@ isTuple a =
 
                 Lower _ ->
                     False
+
         Variable list ->
             case lastAndRest list of
-                (Just last, _) ->
-                    isTuple (Variable [last])
+                ( Just last, _ ) ->
+                    isTuple (Variable [ last ])
+
                 _ ->
                     Debug.crash "Shouldn't ever happen"
+
         other ->
             False
 
@@ -583,16 +587,15 @@ tupleOrFunction a i =
 
         (Variable list) :: rest ->
             case lastAndRest list of
-                ((Just last), _) ->
+                ( Just last, _ ) ->
                     "{"
-                    ++ atomize last
-                    ++ ", "
-                    ++ (map (\a -> elixirE a i) rest |> String.join ", ")
-                    ++ "}"
+                        ++ atomize last
+                        ++ ", "
+                        ++ (map (\a -> elixirE a i) rest |> String.join ", ")
+                        ++ "}"
 
                 _ ->
                     Debug.crash "Won't ever happen"
-
 
         other ->
             Debug.crash ("Shouldn't ever work for" ++ toString other)
