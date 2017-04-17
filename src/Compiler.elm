@@ -179,7 +179,10 @@ elixirT t =
             toSnakeCase t
 
         TypeConstructor t [] ->
-            (String.join "." t) ++ ".t"
+            -- (String.join "." t) ++ ".t"
+            case lastAndRest t of
+                (Just last, a) -> last
+                _ -> Debug.crash "Shouldn't ever happen"
 
         TypeConstructor [ t ] list ->
             "{"
@@ -358,12 +361,15 @@ elixirE e i =
 
         Variable [ name ] ->
             if isCapitilzed name then
-                ":" ++ toSnakeCase name
+                atomize name
             else
                 toSnakeCase name
 
         Variable list ->
-            String.join "." list
+            case lastAndRest list of
+                (Just last, rest) -> atomize last
+                _ -> Debug.crash "Shouldn't ever happen"
+--            String.join "." list
 
         -- Primitive types
         (Application name arg) as application ->

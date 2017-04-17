@@ -114,6 +114,12 @@ all =
         , test "Type in tuple" <|
             \() ->
                 "a = (Type, a, b, c)" |> is "{:type, a, b, c}"
+        , test "Remote types" <|
+            \() ->
+                "a = (Remote.Type, a, b, c)" |> is "{:type, a, b, c}"
+        , test "Remote types" <|
+            \() ->
+                "a = (Remote.Type, a, b, c)" |> is "{:type, a, b, c}"
 
         -- End
         ]
