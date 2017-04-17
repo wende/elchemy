@@ -66,21 +66,30 @@ all =
             \() ->
                 "a = camelCase 1" |> is "camel_case.(1)"
 
-        -- Typespecs
-        , test "Typespecs with dependant types" <|
-            \() ->
-                "sum : (List Int) -> Int" |> is "@spec sum(list(int)) :: int"
-        , test "Typespecs with functions" <|
-            \() ->
-                "map : (List a) -> (a -> a) -> (List a)"
-                    |> is "map(list(any), (any -> any)) :: list(any)"
-        , test "Typespecs with multiple arg functions" <|
-            \() ->
-                "map : (List a) -> (a -> a -> b) -> (List a)"
-                    |> is "map(list(any), (any, any -> any)) :: list(any) "
-        , test "Typespecs names are snakecased" <|
-            \() ->
-                "mapMap : a" |> is "@spec map_map"
+        -- -- Typespecs
+        -- , test "Typespecs with dependant types" <|
+        --     \() ->
+        --         "sum : (List Int) -> Int" |> is "@spec sum(list(int)) :: int"
+        -- , test "Typespecs with functions" <|
+        --     \() ->
+        --         "map : (List a) -> (a -> a) -> (List a)"
+        --             |> is "map(list(any), (any -> any)) :: list(any)"
+        -- , test "Typespecs with multiple arg functions" <|
+        --     \() ->
+        --         "map : (List a) -> (a -> a -> b) -> (List a)"
+        --             |> is "map(list(any), (any, any -> any)) :: list(any) "
+        -- , test "Typespecs names are snakecased" <|
+        --     \() ->
+        --         "mapMap : a" |> is "@spec map_map"
+        -- , test "Records in typespecs" <|
+        --     \() ->
+        --         "record : { a : Int, b : String}" |> is "@spec record :: %{a: int, b: String.t}"
+
+        -- -- Type aliases
+        -- , test "Types" <|
+        --     \() ->
+        --         "type AType = BType | CType" |> is "@type a_type :: b_type | c_type"
+
 
         -- Records
         , test "Records work" <|
@@ -92,9 +101,6 @@ all =
         , test "Updating records work" <|
             \() ->
                 "addToA r = {r | a = (r.a + 5), b = 2} " |> is "%{r | a: r.a + 5, b: 2}"
-        , test "Records in typespecs" <|
-            \() ->
-                "record : { a : Int, b : String}" |> is "@spec record :: %{a: int, b: String.t}"
 
         -- Module Meta
         , test "Module meta" <|
@@ -104,5 +110,12 @@ all =
             \() ->
                 "meta = [\"use GenServer\", \"@port 100\"]" |> is "@port 100"
 
+        -- Types Are Tuples
+        , test "Type application" <|
+            \() ->
+                "a = Type a b c" |> is "{:type, a, b, c}"
+        , test "Type in tuple" <|
+            \() ->
+                "a = (Type, a, b, c)" |> is "{:type, a, b, c}"
         -- End
         ]

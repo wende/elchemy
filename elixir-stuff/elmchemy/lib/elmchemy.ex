@@ -25,6 +25,16 @@ defmodule ElmchemyHack do
 end
 
 defmodule Elmchemy do
+
+  defmacro __using__(_) do
+    quote do
+      require Elmchemy
+      require Elmchemy.Glue
+
+      import Elmchemy
+      import Elmchemy.Glue
+    end
+  end
   @moduledoc """
   Documentation for Elmchemy.
   """
