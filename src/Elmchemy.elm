@@ -1,6 +1,10 @@
 module Elmchemy exposing (..)
 
 
+type Pid
+    = String
+
+
 type alias Module =
     String
 
@@ -13,6 +17,16 @@ type alias Arity =
     Int
 
 
+lffi : Function -> a
+lffi =
+    Debug.crash "You can't call local ffi in browser"
+
+
 ffi : Module -> Function -> a
-ffi =
+ffi m f =
     Debug.crash "You can't use ffi in browser"
+
+
+super : a
+super =
+    Debug.crash "You can't use super in browser"

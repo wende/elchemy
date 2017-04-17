@@ -50,40 +50,61 @@ main =
 
 init : String
 init =
-    """module Main exposing (..)
-import Elixir.Glue exposing (..)
+    """module Stack exposing (..)
+import Elmchemy exposing (..)
 
-f : Int -> Int
-f x = x + 1
+meta =
+    [ "use GenServer" ]
 
-tupleAdd : (number, number) -> number
-tupleAdd tuple = first tuple + second tuple
+type alias State a = List a
+type GenServerReturn a b = Reply a (State b) | NoReply (State b)
+type Command a = Stack | Push a | Pop
 
-add : number -> number -> number
-add a b = a + Just b
+-- Client
 
-h = wende g + hajto cichocinski 10
+startLink : a -> Pid
+startLink default =
+    ffi "GenServer" "start_link" ( Stack, default )
 
-casa t =
-    case t of
-        wende -> 1
-        cichocinski ->
-            \\a -> 1 + 2
--- If you alias a record, you can use the name as a constructor function.
-otherOrigin : Point3D Int Int Int
-otherOrigin =
-    Point3D 0 0 0
+push : Pid -> a -> a
+push pid item =
+    ffi "GenServer" "cast" ( pid, ( Push, item ) )
 
-justPoint : Point3D
-justPoint =
-    Point3D.struct
+pop : Pid -> a
+pop pid =
+    ffi "GenServer" "call" ( pid, Pop )
 
-add a b =
-    case a of
-        1 -> a
-        _ -> b
+
+
+-- Server (callbacks)
+
+handle_call : Command a -> Pid -> State b -> GenServerReturn b b
+handle_call command from state =
+    case ( command, from, state ) of
+        ( Pop, _, h :: t ) ->
+            Reply h t
+
+        ( request, from, state ) ->
+            lffi "super" (request, from, state)
+
+handle_cast : Command a -> State a -> GenServerReturn a a
+handle_cast command state =
+    case ( command, state ) of
+        ( Push item, state ) ->
+            NoReply (item :: state)
+
+        ( request, state ) ->
+            lffi "super" (request, state)
 
 """
+
+
+type Czlowiek a
+    = List a
+
+
+type Wende
+    = Czlowiek Int
 
 
 update : Msg -> String -> String
