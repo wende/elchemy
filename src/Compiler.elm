@@ -212,9 +212,6 @@ elixirT t =
                    )
                 ++ ")"
 
-        -- case List.reverse t of
-        --     "T" :: rest -> (rest |> reverse |> String.join ".") ++ ".t()"
-        --     whole -> (whole |> reverse |> String.join ".")
         other ->
             notImplemented "type" other
 
@@ -347,12 +344,6 @@ elixirE : Expression -> Int -> String
 elixirE e i =
     case e of
         -- Monads and types to tuples
-        Application (Variable [ "Err" ]) arg ->
-            "{:error, " ++ tupleOrFunction arg i ++ "}"
-
-        Application (Variable [ "Ok" ]) arg ->
-            "{:ok, " ++ tupleOrFunction arg i ++ "}"
-
         Application (Variable [ "Just" ]) arg ->
             elixirE arg i
 
@@ -371,8 +362,7 @@ elixirE e i =
         Variable list ->
             case lastAndRest list of
                 ( Just last, rest ) ->
-                    atomize last
-
+                    elixirE (Variable [last]) i
                 _ ->
                     Debug.crash "Shouldn't ever happen"
 
@@ -552,7 +542,12 @@ isTuple a =
 
                 Lower _ ->
                     False
-
+        Variable list ->
+            case lastAndRest list of
+                (Just last, _) ->
+                    isTuple (Variable [last])
+                _ ->
+                    Debug.crash "Shouldn't ever happen"
         other ->
             False
 
@@ -585,6 +580,19 @@ tupleOrFunction a i =
                 ++ ", "
                 ++ (map (\a -> elixirE a i) rest |> String.join ", ")
                 ++ "}"
+
+        (Variable list) :: rest ->
+            case lastAndRest list of
+                ((Just last), _) ->
+                    "{"
+                    ++ atomize last
+                    ++ ", "
+                    ++ (map (\a -> elixirE a i) rest |> String.join ", ")
+                    ++ "}"
+
+                _ ->
+                    Debug.crash "Won't ever happen"
+
 
         other ->
             Debug.crash ("Shouldn't ever work for" ++ toString other)
