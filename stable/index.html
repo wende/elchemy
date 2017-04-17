@@ -12984,7 +12984,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Compiler$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elmchemy', '\n'));
-var _user$project$Compiler$version = '0.0.8';
+var _user$project$Compiler$version = '0.0.10';
 var _user$project$Compiler$Context = F3(
 	function (a, b, c) {
 		return {mod: a, exports: b, indent: c};
@@ -13777,7 +13777,7 @@ var _user$project$Main$update = F2(
 			return '';
 		}
 	});
-var _user$project$Main$init = 'module Stack exposing (..)\nimport Elmchemy exposing (..)\n\nmeta =\n    [ \"use GenServer\" ]\n\ntype alias State a = List a\ntype GenServerReturn a b = Reply a (State b) | NoReply (State b)\ntype Command a = Stack | Push a | Pop\n\n-- Client\n\nstartLink : a -> Pid\nstartLink default =\n    ffi \"GenServer\" \"start_link\" ( Stack, default )\n\npush : Pid -> a -> a\npush pid item =\n    ffi \"GenServer\" \"cast\" ( pid, ( Push, item ) )\n\npop : Pid -> a\npop pid =\n    ffi \"GenServer\" \"call\" ( pid, Pop )\n\n\n\n-- Server (callbacks)\n\nhandle_call : Command a -> Pid -> State b -> GenServerReturn b b\nhandle_call command from state =\n    case ( command, from, state ) of\n        ( Pop, _, h :: t ) ->\n            Reply h t\n\n        ( request, from, state ) ->\n            lffi \"super\" (request, from, state)\n\nhandle_cast : Command a -> State a -> GenServerReturn a a\nhandle_cast command state =\n    case ( command, state ) of\n        ( Push item, state ) ->\n            NoReply (item :: state)\n\n        ( request, state ) ->\n            lffi \"super\" (request, state)\n\n';
+var _user$project$Main$init = 'module Stack exposing (..)\n\nimport Elmchemy exposing (..)\n\n\nmeta =\n    [ \"use GenServer\" ]\n\n\ntype alias State a =\n    List a\n\n\ntype GenServerReturn a b\n    = Reply a (State b)\n    | NoReply (State b)\n\n\ntype Command a\n    = Stack\n    | Push a\n    | Pop\n\n\n\n-- Client\n\n\nstartLink : a -> Pid\nstartLink default =\n    ffi \"GenServer\" \"start_link\" ( Stack, default )\n\n\npush : Pid -> a -> a\npush pid item =\n    ffi \"GenServer\" \"cast\" ( pid, (Push item) )\n\n\npop : Pid -> a\npop pid =\n    ffi \"GenServer\" \"call\" ( pid, Pop )\n\n\n\n-- Server (callbacks)\n\n\nhandle_call : Command a -> Pid -> State a -> GenServerReturn a a\nhandle_call command from state =\n    case ( command, from, state ) of\n        Pop _ (h :: t) ->\n            Reply h t\n\n        ( request, from, state ) ->\n            lffi \"super\" ( request, from, state )\n\n\nhandle_cast : Command a -> State a -> GenServerReturn a a\nhandle_cast command state =\n    case ( command, state ) of\n        Push item state ->\n            NoReply (item :: state)\n\n        ( request, state ) ->\n            lffi \"super\" ( request, state )\n';
 var _user$project$Main$codeStyle = _elm_lang$html$Html_Attributes$style(
 	{
 		ctor: '::',

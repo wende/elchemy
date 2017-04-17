@@ -48,7 +48,7 @@ pop pid =
 handle_call : Command a -> Pid -> State a -> GenServerReturn a a
 handle_call command from state =
     case ( command, from, state ) of
-        ( Pop, _, h :: t ) ->
+        Pop _ (h :: t) ->
             Reply h t
 
         ( request, from, state ) ->
@@ -58,7 +58,7 @@ handle_call command from state =
 handle_cast : Command a -> State a -> GenServerReturn a a
 handle_cast command state =
     case ( command, state ) of
-        ( Push item, state ) ->
+        Push item state ->
             NoReply (item :: state)
 
         ( request, state ) ->
