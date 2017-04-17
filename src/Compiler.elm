@@ -181,8 +181,11 @@ elixirT t =
         TypeConstructor t [] ->
             -- (String.join "." t) ++ ".t"
             case lastAndRest t of
-                (Just last, a) -> last
-                _ -> Debug.crash "Shouldn't ever happen"
+                ( Just last, a ) ->
+                    last
+
+                _ ->
+                    Debug.crash "Shouldn't ever happen"
 
         TypeConstructor [ t ] list ->
             "{"
@@ -367,10 +370,13 @@ elixirE e i =
 
         Variable list ->
             case lastAndRest list of
-                (Just last, rest) -> atomize last
-                _ -> Debug.crash "Shouldn't ever happen"
---            String.join "." list
+                ( Just last, rest ) ->
+                    atomize last
 
+                _ ->
+                    Debug.crash "Shouldn't ever happen"
+
+        --            String.join "." list
         -- Primitive types
         (Application name arg) as application ->
             tupleOrFunction application i
