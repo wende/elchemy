@@ -11,58 +11,12 @@ make dev
 in terminal to start the compiler
 
 # What is it?
-Example of a transiled code using this transpiler:
-```elm
-module Main exposing (..)
-import Elixir.Glue exposing (..)
-f : Int -> Int
-f x = x + 1
-add : Int -> Int -> Int
-add a b = a + Just b
-h = wende g + hajto cichocinski 10
-casa t =
-    case t of
-        a -> 1
-        b ->
-            \a -> 1 + 2
--- If you alias a record, you can use the name as a constructor function.
-otherOrigin : Point3D
-otherOrigin =
-  Point3D 0 0 0
-```
-Produces:
-```elixir
-use Elmchemist.Glue
-defmodule Main do
-  import Elixir.Glue
-  @spec f(int()) :: int()
-  def f(x) do
-    x + 1
-  end
+Elmchemy is a project with one idea in mind: Seamless acommodation of Elm on Erlang VM.
 
-  @spec add(int(), int()) :: int()
-  def add(a,b) do
-    a + {:ok, b}
-  end
 
-  def h() do
-    wende.(g) + hajto.(cichocinski), 10
-  end
-
-  def casa(t) do
-    case t do
-      wende -> 1
-      cichocinski -> fn(a) -> 1 + 2 end
-    end
-  end
-
-  #  If you alias a record, you can use the name as a constructor function.
-  @spec otherOrigin :: Point3D
-  defun otherOrigin() do
-    {:point3d, 0, 0, 0}
-  end
-end
-```
+# Contributing Guide
+- Everyone is welcome to contribute
+- Refer to http://bogdanp.github.io/elm-ast/example/ to have better understanding of parsed tokens.
 
 # Targeted values:
 - Fully readable and indented elixir code generated from compilation
