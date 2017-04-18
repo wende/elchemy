@@ -25,3 +25,6 @@ compile-std-watch:
 
 tests-watch:
 	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr elm-test
+
+compile-demo:
+	find . | entr bash -c "make compile && node elmchemy.js src/Example.elm  > elixir-stuff/elmchemy/lib/example.ex"
