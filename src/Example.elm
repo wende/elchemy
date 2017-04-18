@@ -1,3 +1,5 @@
 module Wende exposing (..)
 
-dodaj a b = a + b
+
+dodaj a b =
+    a + b

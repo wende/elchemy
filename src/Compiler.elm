@@ -308,11 +308,11 @@ elixirS s c =
 
                     _ ->
                         (ind c.indent)
-                        ++ "curry "
-                        ++ name
-                        ++ "/"
-                        ++ toString (List.length args)
-                        ++ genElixirFunc c name args body
+                            ++ "curry "
+                            ++ name
+                            ++ "/"
+                            ++ toString (List.length args)
+                            ++ genElixirFunc c name args body
                             ++ "\n"
 
         Comment content ->
