@@ -12,6 +12,6 @@ install:
   - npm install -g elm
   - elm-package install -y
   - npm install -g elm-test
-script: travis-wait elm-test
+script: travis_wait elm-test
 notifications:
   email: false
