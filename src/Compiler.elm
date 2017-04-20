@@ -9,7 +9,7 @@ import ExStatement
 
 
 version =
-    "0.0.11"
+    "0.0.12"
 
 
 glueStart : String
