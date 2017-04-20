@@ -313,7 +313,7 @@ defOrDefp context name =
 functionCurry c name args =
     (ind c.indent)
         ++ "curry "
-        ++ name
+        ++ toSnakeCase name
         ++ "/"
         ++ toString (List.length args)
 
