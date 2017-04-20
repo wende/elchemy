@@ -2,6 +2,7 @@ dev:
 	elm-make Main.elm --output=example/elm.js
 	open -g example/index.html
 
+
 release:
 	elm-make Main.elm --output=example/elm.js
 	mkdir -p stable
