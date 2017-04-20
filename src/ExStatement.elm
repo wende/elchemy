@@ -69,8 +69,7 @@ elixirS s c =
                                 body
 
                     _ ->
-                        Debug.log "else"
-                            ExExpression.genFunctionDefinition
+                        ExExpression.genFunctionDefinition
                             c
                             name
                             args
