@@ -44,7 +44,7 @@ Elmchemy is a project with one idea in mind: Seamless acommodation of Elm on Erl
 You can, but nice and dandy compile tools are still on their way
 
 ## Will my employer notice I'm having an affair with Elm?
-The output files of Elmchemy treat the code readability as a first class citizen. The code is meant to be properly indented, the comments aren't omitted, and the code is optimized as hard as it can ( f.i case cluases reduce to function overloads)
+The output files of Elmchemy treat the code readability as a first class citizen. The code is meant to be properly indented, the comments aren't omitted, and the code is optimized as hard as it can ( f.i case clauses reduce to function overloads)
 Also auto-generated typespecs are on their way.
 You might need some configuration files to compile your project, but if you don't do `git add --all` before every commit you'll be fine.
 
