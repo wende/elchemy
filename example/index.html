@@ -4,16 +4,43 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Main</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.25.2/theme/solarized.css" />
+	  <link rel="stylesheet" href="http://esironal.github.io/cmtouch/lib/codemirror.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/styles/atom-one-dark.min.css" />
+    <style>
+     html, body {
+       margin: 0;
+       padding: 0;
+       width: 100%;
+       height: 100%;
+     }
+     .CodeMirror {
+       height: 100%;
+     }
+     #editor {
+       width: 50%;
+       float: left;
+     }
+     #root {
+       box-sizing: border-box;
+       width: 50%;
+       float: right;
+     }
+     pre {
+       margin: 0;
+     }
+    </style>
   </head>
   <body>
+    <div id="editor"></div>
     <div id="root"></div>
+	  <script src="http://esironal.github.io/cmtouch/lib/codemirror.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.25.2/mode/elm/elm.min.js"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/languages/elm.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/languages/elixir.min.js"></script>
     <script src="elm.js"></script>
-    <script>
-     Elm.Main.embed(document.getElementById("root"));
-    </script>
+    <script src="index.js"></script>
   </body>
 </html>
