@@ -13,7 +13,6 @@ in terminal to start the compiler
 # What is it?
 Elmchemy is a project with one idea in mind: Seamless acommodation of Elm on Erlang VM.
 
-
 # Contributing Guide
 - Everyone is welcome to contribute
 - Refer to http://bogdanp.github.io/elm-ast/example/ to have better understanding of parsed tokens.
@@ -68,8 +67,17 @@ Probably not. Unless you know a way to override standard Elm modules with our im
 Yes. You can do an `ffi` call to any function in any module. Whether it's Elixir module, Erlang module, or even a macro you can include it in your code. Just remember to wrap them in as small chunks as possible to not sacrifice any type safety.
 
 ## But what about out of function macros? Like tests and `use Module`?
-Unfortunatelly you can't write any macros with do blocks yet. You can write any out of function oneliner using Module meta feature:
+Unfortunatelly you can't write any macros with `do..end` blocks yet. You can write any out of function oneliner using Module meta feature:
 ```elm
 meta = 
   [ "use GenServer" ]
 ```
+
+## Can I define an Elixir macro in Elmchemy.
+So you want to write an Elm code, that will manipulate Elixir code, which generates and Elixir code that modifies Elixir code? How about no?
+
+## Do I need to have elm installed to compile my Elm files with Elmchemy.
+Ironically, no, you don't. Elmchemy is written entirely in Elm, which means the compiler is in JavaScript.
+But it's nice to use `elm-make` to check your type safety from time to time.
+
+
