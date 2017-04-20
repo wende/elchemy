@@ -13685,7 +13685,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elmchemy', '\n'));
-var _user$project$Compiler$version = '0.0.13';
+var _user$project$Compiler$version = '0.0.14';
 var _user$project$Compiler$tree = function (m) {
 	var _p0 = _Bogdanp$elm_ast$Ast$parse(m);
 	_v0_2:
@@ -13752,97 +13752,45 @@ var _user$project$Main$update = F2(
 	function (action, model) {
 		var _p0 = action;
 		if (_p0.ctor === 'Replace') {
-			return _p0._0;
+			return {ctor: '_Tuple2', _0: _p0._0, _1: _elm_lang$core$Platform_Cmd$none};
 		} else {
-			return '';
+			return {ctor: '_Tuple2', _0: '', _1: _elm_lang$core$Platform_Cmd$none};
 		}
 	});
-var _user$project$Main$init = 'module Stack exposing (..)\n\nimport Elmchemy exposing (..)\n\n\nmeta =\n    [ \"use GenServer\" ]\n\n\ntype alias State a =\n    List a\n\n\ntype GenServerReturn a b\n    = Reply a (State b)\n    | NoReply (State b)\n\n\ntype Command a\n    = Stack\n    | Push a\n    | Pop\n\n\n\n-- Client\n\n\nstartLink : a -> Pid\nstartLink default =\n    ffi \"GenServer\" \"start_link\" ( Stack, default )\n\n\npush : Pid -> a -> a\npush pid item =\n    ffi \"GenServer\" \"cast\" ( pid, (Push item) )\n\n\npop : Pid -> a\npop pid =\n    ffi \"GenServer\" \"call\" ( pid, Pop )\n\n\n\n-- Server (callbacks)\n\n\nhandle_call : Command a -> Pid -> State a -> GenServerReturn a a\nhandle_call command from state =\n    case ( command, from, state ) of\n        Pop, _, (h :: t) ->\n            Reply h t\n\n        ( request, from, state ) ->\n            lffi \"super\" ( request, from, state )\n\n\nhandle_cast : Command a -> State a -> GenServerReturn a a\nhandle_cast command state =\n    case ( command, state ) of\n        (Push item), state ->\n            NoReply (item :: state)\n\n        ( request, state ) ->\n            lffi \"super\" ( request, state )\n';
-var _user$project$Main$codeStyle = _elm_lang$html$Html_Attributes$style(
-	{
-		ctor: '::',
-		_0: {ctor: '_Tuple2', _0: 'width', _1: '50%'},
-		_1: {
-			ctor: '::',
-			_0: {ctor: '_Tuple2', _0: 'margin', _1: '10px'},
-			_1: {
-				ctor: '::',
-				_0: {ctor: '_Tuple2', _0: 'font-family', _1: 'monospace'},
-				_1: {
-					ctor: '::',
-					_0: {ctor: '_Tuple2', _0: 'font-size', _1: '13px'},
-					_1: {ctor: '[]'}
-				}
-			}
-		}
-	});
-var _user$project$Main$divStyle = _elm_lang$html$Html_Attributes$style(
-	{
-		ctor: '::',
-		_0: {ctor: '_Tuple2', _0: 'display', _1: 'inline-flex'},
-		_1: {
-			ctor: '::',
-			_0: {ctor: '_Tuple2', _0: 'width', _1: '100%'},
-			_1: {ctor: '[]'}
-		}
-	});
+var _user$project$Main$init = function (v) {
+	return {ctor: '_Tuple2', _0: v, _1: _elm_lang$core$Platform_Cmd$none};
+};
+var _user$project$Main$view = function (model) {
+	return A2(
+		_evancz$elm_markdown$Markdown$toHtml,
+		{ctor: '[]'},
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			'```elixir\n',
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				_user$project$Compiler$tree(model),
+				'\n```')));
+};
+var _user$project$Main$updateInput = _elm_lang$core$Native_Platform.incomingPort('updateInput', _elm_lang$core$Json_Decode$string);
 var _user$project$Main$String = {ctor: 'String'};
 var _user$project$Main$Replace = function (a) {
 	return {ctor: 'Replace', _0: a};
 };
-var _user$project$Main$view = function (model) {
-	return A2(
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _user$project$Main$divStyle,
-			_1: {ctor: '[]'}
-		},
-		{
-			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$textarea,
+var _user$project$Main$main = _elm_lang$html$Html$programWithFlags(
+	{
+		init: _user$project$Main$init,
+		update: _user$project$Main$update,
+		view: _user$project$Main$view,
+		subscriptions: function (_p1) {
+			return _elm_lang$core$Platform_Sub$batch(
 				{
 					ctor: '::',
-					_0: _user$project$Main$codeStyle,
-					_1: {
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html_Events$on,
-							'input',
-							A2(_elm_lang$core$Json_Decode$map, _user$project$Main$Replace, _elm_lang$html$Html_Events$targetValue)),
-						_1: {ctor: '[]'}
-					}
-				},
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html$text(model),
+					_0: _user$project$Main$updateInput(_user$project$Main$Replace),
 					_1: {ctor: '[]'}
-				}),
-			_1: {
-				ctor: '::',
-				_0: A2(
-					_evancz$elm_markdown$Markdown$toHtml,
-					{ctor: '[]'},
-					A2(
-						_elm_lang$core$Basics_ops['++'],
-						'```elixir\n',
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							_user$project$Compiler$tree(model),
-							'\n```'))),
-				_1: {ctor: '[]'}
-			}
-		});
-};
-var _user$project$Main$main = _elm_lang$html$Html$beginnerProgram(
-	{model: _user$project$Main$init, update: _user$project$Main$update, view: _user$project$Main$view})();
-var _user$project$Main$List = function (a) {
-	return {ctor: 'List', _0: a};
-};
-var _user$project$Main$Czlowiek = function (a) {
-	return {ctor: 'Czlowiek', _0: a};
-};
+				});
+		}
+	})(_elm_lang$core$Json_Decode$string);
 
 var Elm = {};
 Elm['Main'] = Elm['Main'] || {};
