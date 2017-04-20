@@ -5,6 +5,7 @@ import Ast.Expression exposing (..)
 import ExContext exposing (Context)
 import ExExpression
 import Helpers exposing (..)
+import List exposing (..)
 
 
 moduleStatement : Statement -> Context
@@ -39,14 +40,6 @@ elixirS s c =
         (FunctionDeclaration name args body) as fd ->
             if name == "meta" && args == [] then
                 ExExpression.generateMeta body
-            else if List.length args > 1 then
-                (ind c.indent)
-                    ++ "curry "
-                    ++ name
-                    ++ "/"
-                    ++ toString (List.length args)
-                    ++ ExExpression.genElixirFunc c name args body
-                    ++ "\n"
             else
                 case body of
                     Case (Variable _) expressions ->
@@ -57,8 +50,27 @@ elixirS s c =
                             body
                             expressions
 
+                    Case nonVar expressions ->
+                        if
+                            ExExpression.flattenCommas nonVar
+                                == map (\a -> Variable [ a ]) args
+                        then
+                            ExExpression.genOverloadedFunctionDefinition
+                                c
+                                name
+                                args
+                                body
+                                expressions
+                        else
+                            ExExpression.genFunctionDefinition
+                                c
+                                name
+                                args
+                                body
+
                     _ ->
-                        ExExpression.genFunctionDefinition
+                        Debug.log "else"
+                            ExExpression.genFunctionDefinition
                             c
                             name
                             args

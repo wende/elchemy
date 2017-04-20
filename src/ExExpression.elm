@@ -5,6 +5,7 @@ import Helpers exposing (..)
 import Ast.Statement exposing (..)
 import ExContext exposing (Context)
 import List exposing (..)
+import Regex exposing (..)
 
 
 elixirE : Expression -> Int -> String
@@ -101,20 +102,22 @@ elixirE e i =
             notImplemented "expression" e
 
 
+getMetaLine a =
+    case a of
+        String line ->
+            line
+
+        _ ->
+            Debug.crash "Meta function has to have specific format"
+
+
 generateMeta : Expression -> String
 generateMeta e =
     case e of
         List [ args ] ->
             map
-                (\a ->
-                    case a of
-                        String line ->
-                            line
-
-                        _ ->
-                            Debug.crash "Meta function has to have specific format"
-                )
-                (flatCommas args)
+                (getMetaLine)
+                (flattenCommas args)
                 |> map ((++) (ind 0))
                 |> String.join ""
 
@@ -124,16 +127,16 @@ generateMeta e =
 
 combineComas : Expression -> String
 combineComas e =
-    flatCommas e
+    flattenCommas e
         |> map ((flip elixirE) 0)
         |> String.join ", "
 
 
-flatCommas : Expression -> List Expression
-flatCommas e =
+flattenCommas : Expression -> List Expression
+flattenCommas e =
     case e of
         BinOp (Variable [ "," ]) ((BinOp (Variable [ "," ]) l _) as n) r ->
-            flatCommas n ++ [ r ]
+            flattenCommas n ++ [ r ]
 
         BinOp (Variable [ "," ]) l r ->
             [ l ] ++ [ r ]
@@ -326,8 +329,30 @@ genOverloadedFunctionDefinition c name args body expressions =
         ++ (expressions
                 |> List.map
                     (\( left, right ) ->
-                        genElixirFunc c name [ elixirE left c.indent ] right
+                        genElixirFunc
+                            c
+                            name
+                            (prepareOverLoadedArgs left c)
+                            right
                     )
                 |> List.foldr (++) ""
                 |> flip (++) "\n"
            )
+
+
+getVariableName e =
+    case e of
+        Variable [ name ] ->
+            name
+
+        _ ->
+            Debug.crash "It's not a variable"
+
+
+prepareOverLoadedArgs args c =
+    [ elixirE args c.indent |> unquoteSplicing ]
+
+
+unquoteSplicing : String -> String
+unquoteSplicing =
+    Regex.replace All (regex "(^\\{|\\}$)") (\_ -> "")
