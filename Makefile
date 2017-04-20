@@ -1,11 +1,11 @@
 dev:
-	elm-make Main.elm
-	open -g index.html
+	elm-make Main.elm --output=example/elm.js
+	open -g example/index.html
 
 release:
-	elm-make Main.elm
+	elm-make Main.elm --output=example/elm.js
 	mkdir -p stable
-	mv index.html stable/index.html
+	cp -r example/ stable/
 
 compile:
 	elm-make Main.elm --output compiled.js
@@ -14,7 +14,6 @@ compile:
 	var a = fs.readFileSync(process.argv[2]).toString(); \
 	console.log(_user$$project$$Compiler$$tree(a))/' compiled.js > elmchemy.js
 	rm compiled.js
-
 
 compile-watch:
 	find . -name "*.elm" | grep -v "elm-stuff" | grep -v .# | entr make compile

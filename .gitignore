@@ -1,5 +1,6 @@
+.DS_Store
 elm-stuff/
 elmchemy.js
 output.ex
-index.html
+example/elm.js
 .#*
