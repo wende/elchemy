@@ -6,6 +6,7 @@ import Html exposing (..)
 import Html
 import Html.Attributes
 import Compiler
+import Markdown
 
 
 type Msg
@@ -35,7 +36,7 @@ view : String -> Html Msg
 view model =
     div [ divStyle ]
         [ textarea [ codeStyle, on "input" (JD.map Replace targetValue) ] [ text model ]
-        , pre [ codeStyle ] [ text (Compiler.tree model) ]
+        , Markdown.toHtml [] <| "```elixir\n" ++ (Compiler.tree model) ++ "\n```"
         ]
 
 
