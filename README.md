@@ -10,19 +10,19 @@ make dev
 ```
 in terminal to start the compiler
 
-# What is it?
+## What is it?
 Elmchemy is a project with one idea in mind: Seamless acommodation of Elm on Erlang VM.
 
-# Contributing Guide
+## Contributing Guide
 - Everyone is welcome to contribute
 - Refer to http://bogdanp.github.io/elm-ast/example/ to have better understanding of parsed tokens.
 
-# Targeted values:
+## Targeted values:
 - Fully readable and indented elixir code generated from compilation
 - Seamless and stressless interop with existing Elixir code, preferably with magically working type safety
 - Full integration with entire elm syntax for editors and compilers magic
 
-# TODO (priority desc)
+## TODO (priority desc)
 - [X] Saving and reading from files
 - [X] Basic API (operators, functions, monadic types [Maybe, Just etc])
 - [X] Simple Elixir/Erlang interop
