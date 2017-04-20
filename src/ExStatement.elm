@@ -49,7 +49,7 @@ elixirS s c =
                     ++ "\n"
             else
                 case body of
-                    Case _ expressions ->
+                    Case (Variable _) expressions ->
                         ExExpression.genOverloadedFunctionDefinition
                             c
                             name
