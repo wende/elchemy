@@ -52,8 +52,8 @@ elixirS s c =
 
                     Case nonVar expressions ->
                         if
-                            Debug.log "case" ExExpression.flattenCommas nonVar
-                                == Debug.log "args" (map (\a -> Variable [ a ]) args)
+                            ExExpression.flattenCommas nonVar
+                                == map (\a -> Variable [ a ]) args
                         then
                             ExExpression.genOverloadedFunctionDefinition
                                 c
