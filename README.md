@@ -37,7 +37,7 @@ Elmchemy is a project with one idea in mind: Seamless acommodation of Elm on Erl
 - You think failing fast is cool, but not as cool as not failing at all
 
 ## Why *wouldn't* I want to use that
-- Your project relies on die-hard battle tested libraries, and you despise any versions start with 0
+- Your project relies on die-hard battle tested libraries, and you despise any versions starting with 0
 - You're afraid that when you learn what Monad is your mustache will grow, and eyesight weaken
 
 ## Can I use it in already existing Elixir project
