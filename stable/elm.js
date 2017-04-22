@@ -12828,8 +12828,8 @@ var _user$project$ExExpression$getVariableName = function (e) {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExExpression',
 			{
-				start: {line: 367, column: 5},
-				end: {line: 372, column: 46}
+				start: {line: 379, column: 5},
+				end: {line: 384, column: 46}
 			},
 			_p1)('It\'s not a variable');
 	}
@@ -12870,8 +12870,8 @@ var _user$project$ExExpression$defOrDefp = F2(
 				return _elm_lang$core$Native_Utils.crashCase(
 					'ExExpression',
 					{
-						start: {line: 315, column: 5},
-						end: {line: 326, column: 41}
+						start: {line: 324, column: 5},
+						end: {line: 335, column: 41}
 					},
 					_p3)('No such export');
 		}
@@ -12903,8 +12903,8 @@ var _user$project$ExExpression$isTuple = function (a) {
 						return _elm_lang$core$Native_Utils.crashCase(
 							'ExExpression',
 							{
-								start: {line: 255, column: 13},
-								end: {line: 260, column: 56}
+								start: {line: 264, column: 13},
+								end: {line: 269, column: 56}
 							},
 							_p6)('Shouldn\'t ever happen');
 					}
@@ -13019,8 +13019,8 @@ var _user$project$ExExpression$getMetaLine = function (a) {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExExpression',
 			{
-				start: {line: 126, column: 5},
-				end: {line: 131, column: 68}
+				start: {line: 135, column: 5},
+				end: {line: 140, column: 68}
 			},
 			_p13)('Meta function has to have specific format');
 	}
@@ -13053,8 +13053,8 @@ var _user$project$ExExpression$generateMeta = function (e) {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExExpression',
 			{
-				start: {line: 136, column: 5},
-				end: {line: 146, column: 68}
+				start: {line: 145, column: 5},
+				end: {line: 155, column: 68}
 			},
 			_p15)('Meta function has to have specific format');
 	}
@@ -13096,15 +13096,23 @@ var _user$project$ExExpression$elixirE = F2(
 												function (a) {
 													var _p18 = a;
 													if (((_p18.ctor === 'TypeConstructor') && (_p18._0.ctor === '::')) && (_p18._0._1.ctor === '[]')) {
-														return _user$project$Helpers$atomize(_p18._0._0);
+														return A2(
+															_user$project$ExExpression$elixirE,
+															c,
+															_Bogdanp$elm_ast$Ast_Expression$Variable(
+																{
+																	ctor: '::',
+																	_0: _p18._0._0,
+																	_1: {ctor: '[]'}
+																}));
 													} else {
 														return _elm_lang$core$Native_Utils.crashCase(
 															'ExExpression',
 															{
-																start: {line: 34, column: 21},
-																end: {line: 38, column: 51}
+																start: {line: 40, column: 29},
+																end: {line: 45, column: 82}
 															},
-															_p18)('NO NO NO');
+															_p18)('Only simple type aliases. Sorry');
 													}
 												},
 												A2(_user$project$ExAlias$maybeAlias, c.aliases, _p20))) : _user$project$Helpers$toSnakeCase(_p20);
@@ -13521,8 +13529,8 @@ var _user$project$ExExpression$tupleOrFunction = F2(
 									return _elm_lang$core$Native_Utils.crashCase(
 										'ExExpression',
 										{
-											start: {line: 230, column: 13},
-											end: {line: 239, column: 52}
+											start: {line: 239, column: 13},
+											end: {line: 248, column: 52}
 										},
 										_p27)('Won\'t ever happen');
 								}
@@ -13567,8 +13575,8 @@ var _user$project$ExExpression$tupleOrFunction = F2(
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExExpression',
 			{
-				start: {line: 202, column: 5},
-				end: {line: 242, column: 70}
+				start: {line: 211, column: 5},
+				end: {line: 251, column: 70}
 			},
 			_p26)(
 			A2(
@@ -13682,9 +13690,9 @@ var _user$project$ExType$elixirT = F2(
 		elixirT:
 		while (true) {
 			var _p1 = t;
-			_v1_14:
+			_v1_16:
 			do {
-				_v1_11:
+				_v1_13:
 				do {
 					switch (_p1.ctor) {
 						case 'TypeTuple':
@@ -13711,11 +13719,11 @@ var _user$project$ExType$elixirT = F2(
 														A2(_user$project$ExType$elixirT, c, _p1._0._1._0),
 														'}'))));
 									} else {
-										break _v1_14;
+										break _v1_16;
 									}
 								}
 							} else {
-								break _v1_14;
+								break _v1_16;
 							}
 						case 'TypeVariable':
 							if (_p1._0 === 'number') {
@@ -13747,11 +13755,17 @@ var _user$project$ExType$elixirT = F2(
 													_elm_lang$core$Basics_ops['++'],
 													A2(_user$project$ExType$elixirT, c, _p1._1._0),
 													' | nil');
+											case 'Just':
+												var _v4 = c,
+													_v5 = _p1._1._0;
+												c = _v4;
+												t = _v5;
+												continue elixirT;
 											default:
-												break _v1_11;
+												break _v1_13;
 										}
 									} else {
-										break _v1_11;
+										break _v1_13;
 									}
 								} else {
 									switch (_p1._0._0) {
@@ -13759,6 +13773,8 @@ var _user$project$ExType$elixirT = F2(
 											return 'String.t';
 										case 'Int':
 											return 'int';
+										case 'Nothing':
+											return 'nil';
 										case 'T':
 											return 't';
 										default:
@@ -13780,13 +13796,13 @@ var _user$project$ExType$elixirT = F2(
 										return _elm_lang$core$Native_Utils.crashCase(
 											'ExType',
 											{
-												start: {line: 58, column: 13},
-												end: {line: 63, column: 56}
+												start: {line: 70, column: 13},
+												end: {line: 75, column: 56}
 											},
 											_p3)('Shouldn\'t ever happen');
 									}
 								} else {
-									break _v1_14;
+									break _v1_16;
 								}
 							}
 						case 'TypeRecord':
@@ -13844,7 +13860,7 @@ var _user$project$ExType$elixirT = F2(
 											_user$project$ExType$flattenTypeApplication(_p1._1))),
 									')'));
 						default:
-							break _v1_14;
+							break _v1_16;
 					}
 				} while(false);
 				var _p6 = _p1._0._0;
@@ -14097,8 +14113,8 @@ var _user$project$ExStatement$moduleStatement = function (s) {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExStatement',
 			{
-				start: {line: 14, column: 5},
-				end: {line: 18, column: 69}
+				start: {line: 15, column: 5},
+				end: {line: 20, column: 69}
 			},
 			_p5)('First statement must be module declaration');
 	}
@@ -14112,7 +14128,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elmchemy', '\n'));
-var _user$project$Compiler$version = '0.0.16';
+var _user$project$Compiler$version = '0.0.17';
 var _user$project$Compiler$tree = function (m) {
 	var _p0 = _Bogdanp$elm_ast$Ast$parse(m);
 	_v0_2:
@@ -14174,8 +14190,8 @@ var _user$project$Compiler$tree = function (m) {
 	return _elm_lang$core$Native_Utils.crashCase(
 		'Compiler',
 		{
-			start: {line: 33, column: 5},
-			end: {line: 54, column: 39}
+			start: {line: 34, column: 5},
+			end: {line: 58, column: 39}
 		},
 		_p0)(
 		_elm_lang$core$Basics$toString(_p0));
