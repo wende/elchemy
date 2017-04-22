@@ -7,6 +7,8 @@ import Elmchemy exposing (..)
 meta =
     [ "use GenServer" ]
 
+# Noreply looks bad
+type alias NoReply a = Noreply a
 
 type alias State a =
     List a

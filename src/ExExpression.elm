@@ -6,14 +6,20 @@ import Ast.Statement exposing (..)
 import ExContext exposing (Context)
 import List exposing (..)
 import Regex exposing (..)
+import ExAlias
 
+indent : Context -> Context
+indent c = {c | indent = c.indent - 1}
 
-elixirE : Expression -> Int -> String
-elixirE e i =
+deindent : Context -> Context
+deindent c = {c | indent = c.indent - 1}
+
+elixirE : Context -> Expression -> String
+elixirE c e =
     case e of
         -- Monads and types to tuples
         Application (Variable [ "Just" ]) arg ->
-            elixirE arg i
+            elixirE c e
 
         Variable [] ->
             ""
@@ -23,22 +29,30 @@ elixirE e i =
 
         Variable [ name ] ->
             if isCapitilzed name then
-                atomize name
+                ExAlias.maybeAlias c.aliases name
+                |> Maybe.map (\a ->
+                    case a of
+                        TypeConstructor [name] _ ->
+                            atomize name
+                        _ ->
+                            Debug.crash "NO NO NO"
+                   )
+                |> Maybe.withDefault (atomize name)
             else
                 toSnakeCase name
 
-        Variable list ->
-            case lastAndRest list of
-                ( Just last, rest ) ->
-                    elixirE (Variable [ last ]) i
+        -- Variable list ->
+        --     case lastAndRest list of
+        --         ( Just last, rest ) ->
+        --             elixirE c (Variable [ last ])
 
-                _ ->
-                    Debug.crash "Shouldn't ever happen"
+        --         _ ->
+        --             Debug.crash "Shouldn't ever happen"
 
         --            String.join "." list
         -- Primitive types
         (Application name arg) as application ->
-            tupleOrFunction application i
+            tupleOrFunction c application
 
         Integer value ->
             toString value
@@ -50,11 +64,11 @@ elixirE e i =
             "[]"
 
         List [ value ] ->
-            "[" ++ combineComas value ++ "]"
+            "[" ++ combineComas c value ++ "]"
 
         Record keyValuePairs ->
             "%{"
-                ++ (map (\( a, b ) -> a ++ ": " ++ elixirE b i) keyValuePairs
+                ++ (map (\( a, b ) -> a ++ ": " ++ elixirE c b) keyValuePairs
                         |> String.join ", "
                    )
                 ++ "}"
@@ -63,45 +77,51 @@ elixirE e i =
             "%{"
                 ++ toSnakeCase name
                 ++ " | "
-                ++ (map (\( a, b ) -> a ++ ": " ++ elixirE b i) keyValuePairs
+                ++ (map (\( a, b ) -> a ++ ": " ++ elixirE c b) keyValuePairs
                         |> String.join ", "
                    )
                 ++ "}"
 
         -- Primitive operators
-        Access left [ right ] ->
-            elixirE left i ++ "." ++ right
+        Access (Variable (mod :: rest) as left) right ->
+                mod ++ "."
+                ++ String.join "." rest
+                ++ String.join "." right
+        Access left right ->
+            elixirE c left ++ "."
+            ++ String.join "." right
 
         -- Basics
         BinOp (Variable [ "/=" ]) l r ->
-            elixirE l i ++ " != " ++ elixirE r i
+            elixirE c l ++ " != " ++ elixirE c r
 
         -- It's tuple if it wasn't covered by list
         (BinOp (Variable [ "," ]) a b) as binop ->
-            "{" ++ combineComas binop ++ "}"
+            "{" ++ combineComas c binop ++ "}"
 
         -- "{" ++ (elixirE a i) ++ ", " ++ (elixirE b i) ++ "}"
         BinOp (Variable [ "::" ]) a b ->
             "["
                 ++ String.join " "
-                    (List.map (\a -> elixirE a (i + 1)) [ a, Variable [ "|" ], b ])
+                    (List.map (\a -> elixirE (indent c) a) [ a, Variable [ "|" ], b ])
                 ++ "]"
 
         BinOp op a b ->
-            String.join " " (List.map (\a -> elixirE a (i + 1)) [ a, op, b ])
+            (List.map (\a -> elixirE (indent c) a) [ a, op, b ])
+            |> String.join " "
 
         -- Primitive expressions
         Case var body ->
-            caseE var body (i + 1)
+            caseE c var body
 
         Lambda args body ->
-            lambda args body i
+            lambda c args body
 
         -- Rest
         e ->
             notImplemented "expression" e
 
-
+getMetaLine : Expression -> String
 getMetaLine a =
     case a of
         String line ->
@@ -118,17 +138,18 @@ generateMeta e =
             map
                 (getMetaLine)
                 (flattenCommas args)
-                |> map ((++) (ind 0))
-                |> String.join ""
+                    |> map ((++) (ind 0))
+                    |> String.join ""
+                    |> flip (++) "\n"
 
         _ ->
             Debug.crash "Meta function has to have specific format"
 
 
-combineComas : Expression -> String
-combineComas e =
+combineComas : Context -> Expression -> String
+combineComas c e =
     flattenCommas e
-        |> map ((flip elixirE) 0)
+        |> map (elixirE c)
         |> String.join ", "
 
 
@@ -176,42 +197,42 @@ flattenApplication application =
             [ other ]
 
 
-tupleOrFunction : Expression -> Int -> String
-tupleOrFunction a i =
+tupleOrFunction : Context -> Expression -> String
+tupleOrFunction c a =
     case flattenApplication a of
         [ Application left right ] ->
-            elixirE left i ++ ".(" ++ elixirE right i ++ ")"
+            elixirE c left ++ ".(" ++ elixirE c right ++ ")"
 
         -- Elmchemy hack
         [ Variable [ "ffi" ], String mod, String fun, (BinOp (Variable [ "," ]) _ _) as args ] ->
-            mod ++ "." ++ fun ++ "(" ++ combineComas args ++ ")"
+            mod ++ "." ++ fun ++ "(" ++ combineComas c args ++ ")"
 
         -- One arg fun
         [ Variable [ "ffi" ], String mod, String fun, any ] ->
-            mod ++ "." ++ fun ++ "(" ++ elixirE any i ++ ")"
+            mod ++ "." ++ fun ++ "(" ++ elixirE c any ++ ")"
 
         -- Elmchemy hack
         [ Variable [ "lffi" ], String fun, (BinOp (Variable [ "," ]) _ _) as args ] ->
-            fun ++ "(" ++ combineComas args ++ ")"
+            fun ++ "(" ++ combineComas c args ++ ")"
 
         -- One arg fun
         [ Variable [ "lffi" ], String fun, any ] ->
-            fun ++ "(" ++ elixirE any i ++ ")"
+            fun ++ "(" ++ elixirE c any ++ ")"
 
         (Variable [ name ]) :: rest ->
             "{"
-                ++ atomize name
+                ++ elixirE c (Variable [ name ])
                 ++ ", "
-                ++ (map (\a -> elixirE a i) rest |> String.join ", ")
+                ++ (map (\a -> elixirE c a) rest |> String.join ", ")
                 ++ "}"
 
         (Variable list) :: rest ->
             case lastAndRest list of
                 ( Just last, _ ) ->
                     "{"
-                        ++ atomize last
+                        ++ elixirE c (Variable [last])
                         ++ ", "
-                        ++ (map (\a -> elixirE a i) rest |> String.join ", ")
+                        ++ (map (elixirE c) rest |> String.join ", ")
                         ++ "}"
 
                 _ ->
@@ -228,12 +249,7 @@ isTuple a =
             isTuple a
 
         Variable [ name ] ->
-            case maybeUpper name of
-                Upper _ ->
-                    True
-
-                Lower _ ->
-                    False
+            isUpper name
 
         Variable list ->
             case lastAndRest list of
@@ -247,37 +263,37 @@ isTuple a =
             False
 
 
-caseE : Expression -> List ( Expression, Expression ) -> Int -> String
-caseE var body i =
+caseE : Context -> Expression -> List ( Expression, Expression ) -> String
+caseE c var body =
     "case "
-        ++ elixirE var i
+        ++ elixirE c var
         ++ " do"
         ++ (String.join ""
-                (List.map (caseInstance i) body)
+                (List.map (caseInstance c) body)
            )
-        ++ (ind (i - 1))
+        ++ ind (c.indent - 1)
         ++ "end"
 
 
-caseInstance : Int -> ( Expression, Expression ) -> String
-caseInstance i a =
-    (ind i ++ elixirE (Tuple.first a) i)
+caseInstance : Context -> ( Expression, Expression ) -> String
+caseInstance c a =
+    (ind c.indent ++ elixirE c (Tuple.first a))
         ++ " -> "
-        ++ (elixirE (Tuple.second a) i)
+        ++ (elixirE c (Tuple.second a))
 
 
-lambda : List String -> Expression -> Int -> String
-lambda args body i =
+lambda : Context -> List String -> Expression -> String
+lambda c args body =
     case args of
         arg :: rest ->
             "fn("
                 ++ arg
                 ++ ") -> "
-                ++ (lambda rest body i)
+                ++ (lambda c rest body)
                 ++ " end"
 
         [] ->
-            elixirE body i
+            elixirE c body
 
 
 genElixirFunc : Context -> String -> List String -> Expression -> String
@@ -289,7 +305,7 @@ genElixirFunc c name args body =
         ++ (String.join ", " args)
         ++ ") do"
         ++ (ind <| c.indent + 1)
-        ++ (elixirE body (c.indent + 1))
+        ++ (elixirE (indent c) body)
         ++ (ind c.indent)
         ++ "end"
 
@@ -309,7 +325,7 @@ defOrDefp context name =
         other ->
             Debug.crash "No such export"
 
-
+functionCurry : Context -> String -> (List String) -> String
 functionCurry c name args =
     (ind c.indent)
         ++ "curry "
@@ -317,13 +333,20 @@ functionCurry c name args =
         ++ "/"
         ++ toString (List.length args)
 
-
+genFunctionDefinition
+    : Context -> String -> (List String) -> Expression -> String
 genFunctionDefinition c name args body =
     functionCurry c name args
         ++ genElixirFunc c name args body
         ++ "\n"
 
-
+genOverloadedFunctionDefinition
+    : Context
+    -> String
+    -> (List String)
+    -> Expression
+    -> (List (Expression, Expression))
+    -> String
 genOverloadedFunctionDefinition c name args body expressions =
     functionCurry c name args
         ++ (expressions
@@ -332,14 +355,14 @@ genOverloadedFunctionDefinition c name args body expressions =
                         genElixirFunc
                             c
                             name
-                            (prepareOverLoadedArgs left c)
+                            [ elixirE c left |> unquoteSplicing ]
                             right
                     )
                 |> List.foldr (++) ""
                 |> flip (++) "\n"
            )
 
-
+getVariableName : Expression -> String
 getVariableName e =
     case e of
         Variable [ name ] ->
@@ -347,10 +370,6 @@ getVariableName e =
 
         _ ->
             Debug.crash "It's not a variable"
-
-
-prepareOverLoadedArgs args c =
-    [ elixirE args c.indent |> unquoteSplicing ]
 
 
 unquoteSplicing : String -> String

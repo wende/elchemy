@@ -3,7 +3,9 @@ module ExType exposing (..)
 import Ast.Statement exposing (..)
 import Helpers exposing (..)
 import List exposing (..)
-
+import ExContext exposing (Context)
+import ExAlias
+import Dict
 
 flattenTypeApplication : Type -> List Type
 flattenTypeApplication application =
@@ -15,20 +17,23 @@ flattenTypeApplication application =
             [ other ]
 
 
-elixirT : Type -> String
-elixirT t =
+elixirT : Context -> Type -> String
+elixirT c t =
     case t of
         TypeTuple [ a ] ->
-            elixirT a
+            elixirT c a
 
         TypeTuple [ a, b ] ->
-            "{" ++ elixirT a ++ ", " ++ elixirT b ++ "}"
+            "{" ++ elixirT c a ++ ", " ++ elixirT c b ++ "}"
 
         TypeVariable "number" ->
             "number"
 
-        TypeVariable name ->
-            "any"
+        TypeVariable name as var ->
+            c.aliases
+            |> Dict.values
+            |> List.member var
+            |> (\a -> if a then name else "any")
 
         TypeConstructor [ "String" ] [] ->
             "String.t"
@@ -37,36 +42,37 @@ elixirT t =
             "int"
 
         TypeConstructor [ "List" ] [ t ] ->
-            "list(" ++ elixirT t ++ ")"
+            "list(" ++ elixirT c t ++ ")"
 
         TypeConstructor [ "Maybe" ] [ t ] ->
-            elixirT t ++ " | nil"
+            elixirT c t ++ " | nil"
 
         TypeConstructor [ "T" ] [] ->
             "t"
 
         TypeConstructor [ t ] [] ->
-            toSnakeCase t
+            aliasOr c t (atomize t)
 
         TypeConstructor t [] ->
             -- (String.join "." t) ++ ".t"
             case lastAndRest t of
                 ( Just last, a ) ->
-                    last
+                    aliasOr c last last
 
                 _ ->
                     Debug.crash "Shouldn't ever happen"
 
         TypeConstructor [ t ] list ->
-            "{"
+            aliasOr c t
+                ("{"
                 ++ atomize t
                 ++ ", "
-                ++ (map elixirT list |> String.join ", ")
-                ++ "}"
+                ++ (map (elixirT c) list |> String.join ", ")
+                ++ "}")
 
         TypeRecord fields ->
             "%{"
-                ++ (map (\( k, v ) -> k ++ ": " ++ elixirT v) fields
+                ++ (map (\( k, v ) -> k ++ ": " ++ elixirT c v) fields
                         |> String.join ", "
                    )
                 ++ "}"
@@ -76,9 +82,9 @@ elixirT t =
                 ++ (flattenTypeApplication r
                         |> lastAndRest
                         |> \( last, rest ) ->
-                            (map elixirT (l :: rest) |> String.join ", ")
+                            (map (elixirT c) (l :: rest) |> String.join ", ")
                                 ++ " -> "
-                                ++ (Maybe.map elixirT last |> Maybe.withDefault "")
+                                ++ (Maybe.map (elixirT c) last |> Maybe.withDefault "")
                    )
                 ++ ")"
 
@@ -86,18 +92,18 @@ elixirT t =
             notImplemented "type" other
 
 
-typespec : Type -> String
-typespec t =
-    typespec_ True t
+typespec : Context -> Type -> String
+typespec c t =
+    typespec_ True c t
 
 
-typespecf : Type -> String
-typespecf t =
-    typespec_ False t
+typespecf : Context -> Type -> String
+typespecf c t =
+    typespec_ False c t
 
 
-typespec_ : Bool -> Type -> String
-typespec_ start t =
+typespec_ : Bool -> Context -> Type -> String
+typespec_ start c t =
     case t of
         -- Last aruments
         TypeApplication other ((TypeApplication _ _) as app) ->
@@ -106,8 +112,8 @@ typespec_ start t =
              else
                 ""
             )
-                ++ typespecf other
-                ++ typespecf app
+                ++ typespecf c other
+                ++ typespecf c app
 
         TypeApplication pre_last last ->
             (if start then
@@ -115,9 +121,9 @@ typespec_ start t =
              else
                 ""
             )
-                ++ elixirT pre_last
+                ++ elixirT c pre_last
                 ++ ") :: "
-                ++ elixirT last
+                ++ elixirT c last
 
         --TypeApplication tc t ->
         (TypeConstructor _ _) as t ->
@@ -126,7 +132,7 @@ typespec_ start t =
              else
                 ""
             )
-                ++ elixirT t
+                ++ elixirT c t
                 ++ (if start then
                         ""
                     else
@@ -139,7 +145,7 @@ typespec_ start t =
              else
                 ""
             )
-                ++ elixirT t
+                ++ elixirT c t
                 ++ (if start then
                         ""
                     else
@@ -152,7 +158,7 @@ typespec_ start t =
              else
                 ""
             )
-                ++ elixirT t
+                ++ elixirT c t
                 ++ (if start then
                         ""
                     else
@@ -165,7 +171,7 @@ typespec_ start t =
              else
                 ""
             )
-                ++ elixirT t
+                ++ elixirT c t
                 ++ (if start then
                         ""
                     else
@@ -176,17 +182,23 @@ typespec_ start t =
             notImplemented "typespec" other
 
 
-typealias : Type -> String
-typealias t =
+typealias : Context -> Type -> String
+typealias c t =
     case t of
         TypeApplication tc t ->
-            typealias tc ++ typealias t
+            typealias c tc ++ typealias c t
 
         (TypeConstructor _ _) as t ->
-            elixirT t
+            elixirT c t
 
         TypeVariable name ->
             name
 
         other ->
             notImplemented "typealias" other
+
+aliasOr : Context -> String -> String -> String
+aliasOr c name default =
+    ExAlias.maybeAlias c.aliases name
+        |> Maybe.map (elixirT c)
+        |> Maybe.withDefault (default)
