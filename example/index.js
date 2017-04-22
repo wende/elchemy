@@ -11,6 +11,8 @@ meta =
 type alias State a =
     List a
 
+-- Noreply looks bad
+type alias NoReply a = Noreply a
 
 type GenServerReturn a b
     = Reply a (State b)

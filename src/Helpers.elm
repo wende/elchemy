@@ -50,17 +50,13 @@ toSnakeCase_ e =
                 ""
 
 
-maybeUpper : String -> MaybeUpper
-maybeUpper string =
+isUpper : String -> Bool
+isUpper string =
     case String.uncons string of
         Just ( start, rest ) ->
-            if Char.isUpper start then
-                Upper string
-            else
-                Lower string
-
+            Char.isUpper start
         Nothing ->
-            Lower ""
+            False
 
 
 capitalize : String -> String
