@@ -7,6 +7,7 @@ import ExContext exposing (Context)
 import ExAlias
 import Dict
 
+
 flattenTypeApplication : Type -> List Type
 flattenTypeApplication application =
     case application of
@@ -29,11 +30,16 @@ elixirT c t =
         TypeVariable "number" ->
             "number"
 
-        TypeVariable name as var ->
+        (TypeVariable name) as var ->
             c.aliases
-            |> Dict.values
-            |> List.member var
-            |> (\a -> if a then name else "any")
+                |> Dict.values
+                |> List.member var
+                |> (\a ->
+                        if a then
+                            name
+                        else
+                            "any"
+                   )
 
         TypeConstructor [ "String" ] [] ->
             "String.t"
@@ -46,6 +52,12 @@ elixirT c t =
 
         TypeConstructor [ "Maybe" ] [ t ] ->
             elixirT c t ++ " | nil"
+
+        TypeConstructor [ "Nothing" ] [] ->
+            "nil"
+
+        TypeConstructor [ "Just" ] [ t ] ->
+            elixirT c t
 
         TypeConstructor [ "T" ] [] ->
             "t"
@@ -63,12 +75,14 @@ elixirT c t =
                     Debug.crash "Shouldn't ever happen"
 
         TypeConstructor [ t ] list ->
-            aliasOr c t
+            aliasOr c
+                t
                 ("{"
-                ++ atomize t
-                ++ ", "
-                ++ (map (elixirT c) list |> String.join ", ")
-                ++ "}")
+                    ++ atomize t
+                    ++ ", "
+                    ++ (map (elixirT c) list |> String.join ", ")
+                    ++ "}"
+                )
 
         TypeRecord fields ->
             "%{"
@@ -196,6 +210,7 @@ typealias c t =
 
         other ->
             notImplemented "typealias" other
+
 
 aliasOr : Context -> String -> String -> String
 aliasOr c name default =

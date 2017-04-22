@@ -8,11 +8,16 @@ import List exposing (..)
 import Regex exposing (..)
 import ExAlias
 
+
 indent : Context -> Context
-indent c = {c | indent = c.indent - 1}
+indent c =
+    { c | indent = c.indent - 1 }
+
 
 deindent : Context -> Context
-deindent c = {c | indent = c.indent - 1}
+deindent c =
+    { c | indent = c.indent - 1 }
+
 
 elixirE : Context -> Expression -> String
 elixirE c e =
@@ -30,14 +35,16 @@ elixirE c e =
         Variable [ name ] ->
             if isCapitilzed name then
                 ExAlias.maybeAlias c.aliases name
-                |> Maybe.map (\a ->
-                    case a of
-                        TypeConstructor [name] _ ->
-                            atomize name
-                        _ ->
-                            Debug.crash "NO NO NO"
-                   )
-                |> Maybe.withDefault (atomize name)
+                    |> Maybe.map
+                        (\a ->
+                            case a of
+                                TypeConstructor [ name ] _ ->
+                                    elixirE c (Variable [ name ])
+
+                                _ ->
+                                    Debug.crash "Only simple type aliases. Sorry"
+                        )
+                    |> Maybe.withDefault (atomize name)
             else
                 toSnakeCase name
 
@@ -45,10 +52,8 @@ elixirE c e =
         --     case lastAndRest list of
         --         ( Just last, rest ) ->
         --             elixirE c (Variable [ last ])
-
         --         _ ->
         --             Debug.crash "Shouldn't ever happen"
-
         --            String.join "." list
         -- Primitive types
         (Application name arg) as application ->
@@ -83,13 +88,16 @@ elixirE c e =
                 ++ "}"
 
         -- Primitive operators
-        Access (Variable (mod :: rest) as left) right ->
-                mod ++ "."
+        Access ((Variable (mod :: rest)) as left) right ->
+            mod
+                ++ "."
                 ++ String.join "." rest
                 ++ String.join "." right
+
         Access left right ->
-            elixirE c left ++ "."
-            ++ String.join "." right
+            elixirE c left
+                ++ "."
+                ++ String.join "." right
 
         -- Basics
         BinOp (Variable [ "/=" ]) l r ->
@@ -108,7 +116,7 @@ elixirE c e =
 
         BinOp op a b ->
             (List.map (\a -> elixirE (indent c) a) [ a, op, b ])
-            |> String.join " "
+                |> String.join " "
 
         -- Primitive expressions
         Case var body ->
@@ -120,6 +128,7 @@ elixirE c e =
         -- Rest
         e ->
             notImplemented "expression" e
+
 
 getMetaLine : Expression -> String
 getMetaLine a =
@@ -138,9 +147,9 @@ generateMeta e =
             map
                 (getMetaLine)
                 (flattenCommas args)
-                    |> map ((++) (ind 0))
-                    |> String.join ""
-                    |> flip (++) "\n"
+                |> map ((++) (ind 0))
+                |> String.join ""
+                |> flip (++) "\n"
 
         _ ->
             Debug.crash "Meta function has to have specific format"
@@ -230,7 +239,7 @@ tupleOrFunction c a =
             case lastAndRest list of
                 ( Just last, _ ) ->
                     "{"
-                        ++ elixirE c (Variable [last])
+                        ++ elixirE c (Variable [ last ])
                         ++ ", "
                         ++ (map (elixirE c) rest |> String.join ", ")
                         ++ "}"
@@ -325,7 +334,8 @@ defOrDefp context name =
         other ->
             Debug.crash "No such export"
 
-functionCurry : Context -> String -> (List String) -> String
+
+functionCurry : Context -> String -> List String -> String
 functionCurry c name args =
     (ind c.indent)
         ++ "curry "
@@ -333,19 +343,20 @@ functionCurry c name args =
         ++ "/"
         ++ toString (List.length args)
 
-genFunctionDefinition
-    : Context -> String -> (List String) -> Expression -> String
+
+genFunctionDefinition : Context -> String -> List String -> Expression -> String
 genFunctionDefinition c name args body =
     functionCurry c name args
         ++ genElixirFunc c name args body
         ++ "\n"
 
-genOverloadedFunctionDefinition
-    : Context
+
+genOverloadedFunctionDefinition :
+    Context
     -> String
-    -> (List String)
+    -> List String
     -> Expression
-    -> (List (Expression, Expression))
+    -> List ( Expression, Expression )
     -> String
 genOverloadedFunctionDefinition c name args body expressions =
     functionCurry c name args
@@ -361,6 +372,7 @@ genOverloadedFunctionDefinition c name args body expressions =
                 |> List.foldr (++) ""
                 |> flip (++) "\n"
            )
+
 
 getVariableName : Expression -> String
 getVariableName e =

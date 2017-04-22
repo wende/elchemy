@@ -8,6 +8,7 @@ import ExContext exposing (Context)
 import ExStatement
 import ExAlias
 
+
 version =
     "0.0.16"
 
@@ -33,8 +34,11 @@ tree m =
     case Ast.parse m of
         Ok ( _, _, first :: statements ) ->
             let
-                base = (ExStatement.moduleStatement first)
-                context = {base | aliases = (ExAlias.getAliases statements)}
+                base =
+                    (ExStatement.moduleStatement first)
+
+                context =
+                    { base | aliases = (ExAlias.getAliases statements) }
             in
                 ("# Compiled using Elmchemy v" ++ version)
                     ++ "\n"

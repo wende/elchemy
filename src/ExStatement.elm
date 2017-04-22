@@ -9,11 +9,13 @@ import Helpers exposing (..)
 import List exposing (..)
 import Dict exposing (Dict)
 
+
 moduleStatement : Statement -> Context
 moduleStatement s =
     case s of
         ModuleDeclaration names exports ->
             Context (String.join "." names) exports 0 Dict.empty
+
         other ->
             Debug.crash "First statement must be module declaration"
 
@@ -21,21 +23,22 @@ moduleStatement s =
 elixirS : Statement -> Context -> String
 elixirS s c =
     case s of
-        TypeDeclaration (TypeConstructor [name] _) types ->
+        TypeDeclaration (TypeConstructor [ name ] _) types ->
             (ind c.indent)
-            ++ "@type "
-            ++ toSnakeCase name
-            ++ " :: "
-            ++ ((map (ExType.typealias c) types) |> String.join " | ")
+                ++ "@type "
+                ++ toSnakeCase name
+                ++ " :: "
+                ++ ((map (ExType.typealias c) types) |> String.join " | ")
 
         TypeAliasDeclaration _ _ ->
             ""
+
         --"alias?"
         FunctionTypeDeclaration name t ->
             (ind c.indent)
-            ++ "@spec "
-            ++ toSnakeCase name
-            ++ (ExType.typespec c t)
+                ++ "@spec "
+                ++ toSnakeCase name
+                ++ (ExType.typespec c t)
 
         (FunctionDeclaration name args body) as fd ->
             if name == "meta" && args == [] then

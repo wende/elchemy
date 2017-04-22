@@ -55,6 +55,7 @@ isUpper string =
     case String.uncons string of
         Just ( start, rest ) ->
             Char.isUpper start
+
         Nothing ->
             False
 
