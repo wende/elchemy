@@ -1,5 +1,5 @@
 # Elmchemy [![Build Status](https://travis-ci.org/wende/elmchemy.svg?branch=master)](https://travis-ci.org/wende/elmchemy)
-> Fun project of transpiler of Elm to Elixir
+> An Elm transpiler to a readable Elixir code
 
 Test online at:
 https://wende.github.io/elmchemy/stable/
