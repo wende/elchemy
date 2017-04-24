@@ -26,6 +26,9 @@ elixirE c e =
         Application (Variable [ "Just" ]) arg ->
             elixirE c e
 
+        Application (Variable [ "Err" ]) arg ->
+            "{:error, " ++ elixirE c e ++ "}"
+
         Variable [] ->
             ""
 
@@ -39,10 +42,10 @@ elixirE c e =
                         (\a ->
                             case a of
                                 TypeConstructor [ name ] _ ->
-                                    elixirE c (Variable [ name ])
+                                    atomize name
 
                                 _ ->
-                                    Debug.crash "Only simple type aliases. Sorry"
+                                    Debug.crash "Works only for type constructors"
                         )
                     |> Maybe.withDefault (atomize name)
             else
