@@ -21,7 +21,7 @@ compile-watch:
 
 compile-std-watch:
 	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c \
-		"make compile && ./elmchemy compile src/elixir_std output"
+		"make compile && ./elmchemy compile elixir-stuff/elmchemy/lib/"
 
 tests-watch:
 	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr elm-test

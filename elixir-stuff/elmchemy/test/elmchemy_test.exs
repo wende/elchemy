@@ -2,9 +2,10 @@ defmodule Elmchemy.Test do
   require Elmchemy.Glue
   import Elmchemy.Glue
 
+  curry +/2
 
   defcurry add(a, b) do
-    notadd().(a).(b)
+    a + b
   end
 
   defcurryp notadd(a, b) do
@@ -19,11 +20,13 @@ end
 defmodule ElmchemyTest do
   use ExUnit.Case
   doctest Elmchemy
+  import Elmchemy.Test
 
   test "Currying" do
-    assert Elmchemy.Test.add().(1).(2) == 3
-    assert Elmchemy.Test.add(1, 2) == 3
-    assert Elmchemy.Test.add2(1, 2) == 3
-    assert Elmchemy.Test.add2().(1).(2) == 3
+    assert add().(1).(2) == 3
+    assert add(1, 2) == 3
+    assert add2(1, 2) == 3
+    assert add2().(1).(2) == 3
+    #assert Enum.map([1,2,3], +) == 6
   end
 end

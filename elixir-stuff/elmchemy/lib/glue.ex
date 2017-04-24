@@ -2,14 +2,14 @@ defmodule Elmchemy.Glue do
 
   defmacro curry({:/, _, [{name, _, _}, arity]}) do
     args =
-      1..arity |> Enum.map(&({:"arg #{&1}", [], Elixir}))
+      1..arity |> Enum.map(&({:"arg#{&1}", [], Elixir}))
 
     define_curried(:def, name, args)
   end
 
   defmacro curryp({:/, _, [{name, _, _}, arity]}) do
     args =
-      1..arity |> Enum.map(&({:"arg #{&1}", [], Elixir}))
+      1..arity |> Enum.map(&({:"arg#{&1}", [], Elixir}))
 
     define_curried(:defp, name, args)
   end
@@ -27,7 +27,7 @@ defmodule Elmchemy.Glue do
   defmacro defcurryp(definition, _opts \\ [], do: body) do
     {fun, args} = Macro.decompose_call(definition)
     quote do
-      unquote(define_curried(:defp, fun, args))/
+      unquote(define_curried(:defp, fun, args))
       defp unquote(fun)(unquote_splicing(args)) do
         unquote(body)
       end
