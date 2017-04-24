@@ -2,8 +2,6 @@ defmodule Elmchemy.Test do
   require Elmchemy.Glue
   import Elmchemy.Glue
 
-  curry +/2
-
   defcurry add(a, b) do
     a + b
   end
@@ -27,6 +25,7 @@ defmodule ElmchemyTest do
     assert add(1, 2) == 3
     assert add2(1, 2) == 3
     assert add2().(1).(2) == 3
-    #assert Enum.map([1,2,3], +) == 6
+    assert Elmchemy.+().(1).(2) == 3
+    assert Enum.map([1,2,3], Elmchemy.+.(1)) == [2,3,4]
   end
 end

@@ -7,6 +7,7 @@ import ExContext exposing (Context)
 import List exposing (..)
 import Regex exposing (..)
 import ExAlias
+import Dict exposing (Dict)
 
 
 indent : Context -> Context
@@ -45,6 +46,9 @@ elixirE c e =
                                     Debug.crash "Only simple type aliases. Sorry"
                         )
                     |> Maybe.withDefault (atomize name)
+            else if isOperator name then
+                -- We need a curried version, so kernel won't work
+                "Elmchemy." ++ translateOperator name ++ "()"
             else
                 toSnakeCase name
 
@@ -99,7 +103,23 @@ elixirE c e =
                 ++ "."
                 ++ String.join "." right
 
-        -- Basics
+        -- Basic operators that are functions in Elixir
+        -- Exception, ( "//", "" )
+        -- Exception, ( "%", "" )
+        -- Exception, ( "rem", "" )
+        -- Exception, ( "^", "" )
+        BinOp (Variable [ "//" ]) l r ->
+            "div(" ++ elixirE c l ++ ", " ++ elixirE c r ++ ")"
+
+        BinOp (Variable [ "%" ]) l r ->
+            "rem(" ++ elixirE c l ++ ", " ++ elixirE c r ++ ")"
+
+        BinOp (Variable [ "rem" ]) l r ->
+            "rem(" ++ elixirE c l ++ ", " ++ elixirE c r ++ ")"
+
+        BinOp (Variable [ "^" ]) l r ->
+            "pow(" ++ elixirE c l ++ ", " ++ elixirE c r ++ ")"
+
         BinOp (Variable [ "/=" ]) l r ->
             elixirE c l ++ " != " ++ elixirE c r
 
@@ -114,8 +134,8 @@ elixirE c e =
                     (List.map (\a -> elixirE (indent c) a) [ a, Variable [ "|" ], b ])
                 ++ "]"
 
-        BinOp op a b ->
-            (List.map (\a -> elixirE (indent c) a) [ a, op, b ])
+        BinOp (Variable [ op ]) l r ->
+            [ elixirE c l, translateOperator op, elixirE c r ]
                 |> String.join " "
 
         -- Primitive expressions
@@ -387,3 +407,56 @@ getVariableName e =
 unquoteSplicing : String -> String
 unquoteSplicing =
     Regex.replace All (regex "(^\\{|\\}$)") (\_ -> "")
+
+
+operators : Dict String String
+operators =
+    [ ( "||", "||" )
+    , ( "&&", "&&" )
+    , ( "==", "==" )
+    , ( "/=", "!=" )
+    , ( "<", "<" )
+    , ( ">", ">" )
+    , ( ">=", ">=" )
+    , ( "<=", "<=" )
+    , ( "++", "++" )
+    , ( "+", "+" )
+    , ( "-", "-" )
+    , ( "*", "*" )
+    , ( "/", "/" )
+    , ( "%", "" ) -- Exception
+    , ( "//", "" ) -- Exception
+    , ( "rem", "" ) -- Exception
+    , ( "^", "" ) -- Exception
+    , ( "<<", "" )
+    , ( ">>", "" )
+    , ( "<|", "" )
+    , ( "|>", "" )
+    ]
+        |> List.foldl (uncurry Dict.insert) Dict.empty
+
+
+isOperator : String -> Bool
+isOperator name =
+    operators
+        |> Dict.keys
+        |> List.any ((==) name)
+
+
+translateOperator : String -> String
+translateOperator op =
+    case Dict.get op operators of
+        Just "" ->
+            Debug.crash
+                (op
+                    ++ "is not a valid or not implemented yet operator"
+                )
+
+        Just key ->
+            key
+
+        _ ->
+            Debug.crash
+                (op
+                    ++ "is not a valid or not implemented yet operator"
+                )

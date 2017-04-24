@@ -66,6 +66,20 @@ all =
             \() ->
                 "a = camelCase 1" |> is "camel_case.(1)"
 
+        -- Operators
+        , test "Simple ops" <|
+            \() ->
+                "add = a + b" |> is "a + b"
+        , test "Ops as lambda" <|
+            \() ->
+                "add = (+)" |> is "Elmchemy.+"
+        , test "Ops as lambda with param" <|
+            \() ->
+                "add = ((+) 2)" |> is "Elmchemy.+().(2)"
+        , test "Ops as lambda" <|
+            \() ->
+                "add = map (+) list" |> is "map.(Elmchemy.+()).(list)"
+
         -- Typespecs
         , test "Typespecs with dependant types" <|
             \() ->

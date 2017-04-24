@@ -1,6 +1,4 @@
-
 defmodule ElmchemyHack do
-
 
   defp get_definitions(content) do
     ~r/def (\w+)/
@@ -21,7 +19,6 @@ defmodule ElmchemyHack do
     end
   end
 
-
 end
 
 defmodule Elmchemy do
@@ -35,22 +32,9 @@ defmodule Elmchemy do
       import Elmchemy.Glue
     end
   end
-  @moduledoc """
-  Documentation for Elmchemy.
-  """
 
-  @doc """
-  Hello world.
+  require Elmchemy.Glue
+  import Elmchemy.Glue
 
-  ## Examples
-
-      iex> Elmchemy.hello
-      :world
-
-  """
-  # @before_compile ElmchemyHack
-
-  def hello do
-    :world
-  end
+  curry +/2
 end
