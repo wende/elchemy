@@ -6,10 +6,11 @@ import List exposing (..)
 import Helpers exposing (..)
 import ExContext exposing (Context)
 import ExStatement
+import ExAlias
 
 
 version =
-    "0.0.11"
+    "0.0.17"
 
 
 glueStart : String
@@ -33,8 +34,11 @@ tree m =
     case Ast.parse m of
         Ok ( _, _, first :: statements ) ->
             let
+                base =
+                    (ExStatement.moduleStatement first)
+
                 context =
-                    ExStatement.moduleStatement first
+                    { base | aliases = (ExAlias.getAliases statements) }
             in
                 ("# Compiled using Elmchemy v" ++ version)
                     ++ "\n"

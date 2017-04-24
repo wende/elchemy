@@ -4,14 +4,17 @@ import Ast.Statement exposing (..)
 import Ast.Expression exposing (..)
 import ExContext exposing (Context)
 import ExExpression
+import ExType
 import Helpers exposing (..)
+import List exposing (..)
+import Dict exposing (Dict)
 
 
 moduleStatement : Statement -> Context
 moduleStatement s =
     case s of
         ModuleDeclaration names exports ->
-            Context (String.join "." names) exports 0
+            Context (String.join "." names) exports 0 Dict.empty
 
         other ->
             Debug.crash "First statement must be module declaration"
@@ -20,33 +23,26 @@ moduleStatement s =
 elixirS : Statement -> Context -> String
 elixirS s c =
     case s of
-        TypeDeclaration name types ->
-            ""
+        TypeDeclaration (TypeConstructor [ name ] _) types ->
+            (ind c.indent)
+                ++ "@type "
+                ++ toSnakeCase name
+                ++ " :: "
+                ++ ((map (ExType.typealias c) types) |> String.join " | ")
 
-        -- (ind c.indent)
-        --     ++ "@type "
-        --     ++ (ExType.typealias name)
-        --     ++ " :: "
-        --     ++ ((map (ExType.typealias) types) |> String.join " | ")
         TypeAliasDeclaration _ _ ->
             ""
 
         --"alias?"
         FunctionTypeDeclaration name t ->
-            ""
+            (ind c.indent)
+                ++ "@spec "
+                ++ toSnakeCase name
+                ++ (ExType.typespec c t)
 
-        -- (ind c.indent) ++ "@spec " ++ toSnakeCase name ++ (typespec t)
         (FunctionDeclaration name args body) as fd ->
             if name == "meta" && args == [] then
                 ExExpression.generateMeta body
-            else if List.length args > 1 then
-                (ind c.indent)
-                    ++ "curry "
-                    ++ name
-                    ++ "/"
-                    ++ toString (List.length args)
-                    ++ ExExpression.genElixirFunc c name args body
-                    ++ "\n"
             else
                 case body of
                     Case (Variable _) expressions ->
@@ -56,6 +52,24 @@ elixirS s c =
                             args
                             body
                             expressions
+
+                    Case nonVar expressions ->
+                        if
+                            ExExpression.flattenCommas nonVar
+                                == map (\a -> Variable [ a ]) args
+                        then
+                            ExExpression.genOverloadedFunctionDefinition
+                                c
+                                name
+                                args
+                                body
+                                expressions
+                        else
+                            ExExpression.genFunctionDefinition
+                                c
+                                name
+                                args
+                                body
 
                     _ ->
                         ExExpression.genFunctionDefinition
