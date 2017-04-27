@@ -8,7 +8,16 @@ Type
 ```
 make dev
 ```
-in terminal to start the compiler
+in terminal to start locally
+
+## Build from source
+```
+make compile
+```
+Then compile a file with
+```
+node elmchemy.js TargetFile.elm > output_file.ex
+```
 
 ## What is it?
 Elmchemy is a project with one idea in mind: Seamless acommodation of Elm on Erlang VM.
