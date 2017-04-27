@@ -1,5 +1,5 @@
 # Elmchemy [![Build Status](https://travis-ci.org/wende/elmchemy.svg?branch=master)](https://travis-ci.org/wende/elmchemy)
-> Fun project of transpiler of Elm to Elixir
+> An Elm transpiler to a readable Elixir code
 
 Test online at:
 https://wende.github.io/elmchemy/stable/
@@ -8,7 +8,16 @@ Type
 ```
 make dev
 ```
-in terminal to start the compiler
+in terminal to start locally
+
+## Build from source
+```
+make compile
+```
+Then compile a file with
+```
+node elmchemy.js TargetFile.elm > output_file.ex
+```
 
 ## What is it?
 Elmchemy is a project with one idea in mind: Seamless acommodation of Elm on Erlang VM.
@@ -26,6 +35,9 @@ Elmchemy is a project with one idea in mind: Seamless acommodation of Elm on Erl
 - [X] Saving and reading from files
 - [X] Basic API (operators, functions, monadic types [Maybe, Just etc])
 - [X] Simple Elixir/Erlang interop
+- [X] Working typesepc generation
+- [ ] Compilation of projects consisting of more than one file (foreign type and typealias imports required)
+- [ ] Whole type-safe standard library
 - [ ] Compiler built-in into elixir ecosystem
 
 # FAQ
