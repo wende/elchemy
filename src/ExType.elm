@@ -44,6 +44,9 @@ elixirT c t =
         TypeConstructor [ "String" ] [] ->
             "String.t"
 
+        TypeConstructor [ "Bool" ] [] ->
+            "boolean"
+
         TypeConstructor [ "Int" ] [] ->
             "int"
 
@@ -69,7 +72,9 @@ elixirT c t =
             -- (String.join "." t) ++ ".t"
             case lastAndRest t of
                 ( Just last, a ) ->
-                    aliasOr c last last
+                    String.join "." a
+                        ++ "."
+                        ++ toSnakeCase last
 
                 _ ->
                     Debug.crash "Shouldn't ever happen"

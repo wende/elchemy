@@ -1,6 +1,5 @@
 module XList exposing (..)
 
-import XKernel exposing (..)
 import Elmchemy exposing (..)
 
 

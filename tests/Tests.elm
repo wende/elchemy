@@ -98,6 +98,10 @@ all =
         , test "Records in typespecs" <|
             \() ->
                 "record : { a : Int, b : String}" |> is "@spec record :: %{a: int, b: String.t}"
+        , test "Remote typespecs" <|
+            \() ->
+                "f : Remote.Module.Type -> String.T"
+                    |> is "f(Remote.Module.type) :: String.t"
 
         -- Type aliases
         , test "Types" <|
@@ -130,12 +134,12 @@ all =
         , test "Type in tuple" <|
             \() ->
                 "a = (Type, a, b, c)" |> is "{:type, a, b, c}"
+        , test "Remote types" <|
+            \() ->
+                "a = Remote.Type a b c" |> is "{:type, a, b, c}"
+        , test "Remote types in tuples" <|
+            \() ->
+                "a = (Remote.Type, a, b, c)" |> is "{:type, a, b, c}"
 
-        -- , test "Remote types" <|
-        --     \() ->
-        --         "a = Remote.Type a b c" |> is "{:type, a, b, c}"
-        -- , test "Remote types in tuples" <|
-        --     \() ->
-        --         "a = (Remote.Type, a, b, c)" |> is "{:type, a, b, c}"
         -- End
         ]

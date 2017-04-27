@@ -79,7 +79,12 @@ elixirS s c =
                             body
 
         Comment content ->
-            (ind c.indent) ++ "#" ++ content
+            if String.startsWith "ex" content then
+                String.dropLeft 2 content
+                    |> indAll c.indent
+            else
+                content
+                    |> prependAll ((ind c.indent) ++ "# ")
 
         -- That's not a real import. In elixir it's called alias
         ImportStatement path Nothing Nothing ->

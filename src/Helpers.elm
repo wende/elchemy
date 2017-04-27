@@ -84,6 +84,24 @@ ind i =
     "\n" ++ (List.repeat ((i + 1) * 2) " " |> String.join "")
 
 
+prependAll : String -> String -> String
+prependAll with target =
+    String.split "\n" target
+        |> map
+            (\line ->
+                if String.trim line == "" then
+                    line
+                else
+                    with ++ line
+            )
+        |> String.join ("\n")
+
+
+indAll : Int -> String -> String
+indAll i s =
+    prependAll (String.dropLeft 1 (ind i)) s
+
+
 uncons : List a -> ( Maybe a, List a )
 uncons list =
     case list of

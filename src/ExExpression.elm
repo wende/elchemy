@@ -12,7 +12,7 @@ import Dict exposing (Dict)
 
 indent : Context -> Context
 indent c =
-    { c | indent = c.indent - 1 }
+    { c | indent = c.indent + 1 }
 
 
 deindent : Context -> Context
@@ -43,7 +43,8 @@ elixirE c e =
                                     elixirE c (Variable [ name ])
 
                                 _ ->
-                                    Debug.crash "Only simple type aliases. Sorry"
+                                    Debug.crash
+                                        "Only simple type aliases. Sorry"
                         )
                     |> Maybe.withDefault (atomize name)
             else if isOperator name then
@@ -52,13 +53,17 @@ elixirE c e =
             else
                 toSnakeCase name
 
-        -- Variable list ->
-        --     case lastAndRest list of
-        --         ( Just last, rest ) ->
-        --             elixirE c (Variable [ last ])
-        --         _ ->
-        --             Debug.crash "Shouldn't ever happen"
-        --            String.join "." list
+        Variable list ->
+            case lastAndRest list of
+                ( Just last, rest ) ->
+                    elixirE c (Variable [ last ])
+
+                _ ->
+                    Debug.crash "Shouldn't ever happen"
+                        String.join
+                        "."
+                        list
+
         -- Primitive types
         (Application name arg) as application ->
             tupleOrFunction c application
@@ -114,14 +119,10 @@ elixirE c e =
         BinOp (Variable [ "%" ]) l r ->
             "rem(" ++ elixirE c l ++ ", " ++ elixirE c r ++ ")"
 
-        BinOp (Variable [ "rem" ]) l r ->
-            "rem(" ++ elixirE c l ++ ", " ++ elixirE c r ++ ")"
-
+        -- BinOp (Variable [ "rem" ]) l r ->
+        --     "rem(" ++ elixirE c l ++ ", " ++ elixirE c r ++ ")"
         BinOp (Variable [ "^" ]) l r ->
-            "pow(" ++ elixirE c l ++ ", " ++ elixirE c r ++ ")"
-
-        BinOp (Variable [ "/=" ]) l r ->
-            elixirE c l ++ " != " ++ elixirE c r
+            ":math.pow(" ++ elixirE c l ++ ", " ++ elixirE c r ++ ")"
 
         -- It's tuple if it wasn't covered by list
         (BinOp (Variable [ "," ]) a b) as binop ->
@@ -144,6 +145,29 @@ elixirE c e =
 
         Lambda args body ->
             lambda c args body
+
+        If check onTrue ((If _ _ _) as onFalse) ->
+            "if "
+                ++ elixirE c check
+                ++ " do"
+                ++ (ind (c.indent + 1))
+                ++ elixirE (indent c) onTrue
+                ++ (ind c.indent)
+                ++ "else "
+                ++ elixirE c onFalse
+
+        If check onTrue onFalse ->
+            "if "
+                ++ elixirE c check
+                ++ " do"
+                ++ (ind (c.indent + 1))
+                ++ elixirE (indent c) onTrue
+                ++ (ind c.indent)
+                ++ "else"
+                ++ (ind (c.indent + 1))
+                ++ elixirE c onFalse
+                ++ (ind c.indent)
+                ++ "end"
 
         -- Rest
         e ->
@@ -327,16 +351,36 @@ lambda c args body =
 
 genElixirFunc : Context -> String -> List String -> Expression -> String
 genElixirFunc c name args body =
-    (ind c.indent)
-        ++ (defOrDefp c name)
-        ++ toSnakeCase name
-        ++ "("
-        ++ (String.join ", " args)
-        ++ ") do"
-        ++ (ind <| c.indent + 1)
-        ++ (elixirE (indent c) body)
-        ++ (ind c.indent)
-        ++ "end"
+    if isOperator name then
+        case args of
+            [ l, r ] ->
+                (ind c.indent)
+                    ++ defOrDefp c name
+                    ++ l
+                    ++ " "
+                    ++ translateOperator name
+                    ++ " "
+                    ++ r
+                    ++ " do"
+                    ++ (ind <| c.indent + 1)
+                    ++ elixirE (indent c) body
+                    ++ ind c.indent
+                    ++ "end"
+
+            _ ->
+                Debug.crash
+                    "operator has to have 2 arguments"
+    else
+        (ind c.indent)
+            ++ defOrDefp c name
+            ++ toSnakeCase name
+            ++ "("
+            ++ String.join ", " args
+            ++ ") do"
+            ++ (ind <| c.indent + 1)
+            ++ elixirE (indent c) body
+            ++ ind c.indent
+            ++ "end"
 
 
 defOrDefp : Context -> String -> String
@@ -424,13 +468,13 @@ operators =
     , ( "-", "-" )
     , ( "*", "*" )
     , ( "/", "/" )
+    , ( ">>", ">>>" )
+    , ( "<|", "<<<" )
     , ( "%", "" ) -- Exception
     , ( "//", "" ) -- Exception
     , ( "rem", "" ) -- Exception
     , ( "^", "" ) -- Exception
     , ( "<<", "" )
-    , ( ">>", "" )
-    , ( "<|", "" )
     , ( "|>", "" )
     ]
         |> List.foldl (uncurry Dict.insert) Dict.empty

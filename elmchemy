@@ -17,8 +17,9 @@ case "$1" in
             dir_suffix=${base_file#$2}
             dir_prefix=${2%$dir_suffix}
 
-            echo "Copying to $dir_prefix/$output_dir$dir_suffix.ex"
-            node elmchemy.js $f > $dir_prefix/$output_dir$dir_suffix.ex
+            echo "Copying to $output_dir$dir_suffix.ex"
+
+            node elmchemy.js $f > $output_dir$dir_suffix.ex
 
             # do something on $f
         done
