@@ -35,6 +35,9 @@ Elmchemy is a project with one idea in mind: Seamless acommodation of Elm on Erl
 - [X] Saving and reading from files
 - [X] Basic API (operators, functions, monadic types [Maybe, Just etc])
 - [X] Simple Elixir/Erlang interop
+- [X] Working typesepc generation
+- [ ] Compilation of projects consisting of more than one file (foreign type and typealias imports required)
+- [ ] Whole type-safe standard library
 - [ ] Compiler built-in into elixir ecosystem
 
 # FAQ
