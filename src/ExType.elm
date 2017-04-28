@@ -48,7 +48,7 @@ elixirT c t =
             "boolean"
 
         TypeConstructor [ "Int" ] [] ->
-            "int"
+            "integer"
 
         TypeConstructor [ "List" ] [ t ] ->
             "list(" ++ elixirT c t ++ ")"
