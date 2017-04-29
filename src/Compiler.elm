@@ -29,13 +29,34 @@ glueEnd =
          """
 
 
+getName : String -> ( String, String )
+getName file =
+    case String.split "\n" file of
+        n :: rest ->
+            ( n, String.join "\n" rest )
+
+        [] ->
+            ( "", "" )
+
+
 tree : String -> String
 tree m =
+    String.split ">>>>" m
+        |> List.map getName
+        |> List.map
+            (\f ->
+                Debug.log "Processing" (second f) ++ "\n" ++ parse (second f)
+            )
+        |> String.join ">>>>"
+
+
+parse : String -> String
+parse m =
     case Ast.parse m of
-        Ok ( _, _, first :: statements ) ->
+        Ok ( _, _, mod :: statements ) ->
             let
                 base =
-                    (ExStatement.moduleStatement first)
+                    (ExStatement.moduleStatement mod)
 
                 context =
                     { base | aliases = (ExAlias.getAliases statements) }
@@ -44,7 +65,7 @@ tree m =
                     ++ "\n"
                     ++ ("defmodule " ++ context.mod ++ " do")
                     ++ glueStart
-                    ++ ((List.map (\a -> ExStatement.elixirS a context) statements)
+                    ++ ((List.map (\a -> ExStatement.elixirS (Debug.log "line" a) context) statements)
                             |> (List.foldr (++) "")
                        )
                     ++ glueEnd

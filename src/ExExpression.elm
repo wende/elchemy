@@ -25,7 +25,7 @@ elixirE c e =
     case e of
         -- Monads and types to tuples
         Application (Variable [ "Just" ]) arg ->
-            elixirE c e
+            elixirE c arg
 
         Variable [] ->
             ""

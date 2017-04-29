@@ -24,7 +24,32 @@ case "$1" in
             # do something on $f
         done
         ;;
+    aggregate)
+        rm -rf ".elmchemy"
+        echo "" > .elmchemy_output
+        for f in `find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#."`
+        do
+            echo ">>>>$f" >> .elmchemy_output
+            echo $f
+            elm-make $f --output .elmchemy_output_tmp.js || { echo 'Compilation failed' ; exit 1; }
+            rm .elmchemy_output_tmp.js
+            cat $f >> .elmchemy_output
+        done
+        node elmchemy.js .elmchemy_output > .elmchemy_elixir_output
+        # current_file=""
+        # while read line
+        # do
+        #     if [[ $line =~ ">>>>" ]]; then
+        #         echo "yo"
+        #         current_file="${line/>>>>/.elmchemy/}"
+        #         mkdir -p `dirname $current_file`
+        #         touch $current_file
+        #     else
+        #         echo $line >> $current_file
+        #     fi
+        # done < .elmchemy_output
 
+        ;;
     *)
         echo $"Usage: $0 compile [input_dir] [output_dir] [--unsafe]"
         exit 1
