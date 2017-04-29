@@ -11,9 +11,6 @@ meta =
 type alias State a =
     List a
 
--- Noreply looks bad
-type alias NoReply a = Noreply a
-
 type GenServerReturn a b
     = Reply a (State b)
     | NoReply (State b)
@@ -48,24 +45,25 @@ pop pid =
 -- Server (callbacks)
 
 
-handle_call : Command a -> Pid -> State a -> GenServerReturn a a
-handle_call command from state =
+handleCall : Command a -> Pid -> State a -> GenServerReturn a a
+handleCall command from state =
     case ( command, from, state ) of
-        Pop, _, (h :: t) ->
+        (Pop, _, (h :: t)) ->
             Reply h t
 
         ( request, from, state ) ->
             lffi "super" ( request, from, state )
 
 
-handle_cast : Command a -> State a -> GenServerReturn a a
-handle_cast command state =
+handleCast : Command a -> State a -> GenServerReturn a a
+handleCast command state =
     case ( command, state ) of
-        (Push item), state ->
+        ((Push item), state) ->
             NoReply (item :: state)
 
         ( request, state ) ->
             lffi "super" ( request, state )
+
 `;
 
 var app = Elm.Main.embed(document.getElementById('root'), init);
