@@ -1,26 +1,19 @@
 # Elmchemy [![Build Status](https://travis-ci.org/wende/elmchemy.svg?branch=master)](https://travis-ci.org/wende/elmchemy)
-> An Elm transpiler to a readable Elixir code
+> Write Elixir code using Elm-inspired syntax (elm-make compatible)
 
 Test online at:
 https://wende.github.io/elmchemy/stable/
+
+### CAVEAT: Web version does *not* do any type checking. It only parses syntax. For full type and syntax checking run the CLI version
 
 Type
 ```
 make dev
 ```
-in terminal to start locally
-
-## Build from source
-```
-make compile
-```
-Then compile a file with
-```
-node elmchemy.js TargetFile.elm > output_file.ex
-```
+in terminal to start the compiler
 
 ## What is it?
-Elmchemy is a project with one idea in mind: Seamless acommodation of Elm on Erlang VM.
+Elmchemy is a project with one idea in mind: Seamless acommodation of Elm-like language on Erlang VM.
 
 ## Contributing Guide
 - Everyone is welcome to contribute
@@ -35,9 +28,6 @@ Elmchemy is a project with one idea in mind: Seamless acommodation of Elm on Erl
 - [X] Saving and reading from files
 - [X] Basic API (operators, functions, monadic types [Maybe, Just etc])
 - [X] Simple Elixir/Erlang interop
-- [X] Working typesepc generation
-- [ ] Compilation of projects consisting of more than one file (foreign type and typealias imports required)
-- [ ] Whole type-safe standard library
 - [ ] Compiler built-in into elixir ecosystem
 
 # FAQ
@@ -86,9 +76,9 @@ meta =
 ```
 
 ## Can I define an Elixir macro in Elmchemy.
-So you want to write an Elm code, that will manipulate Elixir code, which generates and Elixir code that manipulates Elixir code? How about no?
+So you want to write an Elm-like code, that will manipulate Elixir code, which generates and Elixir code that manipulates Elixir code? How about no?
 
-## Do I need to have elm installed to compile my Elm files with Elmchemy.
+## Do I need to have elm installed to compile my `.elm` files with Elmchemy.
 Ironically, no, you don't. Elmchemy is written entirely in Elm, which means the compiler is in JavaScript.
 But it's nice to use `elm-make` to check your type safety from time to time.
 
