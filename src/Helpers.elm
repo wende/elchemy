@@ -24,17 +24,13 @@ notImplemented feature value =
 
 toSnakeCase : String -> String
 toSnakeCase var =
-    let
-        split =
-            Regex.regex "(?=[A-Z])"
-    in
-        if String.toUpper var == var then
-            String.toLower var
-        else
-            var
-                |> Regex.split Regex.All split
-                |> String.join "_"
-                |> String.toLower
+    if String.toUpper var == var then
+        String.toLower var
+    else
+        var
+            |> Regex.split Regex.All (Regex.regex "(?=[A-Z])")
+            |> String.join "_"
+            |> String.toLower
 
 
 isUpper : String -> Bool
