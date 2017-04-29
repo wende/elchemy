@@ -23,11 +23,11 @@ notImplemented feature value =
 
 
 toSnakeCase : String -> String
-toSnakeCase var =
-    if String.toUpper var == var then
-        String.toLower var
+toSnakeCase string =
+    if String.toUpper string == string then
+        String.toLower string
     else
-        var
+        string
             |> Regex.split Regex.All (Regex.regex "(?=[A-Z])")
             |> String.join "_"
             |> String.toLower
