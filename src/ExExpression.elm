@@ -146,38 +146,43 @@ elixirE c e =
         Lambda args body ->
             lambda c args body
 
-        If check onTrue ((If _ _ _) as onFalse) ->
-            "if "
-                ++ elixirE c check
-                ++ " do"
-                ++ (ind (c.indent + 1))
-                ++ elixirE (indent c) onTrue
-                ++ (ind c.indent)
-                ++ "else "
-                ++ elixirE c onFalse
-
-        If check onTrue onFalse ->
-            "if "
-                ++ elixirE c check
-                ++ " do"
-                ++ (ind (c.indent + 1))
-                ++ elixirE (indent c) onTrue
-                ++ (ind c.indent)
-                ++ "else"
-                ++ (ind (c.indent + 1))
-                ++ elixirE c onFalse
-                ++ (ind c.indent)
-                ++ "end"
+        (If check onTrue onFalse) as exp ->
+            "cond do"
+                :: handleIfExp (indent c) exp
+                ++ [ ind c.indent, "end" ]
+                |> String.join ""
 
         Let variables expression ->
             variables
-            |> map (\(var, exp) ->
-                var ++ " = " ++ elixirE c exp)
-            |> String.join (ind c.indent)
-            |> flip (++) (elixirE c expression)
+                |> map
+                    (\( var, exp ) ->
+                        var ++ " = " ++ elixirE c exp
+                    )
+                |> String.join (ind c.indent)
+                |> flip (++) (elixirE c expression)
+
         -- Rest
         e ->
             notImplemented "expression" e
+
+
+handleIfExp : Context -> Expression -> List String
+handleIfExp c e =
+    case e of
+        If check onTrue onFalse ->
+            (++)
+                [ ind c.indent
+                , elixirE (indent c) check
+                , " -> "
+                , elixirE (indent c) onTrue
+                ]
+                (handleIfExp c onFalse)
+
+        _ ->
+            [ ind c.indent
+            , "true -> "
+            , elixirE (indent c) e
+            ]
 
 
 getMetaLine : Expression -> String
@@ -443,6 +448,7 @@ genOverloadedFunctionDefinition c name args body expressions =
                 |> flip (++) "\n"
            )
 
+
 getVariableName : Expression -> String
 getVariableName e =
     case e of
@@ -475,10 +481,14 @@ operators =
     , ( "/", "/" )
     , ( ">>", ">>>" )
     , ( "<|", "<<<" )
-    , ( "%", "" ) -- Exception
-    , ( "//", "" ) -- Exception
-    , ( "rem", "" ) -- Exception
-    , ( "^", "" ) -- Exception
+    , ( "%", "" )
+      -- Exception
+    , ( "//", "" )
+      -- Exception
+    , ( "rem", "" )
+      -- Exception
+    , ( "^", "" )
+      -- Exception
     , ( "<<", "" )
     , ( "|>", "|>" )
     ]

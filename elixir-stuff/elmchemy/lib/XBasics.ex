@@ -31,12 +31,10 @@ defmodule Elmchemy.XBasics do
   @spec compare(any, any) :: order
   curry compare/2
   def compare(a, b) do
-    if a > b do
-      :g_t
-    else if a < b do
-      :l_t
-    else
-      :e_q
+    cond do
+      a > b -> :g_t
+      a < b -> :l_t
+      true -> :e_q
     end
   end
 
