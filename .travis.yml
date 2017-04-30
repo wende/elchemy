@@ -1,17 +1,19 @@
-language: haskell
+sudo: false
 
 cache:
   directories:
+    - node_modules
     - test/elm-stuff/build-artifacts
-    - elm-stuff/
-install:
-  - . $HOME/.nvm/nvm.sh
+    
+before_script:
   - nvm install stable
   - nvm use stable
-  - npm install
-  - npm install -g elm
+  - npm install elm
   - elm-package install -y
-  - npm install -g elm-test
-script: travis_wait elm-test
+  - npm install elm-test
+
+script:
+  - elm-test
+
 notifications:
   email: false
