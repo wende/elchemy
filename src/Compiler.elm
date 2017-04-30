@@ -77,7 +77,7 @@ tree m =
             in
                 wTrueContexts
                 |> map (\(name, c, ast) -> name ++ "\n" ++ getCode c ast)
-                |> String.join ">>>>"
+                |> String.join "\n>>>>"
 
 
                         -- (first f) ++ "\n" ++
