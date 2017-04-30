@@ -1,16 +1,13 @@
-sudo: false
-
 cache:
   directories:
-    - node_modules
     - test/elm-stuff/build-artifacts
     
 before_script:
   - nvm install stable
   - nvm use stable
-  - npm install elm
+  - npm install -g elm
   - elm-package install -y
-  - npm install elm-test
+  - npm install -g elm-test
 
 script:
   - elm-test
