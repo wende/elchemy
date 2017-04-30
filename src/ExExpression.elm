@@ -169,6 +169,12 @@ elixirE c e =
                 ++ (ind c.indent)
                 ++ "end"
 
+        Let variables expression ->
+            variables
+            |> map (\(var, exp) ->
+                var ++ " = " ++ elixirE c exp)
+            |> String.join (ind c.indent)
+            |> flip (++) (elixirE c expression)
         -- Rest
         e ->
             notImplemented "expression" e
@@ -437,7 +443,6 @@ genOverloadedFunctionDefinition c name args body expressions =
                 |> flip (++) "\n"
            )
 
-
 getVariableName : Expression -> String
 getVariableName e =
     case e of
@@ -475,7 +480,7 @@ operators =
     , ( "rem", "" ) -- Exception
     , ( "^", "" ) -- Exception
     , ( "<<", "" )
-    , ( "|>", "" )
+    , ( "|>", "|>" )
     ]
         |> List.foldl (uncurry Dict.insert) Dict.empty
 

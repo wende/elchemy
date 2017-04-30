@@ -1,12 +1,14 @@
-module Compiler exposing (tree)
+module Compiler exposing (..)
 
 import Ast
-import Tuple exposing (..)
+import Ast.Statement exposing (Statement)
+
 import List exposing (..)
 import Helpers exposing (..)
-import ExContext exposing (Context)
-import ExStatement
+import ExContext exposing (Context, Aliases)
 import ExAlias
+import ExStatement
+import Dict
 
 
 version =
@@ -39,41 +41,103 @@ getName file =
             ( "", "" )
 
 
+
+
+
 tree : String -> String
 tree m =
-    String.split ">>>>" m
-        |> List.map getName
-        |> List.map
-            (\f ->
-                Debug.log "Processing" (second f) ++ "\n" ++ parse (second f)
-            )
-        |> String.join ">>>>"
-
-
-parse : String -> String
-parse m =
-    case Ast.parse m of
-        Ok ( _, _, mod :: statements ) ->
+    case String.split ">>>>" m of
+        [single] ->
+            single
+                |> parse
+                |> getContext
+                |> (\(c, a) ->
+                        case c of
+                            Nothing -> Debug.crash "Failed getting context"
+                            Just c -> getCode c a)
+        multiple ->
             let
-                base =
-                    (ExStatement.moduleStatement mod)
+                files = multiple
+                      |> map getName
+                      |> map (\(name, code)  -> (name, parse code))
 
-                context =
-                    { base | aliases = (ExAlias.getAliases statements) }
+                wContexts = files
+                          |> map (\(name, ast) -> (name, getContext ast))
+                          |> filterMap (\a ->
+                                            case a of
+                                                (_, (Nothing, _)) -> Nothing
+                                                (name, (Just c, ast)) -> Just (name, c, ast))
+
+                commonAliases = wContexts
+                              |> map (\(name, ctx, ast) -> ctx.aliases)
+                              |> getCommonAliases
+
+                wTrueContexts = wContexts
+                             |> map (\(name, c, ast) -> (name, {c | aliases = commonAliases}, ast))
             in
-                ("# Compiled using Elmchemy v" ++ version)
-                    ++ "\n"
-                    ++ ("defmodule " ++ context.mod ++ " do")
-                    ++ glueStart
-                    ++ ((List.map (\a -> ExStatement.elixirS (Debug.log "line" a) context) statements)
-                            |> (List.foldr (++) "")
-                       )
-                    ++ glueEnd
+                wTrueContexts
+                |> map (\(name, c, ast) -> name ++ "\n" ++ getCode c ast)
+                |> String.join ">>>>"
+
+
+                        -- (first f) ++ "\n" ++
+                   --      (parse (second f)
+                   --      |>
+                   --      )
+                   -- )
+                  -- |> String.join ">>>>"
+
+getCommonAliases : List Aliases -> Aliases
+getCommonAliases a =
+    foldl (\aliases acc ->
+               Dict.merge
+                   Dict.insert
+                   typeAliasDuplicate
+                   Dict.insert
+                   acc
+                   aliases
+                   Dict.empty
+          ) (Dict.empty) a
+
+typeAliasDuplicate : comparable -> a -> a -> Dict.Dict comparable a -> Dict.Dict comparable a
+typeAliasDuplicate k v v2 =
+    if v /= v2 then
+        Debug.crash ("You can't have two different type aliases for " ++ toString k)
+    else
+        Dict.insert k v
+
+
+getContext : List Statement -> (Maybe Context, List Statement)
+getContext statements =
+    case statements of
+        [] ->
+            (Nothing, [])
+        mod :: statements ->
+            let base = ExStatement.moduleStatement mod
+            in (Just { base | aliases = (ExAlias.getAliases statements) }, statements)
+
+getCode : Context -> List Statement -> String
+getCode context statements =
+    ("# Compiled using Elmchemy v" ++ version)
+    ++ "\n"
+    ++ ("defmodule " ++ context.mod ++ " do")
+    ++ glueStart
+    ++ ((List.map (\a -> ExStatement.elixirS (Debug.log "line" a) context) statements)
+       |> (List.foldr (++) "")
+       )
+    ++ glueEnd
+
+parse : String -> List Statement
+parse m  =
+    case Ast.parse m of
+        Ok ( _, _, statements ) ->
+            statements
 
         Err ( (), { input, position }, [ msg ] ) ->
-            "]ERR> Compilation error at: "
+            Debug.crash
+                ("]ERR> Compilation error at: "
                 ++ input
-                ++ "\n"
+                ++ "\n")
 
         err ->
             Debug.crash (toString err)

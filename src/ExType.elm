@@ -69,7 +69,6 @@ elixirT c t =
             aliasOr c t (atomize t)
 
         TypeConstructor t [] ->
-            -- (String.join "." t) ++ ".t"
             case lastAndRest t of
                 ( Just last, a ) ->
                     String.join "." a

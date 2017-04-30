@@ -79,6 +79,8 @@ sqrt x =
     ffi ":math" "sqrt" x
 
 
-clamp : number -> number -> number -> number
-clamp x minimum maximum =
-    x < minimum
+clamp : comparable -> comparable -> comparable -> comparable
+clamp x bottom top =
+    x
+        |> min bottom
+        |> max top

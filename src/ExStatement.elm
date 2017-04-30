@@ -90,8 +90,22 @@ elixirS s c =
         ImportStatement path Nothing Nothing ->
             (ind c.indent) ++ "alias " ++ String.join "." path
 
+        ImportStatement path Nothing (Just (SubsetExport exports)) ->
+            (ind c.indent) ++ "import " ++ String.join "." path ++ ", only: "
+                ++ (map subsetExport exports |> foldl (++) [] |> String.join ",")
+
         ImportStatement path Nothing (Just AllExport) ->
             (ind c.indent) ++ "import " ++ String.join "." path
 
         s ->
             notImplemented "statement" s
+
+subsetExport : ExportSet -> List String
+subsetExport exp =
+    case exp of
+        TypeExport _ _ ->
+            []
+        FunctionExport name ->
+            ["{" ++ name ++ ", 0}"]
+        _ ->
+            Debug.crash ("You can't export " ++ toString exp)
