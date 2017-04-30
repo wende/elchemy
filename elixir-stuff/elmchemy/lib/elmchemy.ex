@@ -15,7 +15,7 @@ defmodule ElmchemyHack do
     |> IO.inspect
 
     quote do
-        def buagam, do: 2
+      def buagam, do: 2
     end
   end
 
@@ -35,6 +35,7 @@ defmodule Elmchemy do
 
   require Elmchemy.Glue
   import Elmchemy.Glue
+  import Elmchemy.XBasics
 
   curry +/2
 end
