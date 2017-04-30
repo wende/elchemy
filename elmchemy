@@ -39,8 +39,9 @@ case "$1" in
         current_file=""
         while IFS= read -r line; do
             if [[ $line =~ ">>>>" ]]; then
-                current_file="${line/>>>>/.elmchemy/}"
-                current_file="${current_file/\/\///}"
+                current_file="${line/\/\///}"
+                current_file="${current_file%%.*}.ex"
+                current_file="${current_file/>>>>/.elmchemy/}"
                 echo $current_file
                 mkdir -p `dirname $current_file`
                 touch $current_file
