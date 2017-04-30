@@ -1,7 +1,6 @@
 sudo: false
 
 os:
-  - osx
   - linux
 
 cache:
