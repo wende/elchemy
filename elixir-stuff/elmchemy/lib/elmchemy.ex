@@ -35,7 +35,6 @@ defmodule Elmchemy do
 
   require Elmchemy.Glue
   import Elmchemy.Glue
-  import Elmchemy.XBasics
 
   curry +/2
 end

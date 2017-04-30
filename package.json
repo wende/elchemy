@@ -1,0 +1,23 @@
+{
+  "name": "elmchemy",
+  "version": "0.1.0",
+  "description": "Write Elixir code using Elm-inspired syntax (elm-make compatible)",
+  "directories": {
+    "example": "example",
+    "test": "tests"
+  },
+  "bin": {
+    "elmchemy": "elmchemy"
+  },
+  "scripts": {
+    "test": "elm-test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wende/elmchemy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wende/elmchemy/issues"
+  },
+  "homepage": "https://github.com/wende/elmchemy#readme"
+}
