@@ -14,7 +14,8 @@
     "elmchemy": "./elmchemy"
   },
   "scripts": {
-    "test": "elm-test"
+    "test": "elm-test",
+    "precommit": "lint-staged"
   },
   "repository": {
     "type": "git",
@@ -23,5 +24,16 @@
   "bugs": {
     "url": "https://github.com/wende/elmchemy/issues"
   },
-  "homepage": "https://github.com/wende/elmchemy#readme"
+  "homepage": "https://github.com/wende/elmchemy#readme",
+  "devDependencies": {
+    "elm-format": "^0.6.1-alpha",
+    "husky": "^0.13.3",
+    "lint-staged": "^3.4.1"
+  },
+  "lint-staged": {
+    "*.elm": [
+      "elm-format --yes",
+      "git add"
+    ]
+  }
 }
