@@ -15,7 +15,7 @@ defmodule ElmchemyHack do
     |> IO.inspect
 
     quote do
-        def buagam, do: 2
+      def buagam, do: 2
     end
   end
 

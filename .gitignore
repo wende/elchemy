@@ -1,5 +1,6 @@
 .DS_Store
 elm-stuff/
+node_modules/
 elmchemy.js
 output.ex
 example/elm.js

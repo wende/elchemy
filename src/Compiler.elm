@@ -2,7 +2,6 @@ module Compiler exposing (..)
 
 import Ast
 import Ast.Statement exposing (Statement)
-
 import List exposing (..)
 import Helpers exposing (..)
 import ExContext exposing (Context, Aliases)
@@ -41,63 +40,83 @@ getName file =
             ( "", "" )
 
 
-
-
-
 tree : String -> String
 tree m =
     case String.split ">>>>" m of
-        [single] ->
+        [ single ] ->
             single
                 |> parse
                 |> getContext
-                |> (\(c, a) ->
+                |> (\( c, a ) ->
                         case c of
-                            Nothing -> Debug.crash "Failed getting context"
-                            Just c -> getCode c a)
+                            Nothing ->
+                                Debug.crash "Failed getting context"
+
+                            Just c ->
+                                getCode c a
+                   )
+
         multiple ->
             let
-                files = multiple
-                      |> map getName
-                      |> map (\(name, code)  -> (name, parse code))
+                files =
+                    multiple
+                        |> map getName
+                        |> map (\( name, code ) -> ( name, parse code ))
 
-                wContexts = files
-                          |> map (\(name, ast) -> (name, getContext ast))
-                          |> filterMap (\a ->
-                                            case a of
-                                                (_, (Nothing, _)) -> Nothing
-                                                (name, (Just c, ast)) -> Just (name, c, ast))
+                wContexts =
+                    files
+                        |> map (\( name, ast ) -> ( name, getContext ast ))
+                        |> filterMap
+                            (\a ->
+                                case a of
+                                    ( _, ( Nothing, _ ) ) ->
+                                        Nothing
 
-                commonAliases = wContexts
-                              |> map (\(name, ctx, ast) -> ctx.aliases)
-                              |> getCommonAliases
+                                    ( name, ( Just c, ast ) ) ->
+                                        Just ( name, c, ast )
+                            )
 
-                wTrueContexts = wContexts
-                             |> map (\(name, c, ast) -> (name, {c | aliases = commonAliases}, ast))
+                commonAliases =
+                    wContexts
+                        |> map (\( name, ctx, ast ) -> ctx.aliases)
+                        |> getCommonAliases
+
+                wTrueContexts =
+                    wContexts
+                        |> map (\( name, c, ast ) -> ( name, { c | aliases = commonAliases }, ast ))
             in
                 wTrueContexts
-                |> map (\(name, c, ast) -> name ++ "\n" ++ getCode c ast)
-                |> String.join "\n>>>>"
+                    |> map
+                        (\( name, c, ast ) ->
+                            ">>>>" ++ name ++ "\n" ++ getCode c ast
+                        )
+                    |> String.join "\n"
 
 
-                        -- (first f) ++ "\n" ++
-                   --      (parse (second f)
-                   --      |>
-                   --      )
-                   -- )
-                  -- |> String.join ">>>>"
+
+-- (first f) ++ "\n" ++
+--      (parse (second f)
+--      |>
+--      )
+-- )
+-- |> String.join ">>>>"
+
 
 getCommonAliases : List Aliases -> Aliases
 getCommonAliases a =
-    foldl (\aliases acc ->
-               Dict.merge
-                   Dict.insert
-                   typeAliasDuplicate
-                   Dict.insert
-                   acc
-                   aliases
-                   Dict.empty
-          ) (Dict.empty) a
+    foldl
+        (\aliases acc ->
+            Dict.merge
+                Dict.insert
+                typeAliasDuplicate
+                Dict.insert
+                acc
+                aliases
+                Dict.empty
+        )
+        (Dict.empty)
+        a
+
 
 typeAliasDuplicate : comparable -> a -> a -> Dict.Dict comparable a -> Dict.Dict comparable a
 typeAliasDuplicate k v v2 =
@@ -107,28 +126,33 @@ typeAliasDuplicate k v v2 =
         Dict.insert k v
 
 
-getContext : List Statement -> (Maybe Context, List Statement)
+getContext : List Statement -> ( Maybe Context, List Statement )
 getContext statements =
     case statements of
         [] ->
-            (Nothing, [])
+            ( Nothing, [] )
+
         mod :: statements ->
-            let base = ExStatement.moduleStatement mod
-            in (Just { base | aliases = (ExAlias.getAliases statements) }, statements)
+            let
+                base =
+                    ExStatement.moduleStatement mod
+            in
+                ( Just { base | aliases = (ExAlias.getAliases statements) }, statements )
+
 
 getCode : Context -> List Statement -> String
 getCode context statements =
     ("# Compiled using Elmchemy v" ++ version)
-    ++ "\n"
-    ++ ("defmodule " ++ context.mod ++ " do")
-    ++ glueStart
-    ++ ((List.map (ExStatement.elixirS context) statements)
-       |> (List.foldr (++) "")
-       )
-    ++ glueEnd
+        ++ "\n"
+        ++ ("defmodule " ++ context.mod ++ " do")
+        ++ glueStart
+        ++ ((List.map (\a -> ExStatement.elixirS a context) statements)
+                |> (List.foldr (++) "")
+           )
+        ++ glueEnd
 
 parse : String -> List Statement
-parse m  =
+parse m =
     case Ast.parse m of
         Ok ( _, _, statements ) ->
             statements
@@ -136,8 +160,9 @@ parse m  =
         Err ( (), { input, position }, [ msg ] ) ->
             Debug.crash
                 ("]ERR> Compilation error at: "
-                ++ input
-                ++ "\n")
+                    ++ input
+                    ++ "\n"
+                )
 
         err ->
             Debug.crash (toString err)

@@ -2,10 +2,11 @@
 defmodule XKernel do
   use Elmchemy
 
-  curry a/0
-  def a() do
+  def test() do
     1
   end
 
+  #  a =
+  #      1
   #  type alias Pid = ()
 end
