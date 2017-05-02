@@ -51,6 +51,7 @@ case "$1" in
                 current_file="${current_file/>>>>$2/$3}"
                 echo "Generating $current_file"
                 mkdir -p `dirname $current_file`
+                rm $current_file
                 touch $current_file
             else
                 printf '%s\n' "$line" >> "$current_file"
