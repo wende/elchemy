@@ -122,7 +122,7 @@ getCode context statements =
     ++ "\n"
     ++ ("defmodule " ++ context.mod ++ " do")
     ++ glueStart
-    ++ ((List.map (\a -> ExStatement.elixirS (Debug.log "line" a) context) statements)
+    ++ ((List.map (ExStatement.elixirS context) statements)
        |> (List.foldr (++) "")
        )
     ++ glueEnd

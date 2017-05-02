@@ -52,13 +52,13 @@ compare a b =
 -- typespec don't work for such types yet
 {- ex
 
-   def l >> r do
+   def l >>> r do
      fn x -> l.(r.(x)) end
    end
 
 -}
 
-
+-- not, or & and are inlined by the compiler
 not : Bool -> Bool
 not x =
     lffi "not" x

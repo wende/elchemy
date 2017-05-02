@@ -25,6 +25,7 @@ defmodule Elmchemy.XBasics do
   curry //2
   curry div/2
   curry rem/2
+  curry abs/2
 
 
   @spec compare(any, any) :: order
@@ -42,11 +43,12 @@ defmodule Elmchemy.XBasics do
   #  Cant implement >> or << yet
   #  typespec don't work for such types yet
 
-  def l >> r do
-    fn x -> l.(r.(x)) end
+  def l >>> r do
+  fn x -> l.(r.(x)) end
   end
 
 
+  #  not, or & and are inlined by the compiler
   @spec not(boolean) :: boolean
   curry not/1
   def not(x) do
@@ -63,6 +65,18 @@ defmodule Elmchemy.XBasics do
   curry negate/1
   def negate(x) do
     -(x)
+  end
+
+  @spec sqrt(:float) :: :float
+  curry sqrt/1
+  def sqrt(x) do
+    :math.sqrt(x)
+  end
+
+  @spec clamp(any, any, any) :: any
+  curry clamp/3
+  def clamp(x, bottom, top) do
+    x |> min.(bottom) |> max.(top)
   end
 
 end
