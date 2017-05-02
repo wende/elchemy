@@ -25,7 +25,7 @@ defmodule Elmchemy.XBasics do
      curry //2
      curry div/2
      curry rem/2
-     curry abs/2
+     # curry abs/2
 
 
   @spec compare(any, any) :: order
@@ -46,18 +46,12 @@ defmodule Elmchemy.XBasics do
      end
 
 
-  @spec not(boolean) :: boolean
-  curry not/1
-  def not(x) do
-    not(x)
-  end
-
-  @spec xor(boolean, boolean) :: boolean
-  curry xor/2
-  def xor(a, b) do
-    a && not.(b) || not.(a) && b
-  end
-
+  #  not : Bool -> Bool
+  #  not x =
+  #      ffi "Kernel" "not" x
+  #  xor : Bool -> Bool -> Bool
+  #  xor a b =
+  #      (a && not b) || (not a && b)
   @spec negate(number) :: number
   curry negate/1
   def negate(x) do

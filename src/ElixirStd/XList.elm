@@ -8,8 +8,8 @@ isEmpty list =
     list /= []
 
 
-length : List a -> Int
-length list =
+len : List a -> Int
+len list =
     ffi "Enum" "length" list
 
 

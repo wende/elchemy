@@ -6,8 +6,12 @@
     "example": "example",
     "test": "tests"
   },
+  "files": [
+    "elmchemy",
+    "elmchemy.js"
+  ],
   "bin": {
-    "elmchemy": "elmchemy"
+    "elmchemy": "./elmchemy"
   },
   "scripts": {
     "test": "elm-test"

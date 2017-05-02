@@ -9,9 +9,9 @@ defmodule XList do
     list != []
   end
 
-  @spec length(list(any)) :: integer
-  curry length/1
-  def length(list) do
+  @spec len(list(any)) :: integer
+  curry len/1
+  def len(list) do
     Enum.length(list)
   end
 

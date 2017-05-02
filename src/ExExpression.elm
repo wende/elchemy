@@ -410,13 +410,23 @@ defOrDefp context name =
             Debug.crash "No such export"
 
 
+(|+) : String -> String -> String
+(|+) a b =
+    a ++ b
+
+
 functionCurry : Context -> String -> List String -> String
 functionCurry c name args =
-    (ind c.indent)
-        ++ "curry "
-        ++ toSnakeCase name
-        ++ "/"
-        ++ toString (List.length args)
+    case List.length args of
+        0 ->
+            ""
+
+        arity ->
+            (ind c.indent)
+                ++ "curry "
+                ++ toSnakeCase name
+                ++ "/"
+                ++ toString arity
 
 
 genFunctionDefinition : Context -> String -> List String -> Expression -> String

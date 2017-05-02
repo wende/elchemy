@@ -32,7 +32,7 @@ type Order
    curry //2
    curry div/2
    curry rem/2
-   curry abs/2
+   # curry abs/2
 
 -}
 
@@ -57,16 +57,12 @@ compare a b =
    end
 
 -}
-
-
-not : Bool -> Bool
-not x =
-    lffi "not" x
-
-
-xor : Bool -> Bool -> Bool
-xor a b =
-    (a && not b) || (not a && b)
+-- not : Bool -> Bool
+-- not x =
+--     ffi "Kernel" "not" x
+-- xor : Bool -> Bool -> Bool
+-- xor a b =
+--     (a && not b) || (not a && b)
 
 
 negate : number -> number

@@ -86,8 +86,11 @@ tree m =
                         |> map (\( name, c, ast ) -> ( name, { c | aliases = commonAliases }, ast ))
             in
                 wTrueContexts
-                    |> map (\( name, c, ast ) -> name ++ "\n" ++ getCode c ast)
-                    |> String.join "\n>>>>"
+                    |> map
+                        (\( name, c, ast ) ->
+                            ">>>>" ++ name ++ "\n" ++ getCode c ast
+                        )
+                    |> String.join "\n"
 
 
 
