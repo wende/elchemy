@@ -491,14 +491,18 @@ operators =
     , ( "/", "/" )
     , ( ">>", ">>>" )
     , ( "<|", "<<<" )
+
+    -- Exception
     , ( "%", "" )
-      -- Exception
+
+    -- Exception
     , ( "//", "" )
-      -- Exception
+
+    -- Exception
     , ( "rem", "" )
-      -- Exception
+
+    -- Exception
     , ( "^", "" )
-      -- Exception
     , ( "<<", "" )
     , ( "|>", "|>" )
     ]
