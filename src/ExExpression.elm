@@ -335,13 +335,13 @@ caseE c var body =
         ++ (String.join ""
                 (List.map (caseInstance c) body)
            )
-        ++ ind (c.indent - 1)
+        ++ ind (c.indent)
         ++ "end"
 
 
 caseInstance : Context -> ( Expression, Expression ) -> String
 caseInstance c a =
-    (ind c.indent ++ elixirE c (Tuple.first a))
+    (ind (c.indent + 1) ++ elixirE c (Tuple.first a))
         ++ " -> "
         ++ (elixirE c (Tuple.second a))
 

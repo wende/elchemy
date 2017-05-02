@@ -65,6 +65,7 @@ compare a b =
 --     (a && not b) || (not a && b)
 
 
+
 negate : number -> number
 negate x =
     lffi "-" x

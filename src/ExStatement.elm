@@ -20,8 +20,8 @@ moduleStatement s =
             Debug.crash "First statement must be module declaration"
 
 
-elixirS : Statement -> Context -> String
-elixirS s c =
+elixirS : Context -> Statement -> String
+elixirS c s =
     case s of
         TypeDeclaration (TypeConstructor [ name ] _) types ->
             (ind c.indent)
@@ -81,6 +81,9 @@ elixirS s c =
         Comment content ->
             if String.startsWith " ex" content then
                 String.dropLeft 3 content
+                    |> String.split "\n"
+                    |> map String.trim
+                    |> String.join "\n"
                     |> indAll c.indent
             else
                 content
