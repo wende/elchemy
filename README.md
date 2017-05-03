@@ -47,13 +47,19 @@ Usage
 ```
 elmchemy compile source_dir output_dir
 ```
+### Build from source
 
-
-Type
+```
+git clone https://github.com/wende/elmchemy.git
+cd elmchemy
+make compile
+./elmchemy compile source_dir output_dir
+```
+and 
 ```
 make dev
 ```
-in terminal to start the compiler
+To launch and test the web demo
 
 ## Contributing Guide
 - Everyone is welcome to contribute
