@@ -132,6 +132,7 @@ indentComment : Context -> String -> String
 indentComment { indent } content =
     content
         |> indAll indent
+        -- Drop an unnecessary \n at the end
         |> String.dropRight 1
 
 
