@@ -9,29 +9,7 @@ done
 SOURCE_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 case "$1" in
-    compile)
-        for f in `find $2 -name "*.elm" | grep -v "elm-stuff"`
-        do
-            base_file="${f%.*}"
-            output_dir="${3:-output}"
-            echo "Processing $f"
-            mkdir -p "$output_dir"
-            if [[ $* != *--unsafe* ]]
-            then
-                elm-make $f --output .tmp-elm.js
-                rm .tmp-elm.js
-            fi
-            dir_suffix=${base_file#$2}
-            dir_prefix=${2%$dir_suffix}
-
-            echo "Copying to $output_dir$dir_suffix.ex"
-
-            node $SOURCE_DIR/elmchemy.js $f > $output_dir$dir_suffix.ex
-
-            # do something on $f
-        done
-        ;;
-    aggregate)
+   compile)
         rm -rf ".elmchemy"
         echo "" > .elmchemy_output
         for f in `find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#."`
