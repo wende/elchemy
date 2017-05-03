@@ -43,10 +43,14 @@ elixirS c s =
 
         --"alias?"
         FunctionTypeDeclaration name t ->
-            (ind c.indent)
-                ++ "@spec "
-                ++ toSnakeCase name
-                ++ (ExType.typespec c t)
+            if isOperator name then
+                -- TODO implement operator specs
+                ""
+            else
+                (ind c.indent)
+                    ++ "@spec "
+                    ++ toSnakeCase name
+                    ++ (ExType.typespec c t)
 
         (FunctionDeclaration name args body) as fd ->
             if name == "meta" && args == [] then
@@ -105,6 +109,7 @@ elixirS c s =
                 Normal content ->
                     content
                         |> prependAll ((ind c.indent) ++ "# ")
+
 
         -- That's not a real import. In elixir it's called alias
         ImportStatement path Nothing Nothing ->

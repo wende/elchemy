@@ -22,7 +22,6 @@ type Command a
     | Pop
 
 
-
 -- Client
 
 

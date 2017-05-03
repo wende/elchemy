@@ -11,7 +11,7 @@ import Dict
 
 
 version =
-    "0.0.17"
+    "0.0.21"
 
 
 glueStart : String
@@ -146,7 +146,7 @@ getCode context statements =
         ++ "\n"
         ++ ("defmodule " ++ context.mod ++ " do")
         ++ glueStart
-        ++ ((List.map (\a -> ExStatement.elixirS context a) statements)
+        ++ ((List.map (ExStatement.elixirS context) statements)
                 |> (List.foldr (++) "")
            )
         ++ glueEnd
