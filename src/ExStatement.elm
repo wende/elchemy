@@ -8,6 +8,14 @@ import ExType
 import Helpers exposing (..)
 import List exposing (..)
 import Dict exposing (Dict)
+import Regex
+import Helpers exposing (..)
+
+
+type ElmchemyComment
+    = Docs String
+    | Ex String
+    | Normal String
 
 
 moduleStatement : Statement -> Context
@@ -79,15 +87,24 @@ elixirS c s =
                             body
 
         Comment content ->
-            if String.startsWith " ex" content then
-                String.dropLeft 3 content
-                    |> String.split "\n"
-                    |> map String.trim
-                    |> String.join "\n"
-                    |> indAll c.indent
-            else
-                content
-                    |> prependAll ((ind c.indent) ++ "# ")
+            case getCommentType content of
+                Docs content ->
+                    (ind c.indent)
+                        ++ "@doc \"\"\"\n"
+                        ++ indentComment c content
+                        ++ (ind c.indent)
+                        ++ "\"\"\""
+
+                Ex content ->
+                    content
+                        |> String.split "\n"
+                        |> map String.trim
+                        |> String.join "\n"
+                        |> indAll c.indent
+
+                Normal content ->
+                    content
+                        |> prependAll ((ind c.indent) ++ "# ")
 
         -- That's not a real import. In elixir it's called alias
         ImportStatement path Nothing Nothing ->
@@ -105,6 +122,36 @@ elixirS c s =
 
         s ->
             notImplemented "statement" s
+
+
+indentComment : Context -> String -> String
+indentComment { indent } content =
+    content
+        |> prependAll (List.repeat ((indent + 1) * 2) " " |> String.join "")
+        |> String.dropRight 1
+
+
+getCommentType : String -> ElmchemyComment
+getCommentType comment =
+    [ ( "^\\sex", (\s -> Ex s) )
+    , ( "^\\|\\s", (\s -> Docs s) )
+    ]
+        |> List.map (\( a, b ) -> ( Regex.regex a, b ))
+        |> List.foldl findCommentType (Normal comment)
+
+
+findCommentType : ( Regex.Regex, String -> ElmchemyComment ) -> ElmchemyComment -> ElmchemyComment
+findCommentType ( regex, commentType ) acc =
+    case acc of
+        Normal content ->
+            if Regex.contains regex content then
+                commentType <|
+                    Regex.replace (Regex.AtMost 1) regex (\_ -> "") content
+            else
+                Normal content
+
+        other ->
+            other
 
 
 subsetExport : ExportSet -> List String

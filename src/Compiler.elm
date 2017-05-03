@@ -146,10 +146,11 @@ getCode context statements =
         ++ "\n"
         ++ ("defmodule " ++ context.mod ++ " do")
         ++ glueStart
-        ++ ((List.map (\a -> ExStatement.elixirS a context) statements)
+        ++ ((List.map (\a -> ExStatement.elixirS context a) statements)
                 |> (List.foldr (++) "")
            )
         ++ glueEnd
+
 
 parse : String -> List Statement
 parse m =

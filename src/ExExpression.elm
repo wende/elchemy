@@ -10,16 +10,6 @@ import ExAlias
 import Dict exposing (Dict)
 
 
-indent : Context -> Context
-indent c =
-    { c | indent = c.indent + 1 }
-
-
-deindent : Context -> Context
-deindent c =
-    { c | indent = c.indent - 1 }
-
-
 elixirE : Context -> Expression -> String
 elixirE c e =
     case e of
