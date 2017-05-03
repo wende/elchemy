@@ -1,5 +1,16 @@
-module Wende exposing (..)
+module Stack exposing (..)
 
 
-dodaj a b =
-    a + b
+type alias TestRecord =
+    { int : Int
+    , float : Float
+    }
+
+
+blah : TestRecord
+blah =
+    42
+
+
+blorp =
+    blah.x

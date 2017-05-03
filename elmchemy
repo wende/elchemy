@@ -1,6 +1,13 @@
 #!/bin/bash
 
-echo $2
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+    DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+SOURCE_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
 case "$1" in
     compile)
         for f in `find $2 -name "*.elm" | grep -v "elm-stuff"`
@@ -17,13 +24,41 @@ case "$1" in
             dir_suffix=${base_file#$2}
             dir_prefix=${2%$dir_suffix}
 
-            echo "Copying to $dir_prefix/$output_dir$dir_suffix.ex"
-            node elmchemy.js $f > $dir_prefix/$output_dir$dir_suffix.ex
+            echo "Copying to $output_dir$dir_suffix.ex"
+
+            node $SOURCE_DIR/elmchemy.js $f > $output_dir$dir_suffix.ex
 
             # do something on $f
         done
         ;;
+    aggregate)
+        rm -rf ".elmchemy"
+        echo "" > .elmchemy_output
+        for f in `find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#."`
+        do
+            echo ">>>>$f" >> .elmchemy_output
+            elm-package install -y
+            elm-make $f --output .elmchemy_output_tmp.js || { echo 'Compilation failed' ; exit 1; }
+            rm .elmchemy_output_tmp.js
+            cat $f >> .elmchemy_output
+        done
+        node $SOURCE_DIR/elmchemy.js .elmchemy_output > .elmchemy_elixir_output
+        current_file=""
+        while IFS= read -r line; do
+            if [[ $line =~ ">>>>" ]]; then
+                current_file="${line/\/\///}"
+                current_file="${current_file%%.*}.ex"
+                current_file="${current_file/>>>>$2/$3}"
+                echo "Generating $current_file"
+                mkdir -p `dirname $current_file`
+                rm $current_file
+                touch $current_file
+            else
+                printf '%s\n' "$line" >> "$current_file"
+            fi
+        done < .elmchemy_elixir_output
 
+        ;;
     *)
         echo $"Usage: $0 compile [input_dir] [output_dir] [--unsafe]"
         exit 1

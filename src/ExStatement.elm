@@ -20,8 +20,8 @@ moduleStatement s =
             Debug.crash "First statement must be module declaration"
 
 
-elixirS : Statement -> Context -> String
-elixirS s c =
+elixirS : Context -> Statement -> String
+elixirS c s =
     case s of
         TypeDeclaration (TypeConstructor [ name ] _) types ->
             (ind c.indent)
@@ -35,10 +35,14 @@ elixirS s c =
 
         --"alias?"
         FunctionTypeDeclaration name t ->
-            (ind c.indent)
-                ++ "@spec "
-                ++ toSnakeCase name
-                ++ (ExType.typespec c t)
+            if isOperator name then
+                -- TODO implement operator specs
+                ""
+            else
+                (ind c.indent)
+                    ++ "@spec "
+                    ++ toSnakeCase name
+                    ++ (ExType.typespec c t)
 
         (FunctionDeclaration name args body) as fd ->
             if name == "meta" && args == [] then
@@ -79,14 +83,42 @@ elixirS s c =
                             body
 
         Comment content ->
-            (ind c.indent) ++ "#" ++ content
+            if String.startsWith " ex" content then
+                String.dropLeft 3 content
+                    |> String.split "\n"
+                    |> map (String.dropLeft 1)
+                    |> String.join "\n"
+                    |> indAll (c.indent - 1)
+            else
+                content
+                    |> prependAll ((ind c.indent) ++ "# ")
 
         -- That's not a real import. In elixir it's called alias
         ImportStatement path Nothing Nothing ->
             (ind c.indent) ++ "alias " ++ String.join "." path
+
+        ImportStatement path Nothing (Just (SubsetExport exports)) ->
+            (ind c.indent)
+                ++ "import "
+                ++ String.join "." path
+                ++ ", only: "
+                ++ (map subsetExport exports |> foldl (++) [] |> String.join ",")
 
         ImportStatement path Nothing (Just AllExport) ->
             (ind c.indent) ++ "import " ++ String.join "." path
 
         s ->
             notImplemented "statement" s
+
+
+subsetExport : ExportSet -> List String
+subsetExport exp =
+    case exp of
+        TypeExport _ _ ->
+            []
+
+        FunctionExport name ->
+            [ "{" ++ name ++ ", 0}" ]
+
+        _ ->
+            Debug.crash ("You can't export " ++ toString exp)

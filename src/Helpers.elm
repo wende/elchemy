@@ -3,7 +3,8 @@ module Helpers exposing (..)
 import Char
 import Tuple exposing (..)
 import List exposing (..)
-import Regex
+import Regex exposing (..)
+import Dict exposing (Dict)
 
 
 type MaybeUpper
@@ -67,6 +68,24 @@ ind i =
     "\n" ++ (List.repeat ((i + 1) * 2) " " |> String.join "")
 
 
+prependAll : String -> String -> String
+prependAll with target =
+    String.split "\n" target
+        |> map
+            (\line ->
+                if String.trim line == "" then
+                    line
+                else
+                    with ++ line
+            )
+        |> String.join ("\n")
+
+
+indAll : Int -> String -> String
+indAll i s =
+    prependAll (String.dropLeft 1 (ind i)) s
+
+
 uncons : List a -> ( Maybe a, List a )
 uncons list =
     case list of
@@ -83,3 +102,71 @@ lastAndRest list =
         |> List.reverse
         |> uncons
         |> Tuple.mapSecond List.reverse
+
+
+unquoteSplicing : String -> String
+unquoteSplicing =
+    Regex.replace All (regex "(^\\{|\\}$)") (\_ -> "")
+
+
+operators : Dict String String
+operators =
+    [ ( "||", "||" )
+    , ( "&&", "&&" )
+    , ( "==", "==" )
+    , ( "/=", "!=" )
+    , ( "<", "<" )
+    , ( ">", ">" )
+    , ( ">=", ">=" )
+    , ( "<=", "<=" )
+    , ( "++", "++" )
+    , ( "+", "+" )
+    , ( "-", "-" )
+    , ( "*", "*" )
+    , ( "/", "/" )
+    , ( ">>", ">>>" )
+    , ( "<|", "<<<" )
+
+    -- Exception
+    , ( "%", "" )
+
+    -- Exception
+    , ( "//", "" )
+
+    -- Exception
+    , ( "rem", "" )
+
+    -- Exception
+    , ( "^", "" )
+    , ( "<<", "" )
+    , ( "|>", "|>" )
+    , ( "::", "|" )
+    , ( "not", "!" )
+    ]
+        |> List.foldl (uncurry Dict.insert) Dict.empty
+
+
+isOperator : String -> Bool
+isOperator name =
+    operators
+        |> Dict.keys
+        |> List.any ((==) name)
+
+
+translateOperator : String -> String
+translateOperator op =
+    case Dict.get op operators of
+        Just "" ->
+            Debug.crash
+                (op
+                    ++ "is not a valid or not implemented yet operator"
+                )
+
+        Just key ->
+            key
+
+        _ ->
+            Debug.crash
+                (op
+                    ++ "is not a valid or not implemented yet operator"
+                )

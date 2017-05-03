@@ -66,10 +66,24 @@ all =
             \() ->
                 "a = camelCase 1" |> is "camel_case.(1)"
 
+        -- Operators
+        , test "Simple ops" <|
+            \() ->
+                "add = a + b" |> is "a + b"
+        , test "Ops as lambda" <|
+            \() ->
+                "add = (+)" |> is "Elmchemy.+"
+        , test "Ops as lambda with param" <|
+            \() ->
+                "add = ((+) 2)" |> is "Elmchemy.+().(2)"
+        , test "Ops as lambda" <|
+            \() ->
+                "add = map (+) list" |> is "map.(Elmchemy.+()).(list)"
+
         -- Typespecs
         , test "Typespecs with dependant types" <|
             \() ->
-                "sum : (List Int) -> Int" |> is "@spec sum(list(int)) :: int"
+                "sum : (List Int) -> Int" |> is "@spec sum(list(integer)) :: integer"
         , test "Typespecs with functions" <|
             \() ->
                 "map : (List a) -> (a -> a) -> (List a)"
@@ -83,7 +97,11 @@ all =
                 "mapMap : a" |> is "@spec map_map"
         , test "Records in typespecs" <|
             \() ->
-                "record : { a : Int, b : String}" |> is "@spec record :: %{a: int, b: String.t}"
+                "record : { a : Int, b : String}" |> is "@spec record :: %{a: integer, b: String.t}"
+        , test "Remote typespecs" <|
+            \() ->
+                "f : Remote.Module.Type -> String.T"
+                    |> is "f(Remote.Module.type) :: String.t"
 
         -- Type aliases
         , test "Types" <|
@@ -116,12 +134,12 @@ all =
         , test "Type in tuple" <|
             \() ->
                 "a = (Type, a, b, c)" |> is "{:type, a, b, c}"
+        , test "Remote types" <|
+            \() ->
+                "a = Remote.Type a b c" |> is "{:type, a, b, c}"
+        , test "Remote types in tuples" <|
+            \() ->
+                "a = (Remote.Type, a, b, c)" |> is "{:type, a, b, c}"
 
-        -- , test "Remote types" <|
-        --     \() ->
-        --         "a = Remote.Type a b c" |> is "{:type, a, b, c}"
-        -- , test "Remote types in tuples" <|
-        --     \() ->
-        --         "a = (Remote.Type, a, b, c)" |> is "{:type, a, b, c}"
         -- End
         ]

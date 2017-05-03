@@ -21,6 +21,9 @@ flattenTypeApplication application =
 elixirT : Context -> Type -> String
 elixirT c t =
     case t of
+        TypeTuple [] ->
+            "no_return"
+
         TypeTuple [ a ] ->
             elixirT c a
 
@@ -44,8 +47,14 @@ elixirT c t =
         TypeConstructor [ "String" ] [] ->
             "String.t"
 
+        TypeConstructor [ "Bool" ] [] ->
+            "boolean"
+
         TypeConstructor [ "Int" ] [] ->
-            "int"
+            "integer"
+
+        TypeConstructor [ "Float" ] [] ->
+            "float"
 
         TypeConstructor [ "List" ] [ t ] ->
             "list(" ++ elixirT c t ++ ")"
@@ -66,10 +75,11 @@ elixirT c t =
             aliasOr c t (atomize t)
 
         TypeConstructor t [] ->
-            -- (String.join "." t) ++ ".t"
             case lastAndRest t of
                 ( Just last, a ) ->
-                    aliasOr c last last
+                    String.join "." a
+                        ++ "."
+                        ++ toSnakeCase last
 
                 _ ->
                     Debug.crash "Shouldn't ever happen"

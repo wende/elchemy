@@ -1,10 +1,7 @@
 port module Main exposing (main)
 
-import Html.Events exposing (..)
-import Json.Decode as JD
 import Html exposing (..)
 import Html
-import Html.Attributes
 import Compiler
 import Markdown
 

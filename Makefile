@@ -21,10 +21,15 @@ compile-watch:
 
 compile-std-watch:
 	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c \
-		"make compile && ./elmchemy compile src/elixir_std output"
+		"make compile && ./elmchemy compile src/ElixirStd elixir-stuff/elmchemy/lib"
 
 tests-watch:
 	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr elm-test
 
 compile-demo:
 	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c "make compile && node elmchemy.js src/Example.elm  > elixir-stuff/elmchemy/lib/example.ex"
+
+install-sysconf:
+	git clone "https://github.com/obmarg/libsysconfcpus.git"
+	cd libsysconfcpus && ./configure && make && make install
+	cd .. && rm -rf libsysconfcpus
