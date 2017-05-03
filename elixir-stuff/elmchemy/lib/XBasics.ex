@@ -1,4 +1,4 @@
-# Compiled using Elmchemy v0.0.17
+# Compiled using Elmchemy v0.0.21
 defmodule Elmchemy.XBasics do
   use Elmchemy
 
@@ -28,6 +28,15 @@ defmodule Elmchemy.XBasics do
   curry abs/2
 
 
+  @doc """
+  Basic compare function
+
+  ### Example
+  ```elm
+  compare a b
+  ```
+
+  """
   @spec compare(any, any) :: order
   curry compare/2
   def compare(a, b) do
@@ -40,7 +49,7 @@ defmodule Elmchemy.XBasics do
 
   # >> is replaced with >>> by the compiler
   def l >>> r do
-    fn x -> l.(r.(x)) end
+  fn x -> l.(r.(x)) end
   end
 
 
@@ -197,13 +206,13 @@ defmodule Elmchemy.XBasics do
   @spec curried(({any, any} -> any)) :: ((any -> any) -> any)
   curry curried/1
   def curried(fun) do
-    fn fst -> fn snd -> fun.({fst, snd}) end end
+  fn fst -> fn snd -> fun.({fst, snd}) end end
   end
 
   @spec uncurried(((any -> any) -> any)) :: ({any, any} -> any)
   curry uncurried/1
   def uncurried(fun) do
-    fn {fst, snd} -> fun.(fst).(snd) end
+  fn {fst, snd} -> fun.(fst).(snd) end
   end
 
 
