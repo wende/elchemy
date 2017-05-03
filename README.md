@@ -1,7 +1,37 @@
 # Elmchemy [![Build Status](https://travis-ci.org/wende/elmchemy.svg?branch=master)](https://travis-ci.org/wende/elmchemy)
 > Write Elixir code using Elm-inspired syntax (elm-make compatible)
 
-Test online at:
+## Usage
+
+### Prerequisites
+- [node](https://nodejs.org/en/)
+- [elm-lang](https://guide.elm-lang.org/install.html)
+
+### Instalation
+Install `elmchemy` globally with
+
+```shell
+mix archive.install /path/to/elmchemy.tz
+npm install -g elmchemy
+```
+
+Then add it to your project by adding these two lines to your `mix.exs` file:
+
+```elixir
+def project do
+  [app: :my_app,
+   ...
+   compilers: [:elmchemy, :yecc, :leex, :erlang, :elixir, :app],
+   elmchemy_path: "elm"]
+end
+```
+
+`elmchemy` will find all `*.elm` files specified in `elmchemy_path` and compile it into correspodint `*.ex` files in `lib` directory.
+
+You can override output directory specifing `elixirc_paths`.
+
+## Web demo
+You can test `elmchemy` online at:
 https://wende.github.io/elmchemy/stable/
 
 ### CAVEAT: Web version does *not* do any type checking. It only parses syntax. For full type and syntax checking run the CLI version
