@@ -331,18 +331,18 @@ lambda c args body =
             elixirE c body
 
 
-genElixirFunc : Context -> String -> List String -> Expression -> String
+genElixirFunc : Context -> String -> List Expression -> Expression -> String
 genElixirFunc c name args body =
     if isOperator name then
         case args of
             [ l, r ] ->
                 (ind c.indent)
                     ++ defOrDefp c name
-                    ++ l
+                    ++ elixirE c l
                     ++ " "
                     ++ translateOperator name
                     ++ " "
-                    ++ r
+                    ++ elixirE c r
                     ++ " do"
                     ++ (ind <| c.indent + 1)
                     ++ elixirE (indent c) body
@@ -357,7 +357,10 @@ genElixirFunc c name args body =
             ++ defOrDefp c name
             ++ toSnakeCase name
             ++ "("
-            ++ String.join ", " args
+            ++ (args
+                    |> List.map (elixirE c)
+                    |> String.join ", "
+               )
             ++ ") do"
             ++ (ind <| c.indent + 1)
             ++ elixirE (indent c) body
@@ -381,7 +384,7 @@ defOrDefp context name =
             Debug.crash "No such export"
 
 
-functionCurry : Context -> String -> List String -> String
+functionCurry : Context -> String -> List Expression -> String
 functionCurry c name args =
     case List.length args of
         0 ->
@@ -395,7 +398,7 @@ functionCurry c name args =
                 ++ toString arity
 
 
-genFunctionDefinition : Context -> String -> List String -> Expression -> String
+genFunctionDefinition : Context -> String -> List Expression -> Expression -> String
 genFunctionDefinition c name args body =
     functionCurry c name args
         ++ genElixirFunc c name args body
@@ -405,7 +408,7 @@ genFunctionDefinition c name args body =
 genOverloadedFunctionDefinition :
     Context
     -> String
-    -> List String
+    -> List Expression
     -> Expression
     -> List ( Expression, Expression )
     -> String
@@ -417,7 +420,7 @@ genOverloadedFunctionDefinition c name args body expressions =
                         genElixirFunc
                             c
                             name
-                            [ elixirE c left |> unquoteSplicing ]
+                            [ left ]
                             right
                     )
                 |> List.foldr (++) ""

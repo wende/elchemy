@@ -3,7 +3,6 @@
 cd "$(dirname "$0")"
 set -e
 
-
 elm-package install -y
 
 VERSION_DIR="$(ls elm-stuff/packages/elm-lang/core/)"

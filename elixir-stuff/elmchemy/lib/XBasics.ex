@@ -1,4 +1,4 @@
-# Compiled using Elmchemy v0.0.21
+# Compiled using Elmchemy v0.0.22
 defmodule Elmchemy.XBasics do
   use Elmchemy
 
@@ -31,10 +31,10 @@ defmodule Elmchemy.XBasics do
   @doc """
   Basic compare function
 
+
   ### Example
-  ```elm
-  compare a b
-  ```
+
+      compare a b
 
   """
   @spec compare(any, any) :: order
