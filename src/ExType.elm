@@ -21,6 +21,9 @@ flattenTypeApplication application =
 elixirT : Context -> Type -> String
 elixirT c t =
     case t of
+        TypeTuple [] ->
+            "no_return"
+
         TypeTuple [ a ] ->
             elixirT c a
 
@@ -49,6 +52,9 @@ elixirT c t =
 
         TypeConstructor [ "Int" ] [] ->
             "integer"
+
+        TypeConstructor [ "Float" ] [] ->
+            "float"
 
         TypeConstructor [ "List" ] [ t ] ->
             "list(" ++ elixirT c t ++ ")"

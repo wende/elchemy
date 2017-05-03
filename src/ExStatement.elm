@@ -35,10 +35,14 @@ elixirS c s =
 
         --"alias?"
         FunctionTypeDeclaration name t ->
-            (ind c.indent)
-                ++ "@spec "
-                ++ toSnakeCase name
-                ++ (ExType.typespec c t)
+            if isOperator name then
+                -- TODO implement operator specs
+                ""
+            else
+                (ind c.indent)
+                    ++ "@spec "
+                    ++ toSnakeCase name
+                    ++ (ExType.typespec c t)
 
         (FunctionDeclaration name args body) as fd ->
             if name == "meta" && args == [] then
@@ -82,9 +86,9 @@ elixirS c s =
             if String.startsWith " ex" content then
                 String.dropLeft 3 content
                     |> String.split "\n"
-                    |> map String.trim
+                    |> map (String.dropLeft 1)
                     |> String.join "\n"
-                    |> indAll c.indent
+                    |> indAll (c.indent - 1)
             else
                 content
                     |> prependAll ((ind c.indent) ++ "# ")

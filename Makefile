@@ -28,3 +28,8 @@ tests-watch:
 
 compile-demo:
 	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c "make compile && node elmchemy.js src/Example.elm  > elixir-stuff/elmchemy/lib/example.ex"
+
+install-sysconf:
+	git clone "https://github.com/obmarg/libsysconfcpus.git"
+	cd libsysconfcpus && ./configure && make && make install
+	cd .. && rm -rf libsysconfcpus
