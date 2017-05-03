@@ -1,12 +1,10 @@
-# Compiled using Elmchemy v0.0.17
+# Compiled using Elmchemy v0.0.21
 defmodule Elmchemy.XBasics do
   use Elmchemy
 
   import Elmchemy
   alias XList
-
   @type order :: :lt | :eq | :gt
-
   #  Operators
 
   curry ==/2
@@ -27,16 +25,15 @@ defmodule Elmchemy.XBasics do
   curry //2
   curry div/2
   curry rem/2
-  # curry abs/2
+  curry abs/2
 
 
   @doc """
-  this is basic compare function
+  Basic compare function
 
   ### Example
-
-  ```js
-  content
+  ```elm
+  compare a b
   ```
 
   """
@@ -52,7 +49,7 @@ defmodule Elmchemy.XBasics do
 
   # >> is replaced with >>> by the compiler
   def l >>> r do
-    fn x -> l.(r.(x)) end
+  fn x -> l.(r.(x)) end
   end
 
 
@@ -68,7 +65,6 @@ defmodule Elmchemy.XBasics do
   def negate(x) do
     -(x)
   end
-
 
   @spec sqrt(float) :: float
   curry sqrt/1
@@ -210,13 +206,13 @@ defmodule Elmchemy.XBasics do
   @spec curried(({any, any} -> any)) :: ((any -> any) -> any)
   curry curried/1
   def curried(fun) do
-    fn fst -> fn snd -> fun.({fst, snd}) end end
+  fn fst -> fn snd -> fun.({fst, snd}) end end
   end
 
   @spec uncurried(((any -> any) -> any)) :: ({any, any} -> any)
   curry uncurried/1
   def uncurried(fun) do
-    fn {fst, snd} -> fun.(fst).(snd) end
+  fn {fst, snd} -> fun.(fst).(snd) end
   end
 
 

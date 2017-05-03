@@ -14,3 +14,13 @@ type alias Context =
     , indent : Int
     , aliases : Aliases
     }
+
+
+indent : Context -> Context
+indent c =
+    { c | indent = c.indent + 1 }
+
+
+deindent : Context -> Context
+deindent c =
+    { c | indent = c.indent - 1 }

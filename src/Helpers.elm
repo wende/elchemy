@@ -13,16 +13,6 @@ type MaybeUpper
     | Lower String
 
 
-indent : Context -> Context
-indent c =
-    { c | indent = c.indent + 1 }
-
-
-deindent : Context -> Context
-deindent c =
-    { c | indent = c.indent - 1 }
-
-
 notImplemented : String -> a -> String
 notImplemented feature value =
     " ## ERROR: No "

@@ -2,7 +2,7 @@ module ExStatement exposing (..)
 
 import Ast.Statement exposing (..)
 import Ast.Expression exposing (..)
-import ExContext exposing (Context)
+import ExContext exposing (Context, indent, deindent)
 import ExExpression
 import ExType
 import Helpers exposing (..)
@@ -13,7 +13,7 @@ import Helpers exposing (..)
 
 
 type ElmchemyComment
-    = Docs String
+    = Doc String
     | Ex String
     | Normal String
 
@@ -92,7 +92,7 @@ elixirS c s =
 
         Comment content ->
             case getCommentType content of
-                Docs content ->
+                Doc content ->
                     (ind c.indent)
                         ++ "@doc \"\"\"\n"
                         ++ indentComment c content
@@ -109,7 +109,6 @@ elixirS c s =
                 Normal content ->
                     content
                         |> prependAll ((ind c.indent) ++ "# ")
-
 
         -- That's not a real import. In elixir it's called alias
         ImportStatement path Nothing Nothing ->
@@ -132,14 +131,14 @@ elixirS c s =
 indentComment : Context -> String -> String
 indentComment { indent } content =
     content
-        |> prependAll (List.repeat ((indent + 1) * 2) " " |> String.join "")
+        |> indAll indent
         |> String.dropRight 1
 
 
 getCommentType : String -> ElmchemyComment
 getCommentType comment =
     [ ( "^\\sex", (\s -> Ex s) )
-    , ( "^\\|\\s", (\s -> Docs s) )
+    , ( "^\\|\\s", (\s -> Doc s) )
     ]
         |> List.map (\( a, b ) -> ( Regex.regex a, b ))
         |> List.foldl findCommentType (Normal comment)

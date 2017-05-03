@@ -1,4 +1,4 @@
-# Compiled using Elmchemy v0.0.17
+# Compiled using Elmchemy v0.0.21
 defmodule XList do
   use Elmchemy
 
@@ -32,7 +32,7 @@ defmodule XList do
   def head([]) do
     nil
   end
-  def head([a | _]) do
+  def head([a|_]) do
     a
   end
 
