@@ -3,6 +3,7 @@ module Helpers exposing (..)
 import Char
 import Tuple exposing (..)
 import List exposing (..)
+import ExContext exposing (Context)
 import Regex exposing (..)
 import Dict exposing (Dict)
 
@@ -70,7 +71,7 @@ ind i =
 
 prependAll : String -> String -> String
 prependAll with target =
-    String.split "\n" target
+    String.lines target
         |> map
             (\line ->
                 if String.trim line == "" then
@@ -78,7 +79,7 @@ prependAll with target =
                 else
                     with ++ line
             )
-        |> String.join ("\n")
+        |> String.join "\n"
 
 
 indAll : Int -> String -> String

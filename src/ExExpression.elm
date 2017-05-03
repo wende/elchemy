@@ -3,21 +3,9 @@ module ExExpression exposing (..)
 import Ast.Expression exposing (..)
 import Helpers exposing (..)
 import Ast.Statement exposing (..)
-import ExContext exposing (Context)
+import ExContext exposing (Context, indent, deindent)
 import List exposing (..)
-import Regex exposing (..)
 import ExAlias
-import Dict exposing (Dict)
-
-
-indent : Context -> Context
-indent c =
-    { c | indent = c.indent + 1 }
-
-
-deindent : Context -> Context
-deindent c =
-    { c | indent = c.indent - 1 }
 
 
 elixirE : Context -> Expression -> String

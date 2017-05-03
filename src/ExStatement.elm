@@ -2,12 +2,20 @@ module ExStatement exposing (..)
 
 import Ast.Statement exposing (..)
 import Ast.Expression exposing (..)
-import ExContext exposing (Context)
+import ExContext exposing (Context, indent, deindent)
 import ExExpression
 import ExType
 import Helpers exposing (..)
 import List exposing (..)
 import Dict exposing (Dict)
+import Regex
+import Helpers exposing (..)
+
+
+type ElmchemyComment
+    = Doc String
+    | Ex String
+    | Normal String
 
 
 moduleStatement : Statement -> Context
@@ -83,15 +91,24 @@ elixirS c s =
                             body
 
         Comment content ->
-            if String.startsWith " ex" content then
-                String.dropLeft 3 content
-                    |> String.split "\n"
-                    |> map (String.dropLeft 1)
-                    |> String.join "\n"
-                    |> indAll (c.indent - 1)
-            else
-                content
-                    |> prependAll ((ind c.indent) ++ "# ")
+            case getCommentType content of
+                Doc content ->
+                    (ind c.indent)
+                        ++ "@doc \"\"\"\n"
+                        ++ indentComment c content
+                        ++ (ind c.indent)
+                        ++ "\"\"\""
+
+                Ex content ->
+                    content
+                        |> String.split "\n"
+                        |> map String.trim
+                        |> String.join "\n"
+                        |> indAll c.indent
+
+                Normal content ->
+                    content
+                        |> prependAll ((ind c.indent) ++ "# ")
 
         -- That's not a real import. In elixir it's called alias
         ImportStatement path Nothing Nothing ->
@@ -109,6 +126,37 @@ elixirS c s =
 
         s ->
             notImplemented "statement" s
+
+
+indentComment : Context -> String -> String
+indentComment { indent } content =
+    content
+        |> indAll indent
+        -- Drop an unnecessary \n at the end
+        |> String.dropRight 1
+
+
+getCommentType : String -> ElmchemyComment
+getCommentType comment =
+    [ ( "^\\sex", (\s -> Ex s) )
+    , ( "^\\|\\s", (\s -> Doc s) )
+    ]
+        |> List.map (\( a, b ) -> ( Regex.regex a, b ))
+        |> List.foldl findCommentType (Normal comment)
+
+
+findCommentType : ( Regex.Regex, String -> ElmchemyComment ) -> ElmchemyComment -> ElmchemyComment
+findCommentType ( regex, commentType ) acc =
+    case acc of
+        Normal content ->
+            if Regex.contains regex content then
+                commentType <|
+                    Regex.replace (Regex.AtMost 1) regex (\_ -> "") content
+            else
+                Normal content
+
+        other ->
+            other
 
 
 subsetExport : ExportSet -> List String

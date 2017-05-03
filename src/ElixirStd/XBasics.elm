@@ -37,6 +37,14 @@ type Order
 -}
 
 
+{-| Basic compare function
+
+
+### Example
+
+    compare a b
+
+-}
 compare : comparable -> comparable -> Order
 compare a b =
     if a > b then
