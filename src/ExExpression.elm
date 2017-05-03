@@ -26,7 +26,6 @@ elixirE c e =
         Variable var ->
             elixirVariable c var
 
-        -- Monads and types to tuples
         -- Primitive types
         (Application name arg) as application ->
             tupleOrFunction c application
