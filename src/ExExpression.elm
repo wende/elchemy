@@ -103,8 +103,18 @@ elixirPrimitives c e =
         Let variables expression ->
             variables
                 |> map
-                    (\( var, exp ) ->
-                        var ++ " = " ++ elixirE c exp
+                    (\( name, args, exp ) ->
+                        name
+                            ++ (if List.length args == 0 then
+                                    " = " ++ elixirE c exp
+                                else
+                                    " = fn ("
+                                        ++ String.join ", " args
+                                        ++ ") -> "
+                                        ++ elixirE c exp
+                                        ++ " end"
+                               )
+                            ++ (ind c.indent)
                     )
                 |> String.join (ind c.indent)
                 |> flip (++) (elixirE c expression)
