@@ -18,25 +18,29 @@ flattenTypeApplication application =
             [ other ]
 
 
-elirirTFlat =
-    elixirT_ True
+elixirTFlat =
+    elixirT True
 
 
-elixirT =
-    elixirT_ False
+elixirTNoFlat =
+    elixirT False
 
 
-elixirT_ : Bool -> Context -> Type -> String
-elixirT_ flatten c t =
+elixirT : Bool -> Context -> Type -> String
+elixirT flatten c t =
     case t of
         TypeTuple [] ->
             "no_return"
 
         TypeTuple [ a ] ->
-            elixirT c a
+            elixirT flatten c a
 
         TypeTuple [ a, b ] ->
-            "{" ++ elixirT c a ++ ", " ++ elixirT c b ++ "}"
+            "{"
+                ++ elixirT flatten c a
+                ++ ", "
+                ++ elixirT flatten c b
+                ++ "}"
 
         TypeVariable "number" ->
             "number"
@@ -68,16 +72,16 @@ elixirT_ flatten c t =
             "float"
 
         TypeConstructor [ "List" ] [ t ] ->
-            "list(" ++ elixirT c t ++ ")"
+            "list(" ++ elixirT flatten c t ++ ")"
 
         TypeConstructor [ "Maybe" ] [ t ] ->
-            elixirT c t ++ " | nil"
+            elixirT flatten c t ++ " | nil"
 
         TypeConstructor [ "Nothing" ] [] ->
             "nil"
 
         TypeConstructor [ "Just" ] [ t ] ->
-            elixirT c t
+            elixirT flatten c t
 
         TypeConstructor [ "T" ] [] ->
             "t"
@@ -101,13 +105,17 @@ elixirT_ flatten c t =
                 ("{"
                     ++ atomize t
                     ++ ", "
-                    ++ (map (elixirT c) list |> String.join ", ")
+                    ++ (map (elixirT flatten c) list |> String.join ", ")
                     ++ "}"
                 )
 
         TypeRecord fields ->
             "%{"
-                ++ (map (\( k, v ) -> k ++ ": " ++ elixirT c v) fields
+                ++ (map
+                        (\( k, v ) ->
+                            k ++ ": " ++ elixirT flatten c v
+                        )
+                        fields
                         |> String.join ", "
                    )
                 ++ "}"
@@ -118,13 +126,17 @@ elixirT_ flatten c t =
                     ++ (flattenTypeApplication r
                             |> lastAndRest
                             |> \( last, rest ) ->
-                                (map (elixirT c) (l :: rest) |> String.join ", ")
+                                (map (elixirT flatten c) (l :: rest) |> String.join ", ")
                                     ++ " -> "
-                                    ++ (Maybe.map (elixirT c) last |> Maybe.withDefault "")
+                                    ++ (Maybe.map (elixirT flatten c) last |> Maybe.withDefault "")
                        )
                     ++ ")"
             else
-                "(" ++ elixirT c l ++ " -> " ++ elixirT c r ++ ")"
+                "("
+                    ++ elixirT flatten c l
+                    ++ " -> "
+                    ++ elixirT flatten c r
+                    ++ ")"
 
         other ->
             notImplemented "type" other
@@ -132,7 +144,7 @@ elixirT_ flatten c t =
 
 typespec0 : Context -> Type -> String
 typespec0 c t =
-    "() :: " ++ elixirT c t
+    "() :: " ++ elixirTNoFlat c t
 
 
 typespec : Context -> Type -> String
@@ -164,9 +176,9 @@ typespec_ start c t =
              else
                 ""
             )
-                ++ elixirT c pre_last
+                ++ elixirTFlat c pre_last
                 ++ ") :: "
-                ++ elixirT c last
+                ++ elixirTFlat c last
 
         --TypeApplication tc t ->
         (TypeConstructor _ _) as t ->
@@ -175,7 +187,7 @@ typespec_ start c t =
              else
                 ""
             )
-                ++ elixirT c t
+                ++ elixirTFlat c t
                 ++ (if start then
                         ""
                     else
@@ -188,7 +200,7 @@ typespec_ start c t =
              else
                 ""
             )
-                ++ elixirT c t
+                ++ elixirTFlat c t
                 ++ (if start then
                         ""
                     else
@@ -201,7 +213,7 @@ typespec_ start c t =
              else
                 ""
             )
-                ++ elixirT c t
+                ++ elixirTFlat c t
                 ++ (if start then
                         ""
                     else
@@ -214,7 +226,7 @@ typespec_ start c t =
              else
                 ""
             )
-                ++ elixirT c t
+                ++ elixirTFlat c t
                 ++ (if start then
                         ""
                     else
@@ -232,7 +244,7 @@ typealias c t =
             typealias c tc ++ typealias c t
 
         (TypeConstructor _ _) as t ->
-            elixirT c t
+            elixirTNoFlat c t
 
         TypeVariable name ->
             name
@@ -244,5 +256,5 @@ typealias c t =
 aliasOr : Context -> String -> String -> String
 aliasOr c name default =
     ExAlias.maybeAlias c.aliases name
-        |> Maybe.map (elixirT c)
+        |> Maybe.map (elixirTNoFlat c)
         |> Maybe.withDefault (default)
