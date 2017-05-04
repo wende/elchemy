@@ -51,6 +51,10 @@ elixirS c s =
                     ++ "@spec "
                     ++ toSnakeCase name
                     ++ (ExType.typespec c t)
+                    ++ (ind c.indent)
+                    ++ "@spec "
+                    ++ toSnakeCase name
+                    ++ (ExType.typespec0 c t)
 
         (FunctionDeclaration name args body) as fd ->
             if name == "meta" && args == [] then

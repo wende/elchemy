@@ -2,7 +2,7 @@ module Elmchemy exposing (..)
 
 
 type alias Pid =
-    ()
+    ( Int, Int, Int )
 
 
 type alias Module =

@@ -18,8 +18,16 @@ flattenTypeApplication application =
             [ other ]
 
 
-elixirT : Context -> Type -> String
-elixirT c t =
+elirirTFlat =
+    elixirT_ True
+
+
+elixirT =
+    elixirT_ False
+
+
+elixirT_ : Bool -> Context -> Type -> String
+elixirT_ flatten c t =
     case t of
         TypeTuple [] ->
             "no_return"
@@ -52,6 +60,9 @@ elixirT c t =
 
         TypeConstructor [ "Int" ] [] ->
             "integer"
+
+        TypeConstructor [ "Pid" ] [] ->
+            "pid"
 
         TypeConstructor [ "Float" ] [] ->
             "float"
@@ -102,18 +113,26 @@ elixirT c t =
                 ++ "}"
 
         TypeApplication l r ->
-            "("
-                ++ (flattenTypeApplication r
-                        |> lastAndRest
-                        |> \( last, rest ) ->
-                            (map (elixirT c) (l :: rest) |> String.join ", ")
-                                ++ " -> "
-                                ++ (Maybe.map (elixirT c) last |> Maybe.withDefault "")
-                   )
-                ++ ")"
+            if flatten then
+                "("
+                    ++ (flattenTypeApplication r
+                            |> lastAndRest
+                            |> \( last, rest ) ->
+                                (map (elixirT c) (l :: rest) |> String.join ", ")
+                                    ++ " -> "
+                                    ++ (Maybe.map (elixirT c) last |> Maybe.withDefault "")
+                       )
+                    ++ ")"
+            else
+                "(" ++ elixirT c l ++ " -> " ++ elixirT c r ++ ")"
 
         other ->
             notImplemented "type" other
+
+
+typespec0 : Context -> Type -> String
+typespec0 c t =
+    "() :: " ++ elixirT c t
 
 
 typespec : Context -> Type -> String
