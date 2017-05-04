@@ -32,7 +32,7 @@ def project do
    ...
    compilers: [:elmchemy, :yecc, :leex, :erlang, :elixir, :app],
    elmchemy_path: "elm",
-   elixirc_paths: ["lib"]
+   ...
    ]
 end
 ```
