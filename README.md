@@ -20,7 +20,7 @@ https://wende.github.io/elmchemy/stable/
 Install `elmchemy` globally with
 
 ```shell
-mix archive.install https://github.com/wende/elmchemy/releases/download/v0.0.1-mix-compiler/elmchemy-0.1.0.ez
+mix archive.install https://github.com/wende/elmchemy/releases/download/v0.0.1-mix-compiler/elmchemy-0.1.2.ez
 npm install -g elmchemy
 ```
 
@@ -31,7 +31,9 @@ def project do
   [app: :my_app,
    ...
    compilers: [:elmchemy, :yecc, :leex, :erlang, :elixir, :app],
-   elmchemy_path: "elm"]
+   elmchemy_path: "elm",
+   ...
+   ]
 end
 ```
 
