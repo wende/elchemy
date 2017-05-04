@@ -7,7 +7,7 @@ defmodule Mix.Tasks.Compile.Elmchemy do
     dests = project[:elixirc_paths]
 
     Enum.each(dests, fn dest ->
-      Mix.shell.cmd "elmchemy aggregate #{src} #{dest}"
+      Mix.shell.cmd "elmchemy compile #{src} #{dest}"
     end)
   end
 end
