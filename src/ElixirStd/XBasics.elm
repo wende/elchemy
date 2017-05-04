@@ -14,6 +14,13 @@ type Order
 -- Operators
 {- ex
 
+   import Kernel, except: [
+     {:'++', 2},
+     {:round, 1},
+     {:to_string, 1}
+
+   ]
+
    curry ==/2
    curry !=/2
    curry </2
@@ -32,7 +39,7 @@ type Order
    curry //2
    curry div/2
    curry rem/2
-   curry abs/2
+   curry abs/1
 
 -}
 
@@ -135,7 +142,7 @@ atan x =
 
 atan2 : Float -> Float -> Float
 atan2 x y =
-    ffi ":math" "atan2" x
+    ffi ":math" "atan2" ( x, y )
 
 
 round : Float -> Int
@@ -165,35 +172,30 @@ toFloat x =
 
 toString : a -> String
 toString x =
-    lffi "to_string" x
+    ffi "Kernel" "to_string" x
 
 
 (++) : appendable -> appendable -> appendable
 (++) a b =
-    if lffi "is_string" a && lffi "is_string" b then
-        ffi "Elmchemy" "<>" ( a, b )
+    if lffi "is_binary" a && lffi "is_binary" b then
+        ffi "Kernel" "<>" ( a, b )
     else
-        ffi "Elmchemy" "++" ( a, b )
+        ffi "Kernel" "++" ( a, b )
 
 
-indentity : a -> a
-indentity a =
+identity : a -> a
+identity a =
     a
 
 
 id : a -> a
-id =
-    identity
+id a =
+    identity a
 
 
 always : a -> a -> a
-always a =
-    \_ -> a
-
-
-(|>) : a -> (a -> b) -> b
-(|>) left fun =
-    ffi "Kernel" "|>" ( left, fun )
+always a b =
+    a
 
 
 

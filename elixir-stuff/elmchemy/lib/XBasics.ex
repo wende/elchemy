@@ -1,4 +1,4 @@
-# Compiled using Elmchemy v0.0.21
+# Compiled using Elmchemy v0.0.22
 defmodule Elmchemy.XBasics do
   use Elmchemy
 
@@ -6,6 +6,13 @@ defmodule Elmchemy.XBasics do
   alias XList
   @type order :: :lt | :eq | :gt
   #  Operators
+
+  import Kernel, except: [
+  {:'++', 2},
+  {:round, 1},
+  {:to_string, 1}
+
+  ]
 
   curry ==/2
   curry !=/2
@@ -25,16 +32,16 @@ defmodule Elmchemy.XBasics do
   curry //2
   curry div/2
   curry rem/2
-  curry abs/2
+  curry abs/1
 
 
   @doc """
   Basic compare function
 
+
   ### Example
-  ```elm
-  compare a b
-  ```
+
+      compare a b
 
   """
   @spec compare(any, any) :: order
@@ -133,7 +140,7 @@ defmodule Elmchemy.XBasics do
   @spec atan2(float, float) :: float
   curry atan2/2
   def atan2(x, y) do
-    :math.atan2(x)
+    :math.atan2(x, y)
   end
 
   @spec round(float) :: integer
@@ -169,37 +176,33 @@ defmodule Elmchemy.XBasics do
   @spec to_string(any) :: String.t
   curry to_string/1
   def to_string(x) do
-    to_string(x)
+    Kernel.to_string(x)
   end
 
   curry ++/2
   def a ++ b do
     cond do
-      is_string(a) && is_string(b) -> Elmchemy.<>(a, b)
-      true -> Elmchemy.++(a, b)
+      is_binary(a) && is_binary(b) -> Kernel.<>(a, b)
+      true -> Kernel.++(a, b)
     end
   end
 
-  @spec indentity(any) :: any
-  curry indentity/1
-  def indentity(a) do
+  @spec identity(any) :: any
+  curry identity/1
+  def identity(a) do
     a
   end
 
   @spec id(any) :: any
-  def id() do
-    identity
+  curry id/1
+  def id(a) do
+    identity.(a)
   end
 
   @spec always(any, any) :: any
-  curry always/1
-  def always(a) do
-    fn(_) -> a end
-  end
-
-  curry |>/2
-  def left |> fun do
-    Kernel.|>(left, fun)
+  curry always/2
+  def always(a, b) do
+    a
   end
 
   #  TODO Will be fixed with #34
