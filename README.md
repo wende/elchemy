@@ -37,7 +37,7 @@ def project do
 end
 ```
 
-`elmchemy` will find all `*.elm` files specified in `elmchemy_path` and compile it into correspodint `*.ex` files in `lib` directory.
+`elmchemy` will find all `*.elm` files specified in `elmchemy_path` and compile it into corresponding `*.ex` files in `lib` directory.
 
 You can override output directory specifing `elixirc_paths`.
 
