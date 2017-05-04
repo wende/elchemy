@@ -29,5 +29,6 @@ defmodule ElmchemyTest do
     assert Elmchemy.Test.+().(1).(2) == 3
     assert (&+/0).().(1).(2) == 3
     assert Enum.map([1,2,3], (&+/0).().(1)) == [2,3,4]
+    assert 2 |> (&+/0).(1) == 3
   end
 end

@@ -40,6 +40,8 @@ type Order
    curry div/2
    curry rem/2
    curry abs/1
+   # Inlined from not
+   curry !/1
 
 -}
 

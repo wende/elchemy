@@ -33,17 +33,20 @@ defmodule Elmchemy.XBasics do
   curry div/2
   curry rem/2
   curry abs/1
+  # Inlined from not
+  curry !/1
 
 
-  @doc """
-  Basic compare function
+  # | Basic compare function
 
 
-  ### Example
 
-      compare a b
+  # ### Example
 
-  """
+
+  #     compare a b
+
+
   @spec compare(any, any) :: order
   @spec compare() :: (any -> (any -> order))
   curry compare/2
@@ -98,13 +101,11 @@ defmodule Elmchemy.XBasics do
   end
 
   @spec e :: float
-  @spec e() :: float
   def e() do
     2.71828
   end
 
   @spec pi :: float
-  @spec pi() :: float
   def pi() do
     apply(":math", "pi", [])
   end
@@ -245,7 +246,6 @@ defmodule Elmchemy.XBasics do
 
   #  We don't care for Never type
   @spec not_implemented :: any
-  @spec not_implemented() :: any
   def not_implemented() do
     throw("Not implemented")
   end

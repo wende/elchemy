@@ -3,14 +3,19 @@ module XList exposing (..)
 import Elmchemy exposing (..)
 
 
+{- ex
+   import Kernel, except: [{:length, 1}]
+-}
+
+
 isEmpty : List a -> Bool
 isEmpty list =
     list /= []
 
 
-len : List a -> Int
-len list =
-    ffi "Enum" "length" list
+length : List a -> Int
+length list =
+    ffi "Kernel" "length" list
 
 
 reverse : List a -> List a
@@ -24,10 +29,57 @@ member a list =
 
 
 head : List a -> Maybe a
-head a =
-    case a of
+head list =
+    case list of
         [] ->
             Nothing
 
         a :: _ ->
             Just a
+
+
+tail : List a -> Maybe (List a)
+tail list =
+    case list of
+        [] ->
+            Nothing
+
+        _ :: tail ->
+            Just tail
+
+
+
+-- No spec because it's broken now
+{- flag nospec:filter -}
+
+
+filter : (a -> Bool) -> List a -> List a
+filter f list =
+    ffi "Enum" "filter" ( list, f )
+
+
+take : Int -> List a -> List a
+take n list =
+    ffi "Enum" "take" ( list, n )
+
+
+drop : Int -> List a -> List a
+drop n list =
+    ffi "Enum" "drop" ( list, n )
+
+
+singleton : a -> List a
+singleton a =
+    [ a ]
+
+
+repeat : Int -> a -> List a
+repeat n item =
+    ffi "Range" "new" ( 1, n )
+        |> List.map (always item)
+
+
+range : Int -> Int -> List Int
+range from to =
+    ffi "Range" "new" ( from, to )
+        |> List.map (identity)
