@@ -503,7 +503,7 @@ elixirBinop c op l r =
         "::" ->
             "["
                 ++ elixirE c l
-                ++ "|"
+                ++ " | "
                 ++ elixirE c r
                 ++ "]"
 
