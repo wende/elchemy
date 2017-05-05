@@ -1,7 +1,6 @@
 module Elmchemy.XBasics exposing (..)
 
 import Elmchemy exposing (..)
-import XList
 
 
 type Order
@@ -51,7 +50,7 @@ type Order
 
 ### Example
 
-    compare a b
+    compare 1 2 == LT
 
 -}
 compare : comparable -> comparable -> Order

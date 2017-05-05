@@ -1,7 +1,9 @@
 module ExStatement exposing (..)
 
+import Ast
 import Ast.Statement exposing (..)
 import Ast.Expression exposing (..)
+import Ast.BinOp exposing (operators)
 import ExContext exposing (Context, indent, deindent)
 import ExExpression
 import ExType
@@ -47,7 +49,9 @@ elixirS c s =
         --"alias?"
         FunctionTypeDeclaration name ((TypeApplication _ _) as t) ->
             (,) c <|
-                if isOperator name || ExContext.hasFlag "nospec" name c then
+                if isOperator name
+                    || ExContext.hasFlag "nospec" name c
+                then
                     -- TODO implement operator specs
                     ""
                 else
@@ -113,8 +117,15 @@ elixirS c s =
                 Doc content ->
                     (,) c <|
                         (ind c.indent)
-                            ++ "@doc \"\"\"\n"
-                            ++ indentComment c content
+                            ++ "@doc \"\"\"\n "
+                            ++ (content
+                               |> String.lines
+                               |> map (maybeDoctest c)
+                               |> map (flip (++) (ind c.indent))
+                               |> map trimIndentations
+                             |> String.join ""
+                            -- Drop an unnecessary \n at the end
+                             |> String.dropRight 1)
                             ++ (ind c.indent)
                             ++ "\"\"\""
 
@@ -131,7 +142,7 @@ elixirS c s =
                     flip (,) "" <|
                         (content
                             |> Regex.split All (regex "\\s+")
-                            |> map (String.split ":")
+                            |> map (String.split ":+")
                             |> filterMap
                                 (\flag ->
                                     case flag of
@@ -179,18 +190,11 @@ elixirS c s =
                 notImplemented "statement" s
 
 
-indentComment : Context -> String -> String
-indentComment { indent } content =
-    content
-        |> indAll indent
-        -- Drop an unnecessary \n at the end
-        |> String.dropRight 1
-
 
 getCommentType : String -> ElmchemyComment
 getCommentType comment =
     [ ( "^\\sex\\b", (Ex) )
-    , ( "^\\|\\b", (Doc) )
+    , ( "^\\|", (Doc) )
     , ( "^\\sflag\\b", (Flag) )
     ]
         |> List.map (\( a, b ) -> ( Regex.regex a, b ))
@@ -222,3 +226,25 @@ subsetExport exp =
 
         _ ->
             crash ("You can't export " ++ toString exp)
+
+
+maybeDoctest : Context -> String -> String
+maybeDoctest c line =
+    if String.startsWith (ind (c.indent + 1)) ("\n" ++ line) then
+        case Ast.parseExpression Ast.BinOp.operators (String.trim line) of
+            (Ok (_, _, BinOp (Variable ["=="]) l r)) ->
+                ind (c.indent + 2)
+                    ++ "iex> import "
+                    ++ c.mod
+                ++ ind (c.indent + 2)
+                    ++ "iex> "
+                    ++ ExExpression.elixirE c l
+                ++ ind (c.indent + 2)
+                    ++ ExExpression.elixirE c r
+
+            _ ->
+                Debug.crash "Error parsing doctests"
+
+
+    else
+        line
