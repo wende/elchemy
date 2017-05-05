@@ -350,7 +350,7 @@ genElixirFunc c name args body =
                     ++ "def"
                     ++ privateOrPublic c name
                     ++ " "
-                    ++ l
+                    ++ elixirE c l
                     ++ " "
                     ++ translateOperator name
                     ++ " "
