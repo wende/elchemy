@@ -1,4 +1,5 @@
 sudo: false
+language: elixir
 
 os:
   - linux
@@ -34,6 +35,11 @@ install:
   - chmod +x $(npm config get prefix)/bin/elm-make
   - npm install
   - elm package install --yes
+  - cd elixir-stuff/elmchemy
+  - mix local.rebar --force # for Elixir 1.3.0 and up
+  - mix local.hex --force
+  - mix deps.get
+  - mix test
 
 script:
   - elm-test

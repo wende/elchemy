@@ -15,14 +15,14 @@ defmodule Elmchemy.Test do
 
   curry +/2
 
-  def a ::: b do
-    [a | b]
-  end
 end
 
 defmodule ElmchemyTest do
   use ExUnit.Case
   doctest Elmchemy
+  doctest Elmchemy.XBasics
+  doctest Elmchemy.XList
+
   import Kernel.SpecialForms, except: [{:'::', 2}]
   import Elmchemy.Test
 
