@@ -44,7 +44,7 @@ install:
 
 script:
   - elm-test
-  - cd elixir-stuff/elmchemy/mix test
+  - cd elixir-stuff/elmchemy/ && mix test
 
 notifications:
   email: false
