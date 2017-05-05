@@ -412,11 +412,13 @@ privateOrPublic context name =
 
 functionCurry : Context -> String -> List Expression -> String
 functionCurry c name args =
-    case List.length args of
-        0 ->
+    case (List.length args, ExContext.hasFlag "nocurry" name c) of
+        (0, _) ->
             ""
 
-        arity ->
+        (_, True) ->
+            ""
+        (arity, False) ->
             (ind c.indent)
                 ++ "curry"
                 ++ privateOrPublic c name
@@ -429,7 +431,7 @@ functionCurry c name args =
 genFunctionDefinition : Context -> String -> List Expression -> Expression -> String
 genFunctionDefinition c name args body =
     if ExContext.hasFlag "nodef" name c then
-        ""
+        functionCurry c name args
     else
         functionCurry c name args
             ++ genElixirFunc c name args body
@@ -445,7 +447,7 @@ genOverloadedFunctionDefinition :
     -> String
 genOverloadedFunctionDefinition c name args body expressions =
     if ExContext.hasFlag "nodef" name c then
-        ""
+        functionCurry c name args
     else
         functionCurry c name args
             ++ (expressions

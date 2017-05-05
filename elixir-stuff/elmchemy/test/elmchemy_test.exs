@@ -23,7 +23,6 @@ defmodule ElmchemyTest do
   doctest Elmchemy.XBasics
   doctest Elmchemy.XList
 
-  import Kernel.SpecialForms, except: [{:'::', 2}]
   import Elmchemy.Test
 
 
@@ -35,6 +34,5 @@ defmodule ElmchemyTest do
     assert Elmchemy.Test.+().(1).(2) == 3
     assert (&+/0).().(1).(2) == 3
     assert Enum.map([1,2,3], (&+/0).().(1)) == [2,3,4]
-    assert 1 :: [1] == [1, 1]
   end
 end
