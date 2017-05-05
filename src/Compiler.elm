@@ -140,14 +140,23 @@ getContext statements =
                 ( Just { base | aliases = (ExAlias.getAliases statements) }, statements )
 
 
+aggregateStatements : Statement -> ( Context, String ) -> ( Context, String )
+aggregateStatements s ( c, code ) =
+    let
+        ( newC, newCode ) =
+            ExStatement.elixirS c s
+    in
+        ( newC, code ++ newCode )
+
+
 getCode : Context -> List Statement -> String
 getCode context statements =
     ("# Compiled using Elmchemy v" ++ version)
         ++ "\n"
         ++ ("defmodule " ++ context.mod ++ " do")
         ++ glueStart
-        ++ ((List.map (ExStatement.elixirS context) statements)
-                |> (List.foldr (++) "")
+        ++ ((List.foldl (aggregateStatements) ( context, "" ) statements)
+                |> Tuple.second
            )
         ++ glueEnd
 
