@@ -32,17 +32,20 @@ defmodule Elmchemy.XBasics do
   curry div/2
   curry rem/2
   curry abs/1
+  # Inlined from not
+  curry !/1
 
 
-  @doc """
-  Basic compare function
+  # | Basic compare function
 
 
-  ### Example
 
-      compare a b
+  # ### Example
 
-  """
+
+  #     compare a b
+
+
   @spec compare(any, any) :: order
   @spec compare() :: (any -> (any -> order))
   curry compare/2

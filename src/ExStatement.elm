@@ -189,9 +189,9 @@ indentComment { indent } content =
 
 getCommentType : String -> ElmchemyComment
 getCommentType comment =
-    [ ( "^\\sex\\s", (Ex) )
-    , ( "^\\|\\s", (Doc) )
-    , ( "^\\sflag\\s", (Flag) )
+    [ ( "^\\sex\\b", (Ex) )
+    , ( "^\\|\\b", (Doc) )
+    , ( "^\\sflag\\b", (Flag) )
     ]
         |> List.map (\( a, b ) -> ( Regex.regex a, b ))
         |> List.foldl findCommentType (Normal comment)

@@ -187,6 +187,19 @@ flattenCommas e =
             [ other ]
 
 
+flattenPipes : Expression -> List Expression
+flattenPipes e =
+    case e of
+        BinOp (Variable [ "|>" ]) l ((BinOp (Variable [ "|>" ]) r _) as n) ->
+            [ l ] ++ flattenPipes n
+
+        BinOp (Variable [ "|>" ]) l r ->
+            [ l ] ++ [ r ]
+
+        other ->
+            [ other ]
+
+
 isMacro : Expression -> Bool
 isMacro e =
     case e of
@@ -519,6 +532,16 @@ elixirBinop c op l r =
                 ++ " | "
                 ++ elixirE c r
                 ++ "]"
+
+        "|>" ->
+            elixirE c l
+                ++ (flattenPipes r
+                        |> Debug.log "pipes"
+                        |> map (elixirE c)
+                        |> map ((++) (ind c.indent ++ "|> "))
+                        |> map (flip (++) ".()")
+                        |> String.join ""
+                   )
 
         op ->
             [ elixirE c l, translateOperator op, elixirE c r ]

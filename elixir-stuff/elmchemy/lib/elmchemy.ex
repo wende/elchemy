@@ -13,10 +13,6 @@ defmodule ElmchemyHack do
     |> IO.inspect
     |> get_definitions
     |> IO.inspect
-
-    quote do
-      def buagam, do: 2
-    end
   end
 
 end
@@ -26,24 +22,23 @@ defmodule Elmchemy do
   defmacro __using__(_) do
     quote do
       require Elmchemy
+      import Elmchemy
       require Elmchemy.Glue
 
       import Elmchemy.Glue
-      unquote(import_std(__CALLER__.module))
+      import_std(Elmchemy.XBasics)
     end
   end
 
-  defp import_std(caller) do
-    IO.inspect caller
-    for m <- [
-          Elmchemy.XBasics
-        ], m != caller do
-        quote do
-          alias unquote(m)
-        end
+  defmacro import_std(mod, _opts \\ []) do
+    if __CALLER__.module != Macro.expand(mod, __ENV__) do
+      quote do
+        import unquote(mod)
+      end
+    else
+      quote do
+        :ok
+      end
     end
   end
-  require Elmchemy.Glue
-  import Elmchemy.Glue
-
 end
