@@ -42,6 +42,21 @@ elixirS c s =
             ""
 
         --"alias?"
+        FunctionTypeDeclaration name ((TypeApplication _ _) as t) ->
+            if isOperator name then
+                -- TODO implement operator specs
+                ""
+            else
+                (ind c.indent)
+                    ++ "@spec "
+                    ++ toSnakeCase name
+                    ++ (ExType.typespec c t)
+                    ++ (ind c.indent)
+                    ++ "@spec "
+                    ++ toSnakeCase name
+                    ++ (ExType.typespec0 c t)
+
+        --"alias?"
         FunctionTypeDeclaration name t ->
             if isOperator name then
                 -- TODO implement operator specs

@@ -72,13 +72,13 @@ all =
                 "add = a + b" |> is "a + b"
         , test "Ops as lambda" <|
             \() ->
-                "add = (+)" |> is "Elmchemy.+"
+                "add = (+)" |> is "(&+/0).()"
         , test "Ops as lambda with param" <|
             \() ->
-                "add = ((+) 2)" |> is "Elmchemy.+().(2)"
+                "add = ((+) 2)" |> is "(&+/0).().(2)"
         , test "Ops as lambda" <|
             \() ->
-                "add = map (+) list" |> is "map.(Elmchemy.+()).(list)"
+                "add = map (+) list" |> is "map.((&+/0).()).(list)"
 
         -- Typespecs
         , test "Typespecs with dependant types" <|

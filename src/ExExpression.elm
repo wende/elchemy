@@ -347,8 +347,10 @@ genElixirFunc c name args body =
         case args of
             [ l, r ] ->
                 (ind c.indent)
-                    ++ defOrDefp c name
-                    ++ elixirE c l
+                    ++ "def"
+                    ++ privateOrPublic c name
+                    ++ " "
+                    ++ l
                     ++ " "
                     ++ translateOperator name
                     ++ " "
@@ -364,7 +366,9 @@ genElixirFunc c name args body =
                     "operator has to have 2 arguments"
     else
         (ind c.indent)
-            ++ defOrDefp c name
+            ++ "def"
+            ++ privateOrPublic c name
+            ++ " "
             ++ toSnakeCase name
             ++ "("
             ++ (args
@@ -378,17 +382,17 @@ genElixirFunc c name args body =
             ++ "end"
 
 
-defOrDefp : Context -> String -> String
-defOrDefp context name =
+privateOrPublic : Context -> String -> String
+privateOrPublic context name =
     case context.exports of
         SubsetExport exports ->
             if any (\exp -> exp == FunctionExport name) exports then
-                "def "
+                ""
             else
-                "defp "
+                "p"
 
         AllExport ->
-            "def "
+            ""
 
         other ->
             Debug.crash "No such export"
@@ -402,7 +406,9 @@ functionCurry c name args =
 
         arity ->
             (ind c.indent)
-                ++ "curry "
+                ++ "curry"
+                ++ privateOrPublic c name
+                ++ " "
                 ++ toSnakeCase name
                 ++ "/"
                 ++ toString arity
@@ -479,7 +485,7 @@ elixirVariable c var =
                     |> Maybe.withDefault (atomize name)
             else if isOperator name then
                 -- We need a curried version, so kernel won't work
-                "Elmchemy." ++ translateOperator name ++ "()"
+                "(&" ++ translateOperator name ++ "/0).()"
             else
                 toSnakeCase name
 
@@ -510,7 +516,7 @@ elixirBinop c op l r =
         "::" ->
             "["
                 ++ elixirE c l
-                ++ "|"
+                ++ " | "
                 ++ elixirE c r
                 ++ "]"
 

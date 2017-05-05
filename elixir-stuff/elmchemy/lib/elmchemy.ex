@@ -28,14 +28,22 @@ defmodule Elmchemy do
       require Elmchemy
       require Elmchemy.Glue
 
-      import Elmchemy
       import Elmchemy.Glue
+      unquote(import_std(__CALLER__.module))
     end
   end
 
+  defp import_std(caller) do
+    IO.inspect caller
+    for m <- [
+          Elmchemy.XBasics
+        ], m != caller do
+        quote do
+          alias unquote(m)
+        end
+    end
+  end
   require Elmchemy.Glue
   import Elmchemy.Glue
-  import Elmchemy.XBasics
 
-  curry +/2
 end
