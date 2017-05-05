@@ -49,20 +49,20 @@ elixirS c s =
         --"alias?"
         FunctionTypeDeclaration name ((TypeApplication _ _) as t) ->
             (,) c <|
-                if isOperator name
-                    || ExContext.hasFlag "nospec" name c
-                then
+                if isOperator name then
                     -- TODO implement operator specs
                     ""
                 else
-                    (ind c.indent)
+                    onlyWithoutFlag c "nospec" name
+                        ((ind c.indent)
+                         ++ "@spec "
+                         ++ toSnakeCase name
+                         ++ (ExType.typespec c t))
+                    ++ onlyWithoutFlag c "nospec0" name
+                        ((ind c.indent)
                         ++ "@spec "
                         ++ toSnakeCase name
-                        ++ (ExType.typespec c t)
-                        ++ (ind c.indent)
-                        ++ "@spec "
-                        ++ toSnakeCase name
-                        ++ (ExType.typespec0 c t)
+                        ++ (ExType.typespec0 c t))
 
         --"alias?"
         FunctionTypeDeclaration name t ->
@@ -82,16 +82,8 @@ elixirS c s =
                     ExExpression.generateMeta body
                 else
                     case body of
-                        Case (Variable _) expressions ->
-                            ExExpression.genOverloadedFunctionDefinition
-                                c
-                                name
-                                args
-                                body
-                                expressions
-
-                        Case nonVar expressions ->
-                            if ExExpression.flattenCommas nonVar == args then
+                        Case vars expressions ->
+                            if ExExpression.flattenCommas vars == args then
                                 ExExpression.genOverloadedFunctionDefinition
                                     c
                                     name
@@ -122,6 +114,7 @@ elixirS c s =
                                |> String.lines
                                |> map (maybeDoctest c)
                                |> map (flip (++) (ind c.indent))
+                               |> map (Debug.log "line")
                                |> map trimIndentations
                              |> String.join ""
                             -- Drop an unnecessary \n at the end
@@ -237,6 +230,8 @@ maybeDoctest c line =
                     ++ "iex> import "
                     ++ c.mod
                 ++ ind (c.indent + 2)
+                    ++ "iex> use Elmchemy "
+                ++ ind (c.indent + 2)
                     ++ "iex> "
                     ++ ExExpression.elixirE c l
                 ++ ind (c.indent + 2)
@@ -248,3 +243,10 @@ maybeDoctest c line =
 
     else
         line
+
+onlyWithoutFlag : Context -> String -> String -> String -> String
+onlyWithoutFlag c key value code =
+    if ExContext.hasFlag key value c then
+        ""
+    else
+        code
