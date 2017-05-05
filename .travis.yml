@@ -40,10 +40,11 @@ install:
   - mix local.rebar --force # for Elixir 1.3.0 and up
   - mix local.hex --force
   - mix deps.get
+  - cd ../..
 
 script:
   - elm-test
-  - mix test
+  - cd elixir-stuff/elmchemy/mix test
 
 notifications:
   email: false
