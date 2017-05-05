@@ -7,3 +7,4 @@ example/elm.js
 .#*
 .elmchemy*
 *.orig
+elixir-stuff/elmchemy/lib/Elmchemy/X*
