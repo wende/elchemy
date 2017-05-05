@@ -8,136 +8,178 @@ import ExType
 import Helpers exposing (..)
 import List exposing (..)
 import Dict exposing (Dict)
-import Regex
+import Regex exposing (..)
 import Helpers exposing (..)
+import Debug exposing (crash)
 
 
 type ElmchemyComment
     = Doc String
     | Ex String
     | Normal String
+    | Flag String
 
 
 moduleStatement : Statement -> Context
 moduleStatement s =
     case s of
         ModuleDeclaration names exports ->
-            Context (String.join "." names) exports 0 Dict.empty
+            Context (String.join "." names) exports 0 Dict.empty []
 
         other ->
-            Debug.crash "First statement must be module declaration"
+            crash "First statement must be module declaration"
 
 
-elixirS : Context -> Statement -> String
+elixirS : Context -> Statement -> ( Context, String )
 elixirS c s =
     case s of
         TypeDeclaration (TypeConstructor [ name ] _) types ->
-            (ind c.indent)
-                ++ "@type "
-                ++ toSnakeCase name
-                ++ " :: "
-                ++ ((map (ExType.typealias c) types) |> String.join " | ")
+            (,) c <|
+                (ind c.indent)
+                    ++ "@type "
+                    ++ toSnakeCase name
+                    ++ " :: "
+                    ++ ((map (ExType.typealias c) types) |> String.join " | ")
 
         TypeAliasDeclaration _ _ ->
-            ""
+            ( c, "" )
 
         --"alias?"
         FunctionTypeDeclaration name ((TypeApplication _ _) as t) ->
-            if isOperator name then
-                -- TODO implement operator specs
-                ""
-            else
-                (ind c.indent)
-                    ++ "@spec "
-                    ++ toSnakeCase name
-                    ++ (ExType.typespec c t)
-                    ++ (ind c.indent)
-                    ++ "@spec "
-                    ++ toSnakeCase name
-                    ++ (ExType.typespec0 c t)
+            (,) c <|
+                if isOperator name || ExContext.hasFlag "nospec" name c then
+                    -- TODO implement operator specs
+                    ""
+                else
+                    (ind c.indent)
+                        ++ "@spec "
+                        ++ toSnakeCase name
+                        ++ (ExType.typespec c t)
+                        ++ (ind c.indent)
+                        ++ "@spec "
+                        ++ toSnakeCase name
+                        ++ (ExType.typespec0 c t)
 
         --"alias?"
         FunctionTypeDeclaration name t ->
-            if isOperator name then
-                -- TODO implement operator specs
-                ""
-            else
-                (ind c.indent)
-                    ++ "@spec "
-                    ++ toSnakeCase name
-                    ++ (ExType.typespec c t)
+            (,) c <|
+                if isOperator name then
+                    -- TODO implement operator specs
+                    ""
+                else
+                    (ind c.indent)
+                        ++ "@spec "
+                        ++ toSnakeCase name
+                        ++ (ExType.typespec c t)
 
         (FunctionDeclaration name args body) as fd ->
-            if name == "meta" && args == [] then
-                ExExpression.generateMeta body
-            else
-                case body of
-                    Case (Variable _) expressions ->
-                        ExExpression.genOverloadedFunctionDefinition
-                            c
-                            name
-                            args
-                            body
-                            expressions
-
-                    Case nonVar expressions ->
-                        if ExExpression.flattenCommas nonVar == args then
+            (,) c <|
+                if name == "meta" && args == [] then
+                    ExExpression.generateMeta body
+                else
+                    case body of
+                        Case (Variable _) expressions ->
                             ExExpression.genOverloadedFunctionDefinition
                                 c
                                 name
                                 args
                                 body
                                 expressions
-                        else
+
+                        Case nonVar expressions ->
+                            if
+                                ExExpression.flattenCommas nonVar
+                                    == map (\a -> Variable [ a ]) args
+                            then
+                                ExExpression.genOverloadedFunctionDefinition
+                                    c
+                                    name
+                                    args
+                                    body
+                                    expressions
+                            else
+                                ExExpression.genFunctionDefinition
+                                    c
+                                    name
+                                    args
+                                    body
+
+                        _ ->
                             ExExpression.genFunctionDefinition
                                 c
                                 name
                                 args
                                 body
 
-                    _ ->
-                        ExExpression.genFunctionDefinition
-                            c
-                            name
-                            args
-                            body
-
         Comment content ->
             case getCommentType content of
                 Doc content ->
-                    (ind c.indent)
-                        ++ "@doc \"\"\"\n"
-                        ++ indentComment c content
-                        ++ (ind c.indent)
-                        ++ "\"\"\""
+                    (,) c <|
+                        (ind c.indent)
+                            ++ "@doc \"\"\"\n"
+                            ++ indentComment c content
+                            ++ (ind c.indent)
+                            ++ "\"\"\""
 
                 Ex content ->
-                    content
-                        |> String.split "\n"
-                        |> map String.trim
-                        |> String.join "\n"
-                        |> indAll c.indent
+                    (,) c <|
+                        (content
+                            |> String.split "\n"
+                            |> map String.trim
+                            |> String.join "\n"
+                            |> indAll c.indent
+                        )
+
+                Flag content ->
+                    flip (,) "" <|
+                        (content
+                            |> Regex.split All (regex "\\s+")
+                            |> map (String.split ":")
+                            |> filterMap
+                                (\flag ->
+                                    case flag of
+                                        [ k, v ] ->
+                                            Just ( k, v )
+
+                                        [ "" ] ->
+                                            Nothing
+
+                                        a ->
+                                            crash ("Wrong flag format " ++ toString a)
+                                )
+                            |> foldl (ExContext.addFlag) c
+                        )
 
                 Normal content ->
-                    content
-                        |> prependAll ((ind c.indent) ++ "# ")
+                    (,) c <|
+                        (content
+                            |> prependAll ((ind c.indent) ++ "# ")
+                        )
 
         -- That's not a real import. In elixir it's called alias
         ImportStatement path Nothing Nothing ->
-            (ind c.indent) ++ "alias " ++ String.join "." path
+            (,) c <|
+                (ind c.indent)
+                    ++ "alias "
+                    ++ String.join "." path
 
         ImportStatement path Nothing (Just (SubsetExport exports)) ->
-            (ind c.indent)
-                ++ "import "
-                ++ String.join "." path
-                ++ ", only: "
-                ++ (map subsetExport exports |> foldl (++) [] |> String.join ",")
+            (,) c <|
+                (ind c.indent)
+                    ++ "import "
+                    ++ String.join "." path
+                    ++ ", only: "
+                    ++ (map subsetExport exports |> foldl (++) [] |> String.join ",")
 
         ImportStatement path Nothing (Just AllExport) ->
-            (ind c.indent) ++ "import " ++ String.join "." path
+            (,) c <|
+                (ind c.indent)
+                    ++ "import "
+                    ++ String.join "." path
 
         s ->
-            notImplemented "statement" s
+            (,) c <|
+                notImplemented "statement" s
 
 
 indentComment : Context -> String -> String
@@ -150,8 +192,9 @@ indentComment { indent } content =
 
 getCommentType : String -> ElmchemyComment
 getCommentType comment =
-    [ ( "^\\sex", (\s -> Ex s) )
-    , ( "^\\|\\s", (\s -> Doc s) )
+    [ ( "^\\sex\\s", (Ex) )
+    , ( "^\\|\\s", (Doc) )
+    , ( "^\\sflag\\s", (Flag) )
     ]
         |> List.map (\( a, b ) -> ( Regex.regex a, b ))
         |> List.foldl findCommentType (Normal comment)
@@ -163,7 +206,7 @@ findCommentType ( regex, commentType ) acc =
         Normal content ->
             if Regex.contains regex content then
                 commentType <|
-                    Regex.replace (Regex.AtMost 1) regex (\_ -> "") content
+                    Regex.replace (Regex.AtMost 1) regex (always "") content
             else
                 Normal content
 
@@ -181,4 +224,4 @@ subsetExport exp =
             [ "{" ++ name ++ ", 0}" ]
 
         _ ->
-            Debug.crash ("You can't export " ++ toString exp)
+            crash ("You can't export " ++ toString exp)
