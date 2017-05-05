@@ -83,3 +83,8 @@ range : Int -> Int -> List Int
 range from to =
     ffi "Range" "new" ( from, to )
         |> List.map (identity)
+
+
+(::) : a -> List a -> List a
+(::) a list =
+    a :: list

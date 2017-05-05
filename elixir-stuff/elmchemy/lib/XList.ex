@@ -94,4 +94,9 @@ defmodule XList do
     Range.new(from, to) |> List.map.(identity)
   end
 
+  # curry ::/2
+  # def a | list do
+  #   [a | list]
+  # end
+
 end

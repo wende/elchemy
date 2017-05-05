@@ -14,6 +14,10 @@ defmodule Elmchemy.Test do
   def add2(a, b), do: a + b
 
   curry +/2
+
+  def a | b do
+    a | b
+  end
 end
 
 defmodule ElmchemyTest do
@@ -29,6 +33,5 @@ defmodule ElmchemyTest do
     assert Elmchemy.Test.+().(1).(2) == 3
     assert (&+/0).().(1).(2) == 3
     assert Enum.map([1,2,3], (&+/0).().(1)) == [2,3,4]
-    assert 2 |> (&+/0).(1) == 3
   end
 end
