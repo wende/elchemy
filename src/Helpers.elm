@@ -172,3 +172,6 @@ translateOperator op =
                 (op
                     ++ "is not a valid or not implemented yet operator"
                 )
+trimIndentations : String -> String
+trimIndentations line =
+    Regex.replace All (regex "\\s+\\n") (always "\n") line

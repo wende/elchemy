@@ -120,9 +120,10 @@ elixirS c s =
                         (ind c.indent)
                             ++ "@doc \"\"\"\n "
                             ++ (content
-                             |> String.lines
-                             |> map (maybeDoctest c)
-                             |> map (flip (++) (ind c.indent))
+                               |> String.lines
+                               |> map (maybeDoctest c)
+                               |> map (flip (++) (ind c.indent))
+                               |> map trimIndentations
                              |> String.join ""
                             -- Drop an unnecessary \n at the end
                              |> String.dropRight 1)
