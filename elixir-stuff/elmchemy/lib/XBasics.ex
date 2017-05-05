@@ -6,7 +6,6 @@ defmodule Elmchemy.XBasics do
   alias XList
   @type order :: :lt | :eq | :gt
   #  Operators
-
   import Kernel, except: [
   {:'++', 2},
   {:round, 1},
@@ -57,7 +56,6 @@ defmodule Elmchemy.XBasics do
       true -> :eq
     end
   end
-
   # >> is replaced with >>> by the compiler
   def l >>> r do
   fn x -> l.(r.(x)) end
@@ -230,8 +228,7 @@ defmodule Elmchemy.XBasics do
     a
   end
 
-  #  TODO Will be fixed with #34
-  @spec curried(({any, any} -> any)) :: ((any -> any) -> any)
+  #  TODO Will be fixed with #34  @spec curried(({any, any} -> any)) :: ((any -> any) -> any)
   curry curried/1
   def curried(fun) do
   fn fst -> fn snd -> fun.({fst, snd}) end end

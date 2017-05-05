@@ -103,8 +103,18 @@ elixirPrimitives c e =
         Let variables expression ->
             variables
                 |> map
-                    (\( var, exp ) ->
-                        var ++ " = " ++ elixirE c exp
+                    (\( name, args, exp ) ->
+                        name
+                            ++ (if List.length args == 0 then
+                                    " = " ++ elixirE c exp
+                                else
+                                    " = fn ("
+                                        ++ String.join ", " args
+                                        ++ ") -> "
+                                        ++ elixirE c exp
+                                        ++ " end"
+                               )
+                            ++ (ind c.indent)
                     )
                 |> String.join (ind c.indent)
                 |> flip (++) (elixirE c expression)
@@ -344,7 +354,7 @@ lambda c args body =
             elixirE c body
 
 
-genElixirFunc : Context -> String -> List String -> Expression -> String
+genElixirFunc : Context -> String -> List Expression -> Expression -> String
 genElixirFunc c name args body =
     if isOperator name then
         case args of
@@ -353,11 +363,11 @@ genElixirFunc c name args body =
                     ++ "def"
                     ++ privateOrPublic c name
                     ++ " "
-                    ++ l
+                    ++ elixirE c l
                     ++ " "
                     ++ translateOperator name
                     ++ " "
-                    ++ r
+                    ++ elixirE c r
                     ++ " do"
                     ++ (ind <| c.indent + 1)
                     ++ elixirE (indent c) body
@@ -374,7 +384,10 @@ genElixirFunc c name args body =
             ++ " "
             ++ toSnakeCase name
             ++ "("
-            ++ String.join ", " args
+            ++ (args
+                    |> List.map (elixirE c)
+                    |> String.join ", "
+               )
             ++ ") do"
             ++ (ind <| c.indent + 1)
             ++ elixirE (indent c) body
@@ -398,7 +411,7 @@ privateOrPublic context name =
             Debug.crash "No such export"
 
 
-functionCurry : Context -> String -> List String -> String
+functionCurry : Context -> String -> List Expression -> String
 functionCurry c name args =
     case List.length args of
         0 ->
@@ -414,7 +427,7 @@ functionCurry c name args =
                 ++ toString arity
 
 
-genFunctionDefinition : Context -> String -> List String -> Expression -> String
+genFunctionDefinition : Context -> String -> List Expression -> Expression -> String
 genFunctionDefinition c name args body =
     functionCurry c name args
         ++ genElixirFunc c name args body
@@ -424,7 +437,7 @@ genFunctionDefinition c name args body =
 genOverloadedFunctionDefinition :
     Context
     -> String
-    -> List String
+    -> List Expression
     -> Expression
     -> List ( Expression, Expression )
     -> String
@@ -436,7 +449,7 @@ genOverloadedFunctionDefinition c name args body expressions =
                         genElixirFunc
                             c
                             name
-                            [ elixirE c left |> unquoteSplicing ]
+                            [ left ]
                             right
                     )
                 |> List.foldr (++) ""
