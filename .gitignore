@@ -6,3 +6,4 @@ output.ex
 example/elm.js
 .#*
 .elmchemy*
+*.orig
