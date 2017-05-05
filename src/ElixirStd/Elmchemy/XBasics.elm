@@ -168,7 +168,7 @@ truncate x =
 
 toFloat : Int -> Float
 toFloat x =
-    ffi "Elmchemy" "*" ( x, 1.0 )
+    ffi "Kernel" "*" ( x, 1.0 )
 
 
 toString : a -> String
