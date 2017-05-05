@@ -47,7 +47,10 @@ elixirS c s =
         --"alias?"
         FunctionTypeDeclaration name ((TypeApplication _ _) as t) ->
             (,) c <|
-                if isOperator name || ExContext.hasFlag "nospec" name c then
+                if isOperator name
+                    || ExContext.hasFlag "nospec" name c
+                    || ExContext.hasFlag "nodef" name c
+                then
                     -- TODO implement operator specs
                     ""
                 else
@@ -131,7 +134,7 @@ elixirS c s =
                     flip (,) "" <|
                         (content
                             |> Regex.split All (regex "\\s+")
-                            |> map (String.split ":")
+                            |> map (String.split ":+")
                             |> filterMap
                                 (\flag ->
                                     case flag of

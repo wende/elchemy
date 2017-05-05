@@ -17,13 +17,13 @@ defmodule XTuple do
   end
 
   curry map_first/2
-  def map_first(fn, {fst, snd}) do
-    {fn.(fst), snd}
+  def map_first(f, {fst, snd}) do
+    {f.(fst), snd}
   end
 
   curry map_second/2
-  def map_second(fn, {fst, snd}) do
-    {fst, fn.(snd)}
+  def map_second(f, {fst, snd}) do
+    {fst, f.(snd)}
   end
 
 end

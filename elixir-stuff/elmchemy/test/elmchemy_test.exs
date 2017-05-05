@@ -15,15 +15,17 @@ defmodule Elmchemy.Test do
 
   curry +/2
 
-  def a | b do
-    a | b
+  def a ::: b do
+    [a | b]
   end
 end
 
 defmodule ElmchemyTest do
   use ExUnit.Case
   doctest Elmchemy
+  import Kernel.SpecialForms, except: [{:'::', 2}]
   import Elmchemy.Test
+
 
   test "Currying" do
     assert add().(1).(2) == 3
@@ -33,5 +35,6 @@ defmodule ElmchemyTest do
     assert Elmchemy.Test.+().(1).(2) == 3
     assert (&+/0).().(1).(2) == 3
     assert Enum.map([1,2,3], (&+/0).().(1)) == [2,3,4]
+    assert 1 :: [1] == [1, 1]
   end
 end

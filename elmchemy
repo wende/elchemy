@@ -14,6 +14,8 @@ case "$1" in
         echo "" > .elmchemy_output
         for f in `find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#."`
         do
+            echo "----------"
+            echo "Compiling $f"
             echo ">>>>$f" >> .elmchemy_output
             elm-package install -y
             elm-make $f --output .elmchemy_output_tmp.js || { echo 'Compilation failed' ; exit 1; }

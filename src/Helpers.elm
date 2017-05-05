@@ -141,7 +141,8 @@ operators =
     , ( "^", "" )
     , ( "<<", "" )
     , ( "|>", "|>" )
-    , ( "::", "|" )
+    -- Exception
+    , ( "::", "cons")
     , ( "not", "!" )
     ]
         |> List.foldl (uncurry Dict.insert) Dict.empty

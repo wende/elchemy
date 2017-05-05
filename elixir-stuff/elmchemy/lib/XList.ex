@@ -84,19 +84,23 @@ defmodule XList do
   @spec repeat() :: (integer -> (any -> list(any)))
   curry repeat/2
   def repeat(n, item) do
-    Range.new(1, n) |> List.map.(always.(item))
+    Range.new(1, n)
+    |> List.map.(always.(item)).()
   end
 
   @spec range(integer, integer) :: list(integer)
   @spec range() :: (integer -> (integer -> list(integer)))
   curry range/2
   def range(from, to) do
-    Range.new(from, to) |> List.map.(identity)
+    Range.new(from, to)
+    |> List.map.(identity).()
   end
 
-  # curry ::/2
-  # def a | list do
-  #   [a | list]
-  # end
+  @spec cons(any, list(any)) :: list(any)
+  @spec cons() :: (any -> (list(any) -> list(any)))
+  curry cons/2
+  def cons(a, list) do
+    [a | list]
+  end
 
 end

@@ -50,9 +50,7 @@ tail list =
 
 
 -- No spec because it's broken now
-{- flag nospec:filter -}
-
-
+{- flag nospec:+filter -}
 filter : (a -> Bool) -> List a -> List a
 filter f list =
     ffi "Enum" "filter" ( list, f )
@@ -78,13 +76,17 @@ repeat n item =
     ffi "Range" "new" ( 1, n )
         |> List.map (always item)
 
-
 range : Int -> Int -> List Int
 range from to =
     ffi "Range" "new" ( from, to )
         |> List.map (identity)
 
 
+{- flag nodef:+:: -}
 (::) : a -> List a -> List a
 (::) a list =
+    a :: list
+
+cons : a -> List a -> List a
+cons a list =
     a :: list
