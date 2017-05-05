@@ -108,8 +108,8 @@ defmodule XString do
   @spec contains(String.t, String.t) :: boolean
   @spec contains() :: (String.t -> (String.t -> boolean))
   curry contains/2
-  def contains(contents, string) do
-    String.contains?(string, contents)
+  def contains(contents, str) do
+    String.contains?(str, contents)
   end
 
   #  startWith

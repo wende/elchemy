@@ -226,16 +226,16 @@ tupleOrFunction c a =
 
         (Variable [ "ffi" ]) :: rest ->
             case rest of
-                mod :: fun :: args ->
+                [ mod, fun, args ] ->
                     resolveFfi c (Ffi mod fun args)
 
                 _ ->
-                    Debug.crash <| toString rest
+                    Debug.crash "Wrong ffi"
 
         -- "Wrong ffi"
         (Variable [ "lffi" ]) :: rest ->
             case rest of
-                fun :: args ->
+                [ fun, args ] ->
                     resolveFfi c (Lffi fun args)
 
                 _ ->
@@ -261,28 +261,28 @@ tupleOrFunction c a =
 
 
 type Ffi
-    = Lffi Expression (List Expression)
-    | Ffi Expression Expression (List Expression)
+    = Lffi Expression Expression
+    | Ffi Expression Expression Expression
 
 
 resolveFfi : Context -> Ffi -> String
 resolveFfi c ffi =
     case ffi of
         -- Elmchemy hack
-        Ffi (String mod) (String fun) [ (BinOp (Variable [ "," ]) _ _) as args ] ->
+        Ffi (String mod) (String fun) ((BinOp (Variable [ "," ]) _ _) as args) ->
             mod ++ "." ++ fun ++ "(" ++ combineComas c args ++ ")"
 
         -- One or many arg fun
         Ffi (String mod) (String fun) any ->
-            mod ++ "." ++ fun ++ "(" ++ (any |> List.map (elixirE c) |> String.join ", ") ++ ")"
+            mod ++ "." ++ fun ++ "(" ++ elixirE c any ++ ")"
 
         -- Elmchemy hack
-        Lffi (String fun) [ (BinOp (Variable [ "," ]) _ _) as args ] ->
+        Lffi (String fun) ((BinOp (Variable [ "," ]) _ _) as args) ->
             fun ++ "(" ++ combineComas c args ++ ")"
 
         -- One arg fun
         Lffi (String fun) any ->
-            fun ++ "(" ++ (any |> List.map (elixirE c) |> String.join ", ") ++ ")"
+            fun ++ "(" ++ elixirE c any ++ ")"
 
         _ ->
             Debug.crash "Wrong ffi call"

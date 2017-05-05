@@ -90,7 +90,7 @@ words str =
 
 lines : String -> List String
 lines str =
-    ffi "String" "split" str [ "\x0D\n", "\x0D", "\n" ]
+    ffi "String" "split" ( str, [ "\x0D\n", "\x0D", "\n" ] )
 
 
 
@@ -118,8 +118,8 @@ toLower str =
 
 
 contains : String -> String -> Bool
-contains contents string =
-    ffi "String" "contains?" string contents
+contains contents str =
+    ffi "String" "contains?" ( str, contents )
 
 
 
@@ -128,7 +128,7 @@ contains contents string =
 
 startsWith : String -> String -> Bool
 startsWith prefix str =
-    ffi "String" "start_with?" str prefix
+    ffi "String" "start_with?" ( str, prefix )
 
 
 
@@ -137,7 +137,7 @@ startsWith prefix str =
 
 endsWith : String -> String -> Bool
 endsWith suffix str =
-    ffi "String" "ends_with?" str suffix
+    ffi "String" "ends_with?" ( str, suffix )
 
 
 
