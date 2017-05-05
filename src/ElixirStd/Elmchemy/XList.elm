@@ -82,7 +82,7 @@ range from to =
         |> List.map (identity)
 
 
-{- flag nodef:+:: nocurry:+:: -}
+{- flag nodef:+:: nocurry:+:: nospec:+:: -}
 (::) : a -> List a -> List a
 (::) a list =
     a :: list

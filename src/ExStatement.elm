@@ -51,7 +51,6 @@ elixirS c s =
             (,) c <|
                 if isOperator name
                     || ExContext.hasFlag "nospec" name c
-                    || ExContext.hasFlag "nodef" name c
                 then
                     -- TODO implement operator specs
                     ""
