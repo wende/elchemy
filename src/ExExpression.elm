@@ -187,6 +187,19 @@ flattenCommas e =
             [ other ]
 
 
+flattenPipes : Expression -> List Expression
+flattenPipes e =
+    case e of
+        BinOp (Variable [ "|>" ]) l ((BinOp (Variable [ "|>" ]) r _) as n) ->
+            [ l ] ++ flattenPipes n
+
+        BinOp (Variable [ "|>" ]) l r ->
+            [ l ] ++ [ r ]
+
+        other ->
+            [ other ]
+
+
 isMacro : Expression -> Bool
 isMacro e =
     case e of
@@ -344,29 +357,28 @@ lambda c args body =
 
 genElixirFunc : Context -> String -> List Expression -> Expression -> String
 genElixirFunc c name args body =
-    if isOperator name then
-        case args of
-            [ l, r ] ->
-                (ind c.indent)
-                    ++ "def"
-                    ++ privateOrPublic c name
-                    ++ " "
-                    ++ elixirE c l
-                    ++ " "
-                    ++ translateOperator name
-                    ++ " "
-                    ++ elixirE c r
-                    ++ " do"
-                    ++ (ind <| c.indent + 1)
-                    ++ elixirE (indent c) body
-                    ++ ind c.indent
-                    ++ "end"
+    case (isOperator name, args) of
+        (True, [ l, r ]) ->
+            (ind c.indent)
+            ++ "def"
+            ++ privateOrPublic c name
+            ++ " "
+            ++ elixirE c l
+            ++ " "
+            ++ translateOperator name
+            ++ " "
+            ++ elixirE c r
+            ++ " do"
+            ++ (ind <| c.indent + 1)
+            ++ elixirE (indent c) body
+            ++ ind c.indent
+            ++ "end"
 
-            _ ->
-                Debug.crash
-                    "operator has to have 2 arguments"
-    else
-        (ind c.indent)
+        (True, _) ->
+            Debug.crash
+                "operator has to have 2 arguments"
+        (False, _) ->
+            (ind c.indent)
             ++ "def"
             ++ privateOrPublic c name
             ++ " "
@@ -401,11 +413,13 @@ privateOrPublic context name =
 
 functionCurry : Context -> String -> List Expression -> String
 functionCurry c name args =
-    case List.length args of
-        0 ->
+    case (List.length args, ExContext.hasFlag "nocurry" name c) of
+        (0, _) ->
             ""
 
-        arity ->
+        (_, True) ->
+            ""
+        (arity, False) ->
             (ind c.indent)
                 ++ "curry"
                 ++ privateOrPublic c name
@@ -417,9 +431,12 @@ functionCurry c name args =
 
 genFunctionDefinition : Context -> String -> List Expression -> Expression -> String
 genFunctionDefinition c name args body =
-    functionCurry c name args
-        ++ genElixirFunc c name args body
-        ++ "\n"
+    if ExContext.hasFlag "nodef" name c then
+        functionCurry c name args
+    else
+        functionCurry c name args
+            ++ genElixirFunc c name args body
+            ++ "\n"
 
 
 genOverloadedFunctionDefinition :
@@ -430,8 +447,11 @@ genOverloadedFunctionDefinition :
     -> List ( Expression, Expression )
     -> String
 genOverloadedFunctionDefinition c name args body expressions =
-    functionCurry c name args
-        ++ (expressions
+    if ExContext.hasFlag "nodef" name c then
+        functionCurry c name args
+    else
+        functionCurry c name args
+            ++ (expressions
                 |> List.map
                     (\( left, right ) ->
                         genElixirFunc
@@ -520,6 +540,16 @@ elixirBinop c op l r =
                 ++ " | "
                 ++ elixirE c r
                 ++ "]"
+
+        "|>" ->
+            elixirE c l
+                ++ (flattenPipes r
+                        |> Debug.log "pipes"
+                        |> map (elixirE c)
+                        |> map ((++) (ind c.indent ++ "|> "))
+                        |> map (flip (++) ".()")
+                        |> String.join ""
+                   )
 
         op ->
             [ elixirE c l, translateOperator op, elixirE c r ]

@@ -19,10 +19,12 @@ compile:
 compile-watch:
 	find . -name "*.elm" | grep -v "elm-stuff" | grep -v .# | entr make compile
 
-compile-std-watch:
-	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c \
-		"make compile && ./elmchemy compile src/ElixirStd elixir-stuff/elmchemy/lib"
 
+compile-std:
+	make compile && ./elmchemy compile src/ElixirStd elixir-stuff/elmchemy/lib
+
+compile-std-watch:
+	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr make compile-std
 tests-watch:
 	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr elm-test
 

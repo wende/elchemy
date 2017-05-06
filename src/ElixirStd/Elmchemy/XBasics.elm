@@ -1,7 +1,6 @@
 module Elmchemy.XBasics exposing (..)
 
 import Elmchemy exposing (..)
-import XList
 
 
 type Order
@@ -40,6 +39,8 @@ type Order
    curry div/2
    curry rem/2
    curry abs/1
+   # Inlined from not
+   curry !/1
 
 -}
 
@@ -49,7 +50,7 @@ type Order
 
 ### Example
 
-    compare a b
+    compare 1 2 == LT
 
 -}
 compare : comparable -> comparable -> Order

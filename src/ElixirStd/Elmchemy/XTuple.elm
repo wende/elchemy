@@ -12,18 +12,18 @@ second ( _, snd ) =
 
 
 
-{- flag nospec:mapFirst -}
+{- flag nospec:+mapFirst -}
 
 
 mapFirst : (a -> a1) -> ( a, b ) -> ( a1, b )
-mapFirst fn ( fst, snd ) =
-    ( fn fst, snd )
+mapFirst f ( fst, snd ) =
+    ( f fst, snd )
 
 
 
-{- flag nospec:mapSecond -}
+{- flag nospec:+mapSecond -}
 
 
 mapSecond : (b -> b1) -> ( a, b ) -> ( a, b1 )
-mapSecond fn ( fst, snd ) =
-    ( fst, fn snd )
+mapSecond f ( fst, snd ) =
+    ( fst, f snd )

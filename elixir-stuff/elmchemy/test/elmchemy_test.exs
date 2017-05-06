@@ -14,12 +14,17 @@ defmodule Elmchemy.Test do
   def add2(a, b), do: a + b
 
   curry +/2
+
 end
 
 defmodule ElmchemyTest do
   use ExUnit.Case
   doctest Elmchemy
+  doctest Elmchemy.XBasics
+  doctest Elmchemy.XList
+
   import Elmchemy.Test
+
 
   test "Currying" do
     assert add().(1).(2) == 3
