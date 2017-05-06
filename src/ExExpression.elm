@@ -59,6 +59,8 @@ elixirE c e =
 elixirTypeInstances : Context -> Expression -> String
 elixirTypeInstances c e =
     case e of
+        Character value ->
+            toString value
         Integer value ->
             toString value
 
@@ -104,15 +106,12 @@ elixirPrimitives c e =
             variables
                 |> map
                     (\( name, args, exp ) ->
-                        name
+                        toSnakeCase name
                             ++ (if List.length args == 0 then
                                     " = " ++ elixirE c exp
                                 else
-                                    " = fn ("
-                                        ++ String.join ", " args
-                                        ++ ") -> "
-                                        ++ elixirE c exp
-                                        ++ " end"
+                                    " = " ++ produceLambda c args exp
+
                                )
                             ++ (ind c.indent)
                     )
@@ -212,6 +211,9 @@ isMacro e =
         Variable [ "lffi" ] ->
             True
 
+        Variable [ "flambda" ] ->
+            True
+
         other ->
             False
 
@@ -253,6 +255,11 @@ tupleOrFunction c a =
                 _ ->
                     Debug.crash "Wrong lffi"
 
+        (Variable [ "flambda" ]) :: rest ->
+             case rest of
+                 [ Integer arity, fun ] ->
+                     resolveFfi c (Flambda arity fun)
+                 _ -> Debug.crash "Wrong flambda"
         [ Variable [ "Just" ], arg ] ->
             elixirE c arg
 
@@ -275,7 +282,7 @@ tupleOrFunction c a =
 type Ffi
     = Lffi Expression Expression
     | Ffi Expression Expression Expression
-
+    | Flambda Int Expression
 
 resolveFfi : Context -> Ffi -> String
 resolveFfi c ffi =
@@ -296,6 +303,17 @@ resolveFfi c ffi =
         Lffi (String fun) any ->
             fun ++ "(" ++ elixirE c any ++ ")"
 
+        Flambda arity fun ->
+            let
+                args = generateArguments arity
+            in
+                "fn ("
+                ++ String.join "," args
+                ++ ") -> "
+                ++ elixirE c fun
+                ++ (map (\a -> ".(" ++ a ++ ")") args
+                   |> String.join "")
+                ++ " end"
         _ ->
             Debug.crash "Wrong ffi call"
 
@@ -375,7 +393,8 @@ genElixirFunc c name args body =
 
         (True, _) ->
             Debug.crash
-                "operator has to have 2 arguments"
+                ("operator " ++ name ++  " has to have 2 arguments but has " ++ toString args)
+
         (False, _) ->
             (ind c.indent)
             ++ "def"
@@ -540,6 +559,9 @@ elixirBinop c op l r =
                 ++ elixirE c r
                 ++ "]"
 
+        "<<" ->
+            elixirBinop c ">>" r l
+
         "|>" ->
             elixirE c l
                 ++ (flattenPipes r
@@ -553,3 +575,14 @@ elixirBinop c op l r =
         op ->
             [ elixirE c l, translateOperator op, elixirE c r ]
                 |> String.join " "
+
+
+produceLambda : Context -> List String -> Expression -> String
+produceLambda c args body =
+    case args of
+        arg :: rest ->
+            "fn " ++ toSnakeCase arg ++ " -> "
+            ++ produceLambda c rest body
+            ++ " end"
+        [] ->
+            elixirE c body

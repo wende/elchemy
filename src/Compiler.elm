@@ -170,7 +170,11 @@ parse m =
         Err ( (), { input, position }, [ msg ] ) ->
             Debug.crash
                 ("]ERR> Compilation error at: "
-                    ++ input
+                    ++ (input
+                            |> String.lines
+                            |> List.take 10
+                            |> String.join "\n"
+                       )
                     ++ "\n"
                 )
 

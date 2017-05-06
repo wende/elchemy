@@ -84,7 +84,7 @@ negate x =
     lffi "-" x
 
 
-sqrt : Float -> Float
+sqrt : number -> Float
 sqrt x =
     ffi ":math" "sqrt" x
 
@@ -198,7 +198,10 @@ always : a -> a -> a
 always a b =
     a
 
-
+{- flag nospec:+flip -}
+flip : (a -> b -> c) -> b -> a -> c
+flip f a b =
+    f b a
 
 -- TODO Will be fixed with #34
 {- ex

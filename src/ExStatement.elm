@@ -82,14 +82,6 @@ elixirS c s =
                     ExExpression.generateMeta body
                 else
                     case body of
-                        Case (Variable _) expressions ->
-                            ExExpression.genOverloadedFunctionDefinition
-                                c
-                                name
-                                args
-                                body
-                                expressions
-
                         Case nonVar expressions ->
                             if ExExpression.flattenCommas nonVar == args then
                                 ExExpression.genOverloadedFunctionDefinition
@@ -236,6 +228,8 @@ maybeDoctest c line =
                 ind (c.indent + 2)
                     ++ "iex> import "
                     ++ c.mod
+                ++ ind (c.indent + 2)
+                    ++ "iex> use Elmchemy "
                 ++ ind (c.indent + 2)
                     ++ "iex> "
                     ++ ExExpression.elixirE c l
