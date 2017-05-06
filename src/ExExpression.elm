@@ -6,6 +6,7 @@ import Ast.Statement exposing (..)
 import ExContext exposing (Context, indent, deindent)
 import List exposing (..)
 import ExAlias
+import ExType
 
 
 elixirE : Context -> Expression -> String
@@ -356,42 +357,43 @@ lambda c args body =
 
 genElixirFunc : Context -> String -> List Expression -> Expression -> String
 genElixirFunc c name args body =
-    case (isOperator name, args) of
-        (True, [ l, r ]) ->
+    case ( isOperator name, args ) of
+        ( True, [ l, r ] ) ->
             (ind c.indent)
-            ++ "def"
-            ++ privateOrPublic c name
-            ++ " "
-            ++ elixirE c l
-            ++ " "
-            ++ translateOperator name
-            ++ " "
-            ++ elixirE c r
-            ++ " do"
-            ++ (ind <| c.indent + 1)
-            ++ elixirE (indent c) body
-            ++ ind c.indent
-            ++ "end"
+                ++ "def"
+                ++ privateOrPublic c name
+                ++ " "
+                ++ elixirE c l
+                ++ " "
+                ++ translateOperator name
+                ++ " "
+                ++ elixirE c r
+                ++ " do"
+                ++ (ind <| c.indent + 1)
+                ++ elixirE (indent c) body
+                ++ ind c.indent
+                ++ "end"
 
-        (True, _) ->
+        ( True, _ ) ->
             Debug.crash
                 "operator has to have 2 arguments"
-        (False, _) ->
+
+        ( False, _ ) ->
             (ind c.indent)
-            ++ "def"
-            ++ privateOrPublic c name
-            ++ " "
-            ++ toSnakeCase name
-            ++ "("
-            ++ (args
-                    |> List.map (elixirE c)
-                    |> String.join ", "
-               )
-            ++ ") do"
-            ++ (ind <| c.indent + 1)
-            ++ elixirE (indent c) body
-            ++ ind c.indent
-            ++ "end"
+                ++ "def"
+                ++ privateOrPublic c name
+                ++ " "
+                ++ toSnakeCase name
+                ++ "("
+                ++ (args
+                        |> List.map (elixirE c)
+                        |> String.join ", "
+                   )
+                ++ ") do"
+                ++ (ind <| c.indent + 1)
+                ++ elixirE (indent c) body
+                ++ ind c.indent
+                ++ "end"
 
 
 privateOrPublic : Context -> String -> String
@@ -412,13 +414,14 @@ privateOrPublic context name =
 
 functionCurry : Context -> String -> List Expression -> String
 functionCurry c name args =
-    case (List.length args, ExContext.hasFlag "nocurry" name c) of
-        (0, _) ->
+    case ( List.length args, ExContext.hasFlag "nocurry" name c ) of
+        ( 0, _ ) ->
             ""
 
-        (_, True) ->
+        ( _, True ) ->
             ""
-        (arity, False) ->
+
+        ( arity, False ) ->
             (ind c.indent)
                 ++ "curry"
                 ++ privateOrPublic c name
@@ -451,17 +454,17 @@ genOverloadedFunctionDefinition c name args body expressions =
     else
         functionCurry c name args
             ++ (expressions
-                |> List.map
-                    (\( left, right ) ->
-                        genElixirFunc
-                            c
-                            name
-                            [ left ]
-                            right
-                    )
-                |> List.foldr (++) ""
-                |> flip (++) "\n"
-           )
+                    |> List.map
+                        (\( left, right ) ->
+                            genElixirFunc
+                                c
+                                name
+                                [ left ]
+                                right
+                        )
+                    |> List.foldr (++) ""
+                    |> flip (++) "\n"
+               )
 
 
 getVariableName : Expression -> String
@@ -491,18 +494,7 @@ elixirVariable c var =
 
         [ name ] ->
             if isCapitilzed name then
-                ExAlias.maybeAlias c.aliases name
-                    |> Maybe.map
-                        (\a ->
-                            case a of
-                                TypeConstructor [ name ] _ ->
-                                    elixirE c (Variable [ name ])
-
-                                _ ->
-                                    Debug.crash
-                                        "Only simple type aliases. Sorry"
-                        )
-                    |> Maybe.withDefault (atomize name)
+                mapType c name
             else if isOperator name then
                 -- We need a curried version, so kernel won't work
                 "(&" ++ translateOperator name ++ "/0).()"
@@ -519,6 +511,35 @@ elixirVariable c var =
                         String.join
                         "."
                         list
+
+
+mapType : Context -> String -> String
+mapType c name =
+    ExAlias.maybeAlias c.aliases name
+        |> Maybe.map
+            (\a ->
+                case a [] of
+                    [] ->
+                        Debug.crash "Empty type"
+
+                    list ->
+                        list
+                            |> List.map (ExType.typealias c)
+                            |> String.join " | "
+             --             list
+             --                 |> Debug.log "type"
+             --                 |> List.map
+             --                     (\a ->
+             --                         case Debug.log "a" a of
+             --                             TypeConstructor [ name ] _ ->
+             --                                 elixirE c (Variable [ name ])
+             --                             _ ->
+             --                                 Debug.crash
+             --                                     "Only simple type aliases. Sorry"
+             --                     )
+             --                 |> String.join " | "
+            )
+        |> Maybe.withDefault (atomize name)
 
 
 elixirBinop : Context -> String -> Expression -> Expression -> String

@@ -48,7 +48,8 @@ elixirT flatten c t =
         (TypeVariable name) as var ->
             c.aliases
                 |> Dict.values
-                |> List.member var
+                |> List.map (\a -> a [])
+                |> List.member [ var ]
                 |> (\a ->
                         if a then
                             name
@@ -159,7 +160,7 @@ typespecf c t =
 
 typespec_ : Bool -> Context -> Type -> String
 typespec_ start c t =
-    case t of
+    case Debug.log "type" t of
         -- Last aruments
         TypeApplication other ((TypeApplication _ _) as app) ->
             (if start then
@@ -181,19 +182,35 @@ typespec_ start c t =
                 ++ elixirTFlat c last
 
         --TypeApplication tc t ->
-        (TypeConstructor _ _) as t ->
-            (if start then
-                " :: "
-             else
-                ""
-            )
-                ++ elixirTFlat c t
-                ++ (if start then
-                        ""
-                    else
-                        ", "
-                   )
+        (TypeConstructor name args) as tc ->
+            let
+                n =
+                    Maybe.withDefault "" (List.head name)
 
+                t =
+                    case ExAlias.maybeAlias c.aliases n of
+                        Just a ->
+                            -- we have to pass args here
+                            a []
+                                |> List.map (typealias c)
+                                |> String.join " | "
+
+                        Nothing ->
+                            ""
+            in
+                (if start then
+                    " :: "
+                 else
+                    ""
+                )
+                    ++ t
+
+        -- ++ elixirTFlat c tc
+        -- ++ (if start then
+        --         ""
+        --     else
+        --         ", "
+        --    )
         (TypeVariable _) as t ->
             (if start then
                 " :: "
@@ -256,5 +273,14 @@ typealias c t =
 aliasOr : Context -> String -> String -> String
 aliasOr c name default =
     ExAlias.maybeAlias c.aliases name
-        |> Maybe.map (elixirTNoFlat c)
+        |> Maybe.map (\a -> a [])
+        |> Maybe.map
+            (\a ->
+                case List.head a of
+                    Just a ->
+                        elixirTNoFlat c a
+
+                    Nothing ->
+                        ""
+            )
         |> Maybe.withDefault (default)
