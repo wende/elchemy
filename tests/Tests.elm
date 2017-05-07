@@ -51,6 +51,9 @@ all =
         , test "Other nested list" <|
             \() ->
                 "list = [[1, 2], 3]" |> has "[[1, 2], 3]"
+        , test "List of tuples" <|
+            \() ->
+                "list = [(1, 2, 3), (4, 5)]" |> has "[{1, 2, 3}, {4, 5}]"
 
         -- Functions
         , test "Application" <|
@@ -144,11 +147,12 @@ all =
         -- Doctest
         , test "Doctests" <|
             \() ->
-                "{-| A equals 1. It just does\n" ++
-                "what the hell\n" ++
-                "    a == 1\n" ++
-                "-}\n" ++
-                "a = 1"
-                |> has "iex> a\n"
+                "{-| A equals 1. It just does\n"
+                    ++ "what the hell\n"
+                    ++ "    a == 1\n"
+                    ++ "-}\n"
+                    ++ "a = 1"
+                    |> has "iex> a\n"
+
         -- End
         ]
