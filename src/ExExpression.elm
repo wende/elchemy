@@ -71,8 +71,8 @@ elixirTypeInstances c e =
         List [] ->
             "[]"
 
-        List [ value ] ->
-            "[" ++ combineComas c value ++ "]"
+        List list ->
+            "[" ++ (List.map (elixirE c) list |> String.join ", ") ++ "]"
 
         Record keyValuePairs ->
             "%{"
@@ -155,10 +155,9 @@ getMetaLine a =
 generateMeta : Expression -> String
 generateMeta e =
     case e of
-        List [ args ] ->
-            map
-                (getMetaLine)
-                (flattenCommas args)
+        List args ->
+            args
+                |> map (getMetaLine)
                 |> map ((++) (ind 0))
                 |> String.join ""
                 |> flip (++) "\n"
@@ -175,17 +174,16 @@ combineComas c e =
 
 
 flattenCommas : Expression -> List Expression
-flattenCommas e =
-    Debug.log "result" <|
-        case Debug.log "flatten" e of
-            BinOp (Variable [ "," ]) ((BinOp (Variable [ "," ]) _ _) as l) r ->
-                flattenCommas l ++ [ r ]
+flattenCommas exp =
+    case exp of
+        BinOp (Variable [ "," ]) ((BinOp (Variable [ "," ]) _ _) as l) r ->
+            flattenCommas l ++ [ r ]
 
-            BinOp (Variable [ "," ]) l r ->
-                [ l, r ]
+        BinOp (Variable [ "," ]) l r ->
+            [ l, r ]
 
-            other ->
-                [ other ]
+        other ->
+            [ other ]
 
 
 flattenPipes : Expression -> List Expression
