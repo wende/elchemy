@@ -193,7 +193,7 @@ scanl f b xs =
 
 {-| Keep only elements that satisfy the predicate.
 
-    filter (flip (%) 2 << (==) 0) [1,2,3,4,5,6] == [2,4,6]
+    filter (flip (%) 2 >> (==) 0) [1,2,3,4,5,6] == [2,4,6]
 -}
 {- flag nospec:+filter -}
 filter : (a -> Bool) -> List a -> List a
@@ -212,7 +212,7 @@ filter pred xs =
 {-| Apply a function that may succeed to all values in the list, but only keep
 the successes.
 
-    filterMap ((<=) 18) [3, 15, 12, 18, 24] == [18, 24]
+    filterMap (\a -> if a >= 18 then Just a else Nothing) [3, 15, 12, 18, 24] == [18, 24]
 
 -}
 {- flag nospec:+filterMap -}
@@ -258,7 +258,7 @@ reverse list =
 {- flag nospec:+all -}
 all : (a -> Bool) -> List a -> Bool
 all isOkay list =
-  not (any (not << isOkay) list)
+  not (any (isOkay >> not) list)
 
 
 {-| Determine if any elements satisfy the predicate.
@@ -578,14 +578,14 @@ sort xs =
   sortBy identity xs
 
 
-{-| Sort values by a derived property.
+{-| Sort values by a derived property. To be replaced
 
-    sortBy length ["mouse","cat"] == ["cat","mouse"]
+    sortBy (\a -> ffi "String" "length" a)  ["mouse","cat"] == ["cat","mouse"]
 -}
 {- flag nospec:+sortBy -}
 sortBy : (a -> comparable) ->  List a -> List a
-sortBy a list =
-  ffi "Enum" "sort_by" (list, a)
+sortBy f list =
+  sortWith (\a b -> compare (f a) (f b)) list
 
 
 {-| Sort values with a custom comparison function.
@@ -598,4 +598,10 @@ to define any other: `sort == sortWith compare`
 {- flag nospec:+sortWith -}
 sortWith : (a -> a -> Order) ->  List a -> List a
 sortWith f list =
-  ffi "Enum" "sort_with" (list, f)
+    let
+        exf a b = (f a b) |> (\a -> case a of
+                           GT -> False
+                           EQ -> False
+                           LT -> True)
+    in
+        ffi "Enum" "sort" (list, (flambda 2 exf))

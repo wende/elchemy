@@ -67,7 +67,7 @@ compare a b =
 {- ex
    # >> is replaced with >>> by the compiler
    def l >>> r do
-     fn x -> l.(r.(x)) end
+     fn x -> r.(l.(x)) end
    end
 
 -}
@@ -220,7 +220,24 @@ flip f a b =
 -}
 -- We don't care for Never type
 
+-- Additional
 
 notImplemented : a
 notImplemented =
     lffi "throw" "Not implemented"
+
+tuple2 : a -> b -> (a, b)
+tuple2 a b =
+    (a, b)
+
+tuple3 : a -> b -> c -> (a, b, c)
+tuple3 a b c =
+    (a, b, c)
+
+tuple4 : a -> b -> c -> d -> (a, b, c, d)
+tuple4 a b c d =
+    (a, b, c, d)
+
+tuple5 : a -> b -> c -> d -> e -> (a, b, c, d, e)
+tuple5 a b c d e =
+    (a, b, c, d, e)

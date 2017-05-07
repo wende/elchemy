@@ -144,6 +144,10 @@ operators =
     -- Exception
     , ( "::", "cons")
     , ( "not", "!" )
+    , ( ",", "tuple2" )
+    , ( ",,", "tuple3" )
+    , ( ",,,", "tuple4" )
+    , ( ",,,,", "tuple5" )
     ]
         |> List.foldl (uncurry Dict.insert) Dict.empty
 

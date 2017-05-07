@@ -35,11 +35,9 @@ elixirT flatten c t =
         TypeTuple [ a ] ->
             elixirT flatten c a
 
-        TypeTuple [ a, b ] ->
-            "{"
-                ++ elixirT flatten c a
-                ++ ", "
-                ++ elixirT flatten c b
+        TypeTuple (a :: rest as list) ->
+            "{" ++ (map (elixirT flatten c) list
+                        |> String.join ", ")
                 ++ "}"
 
         TypeVariable "number" ->

@@ -25,6 +25,10 @@ compile-std:
 
 compile-std-watch:
 	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr make compile-std
+
+compile-std-tests-watch:
+	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c "make compile-std && cd elixir-stuff/elmchemy/ && mix test"
+
 tests-watch:
 	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr elm-test
 
