@@ -38,12 +38,6 @@ elixirE c e =
             elixirE c left
                 ++ "."
                 ++ String.join "." right
-
-        List vars ->
-            "[" ++
-                (map (elixirE c) vars
-                |> String.join ", ")
-            ++ "]"
         -- Basic operators that are functions in Elixir
         -- Exception, ( "//", "" )
         -- Exception, ( "%", "" )
@@ -58,40 +52,10 @@ elixirE c e =
 
         -- Rest
         e ->
-            elixirPrimitives c e
+            elixirControlFlow c e
 
-
-elixirTypeInstances : Context -> Expression -> String
-elixirTypeInstances c e =
-    case e of
-        Integer value ->
-            toString value
-
-        Float value ->
-            toString value
-
-        String value ->
-            toString value
-
-        List [] ->
-            "[]"
-
-        List [ value ] ->
-            "[" ++ combineComas c value ++ "]"
-
-        Record keyValuePairs ->
-            "%{"
-                ++ (map (\( a, b ) -> a ++ ": " ++ elixirE c b) keyValuePairs
-                        |> String.join ", "
-                   )
-                ++ "}"
-
-        _ ->
-            notImplemented "expression" e
-
-
-elixirPrimitives : Context -> Expression -> String
-elixirPrimitives c e =
+elixirControlFlow : Context -> Expression -> String
+elixirControlFlow c e =
     case e of
         Case var body ->
             caseE c var body
@@ -126,6 +90,35 @@ elixirPrimitives c e =
 
         _ ->
             elixirTypeInstances c e
+
+
+elixirTypeInstances : Context -> Expression -> String
+elixirTypeInstances c e =
+    case e of
+        Integer value ->
+            toString value
+
+        Float value ->
+            toString value
+
+        String value ->
+            toString value
+
+        List vars ->
+            "[" ++
+                (map (elixirE c) vars
+                |> String.join ", ")
+            ++ "]"
+
+        Record keyValuePairs ->
+            "%{"
+                ++ (map (\( a, b ) -> a ++ ": " ++ elixirE c b) keyValuePairs
+                        |> String.join ", "
+                   )
+                ++ "}"
+
+        _ ->
+            notImplemented "expression" e
 
 
 handleIfExp : Context -> Expression -> List String
