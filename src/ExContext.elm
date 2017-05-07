@@ -5,11 +5,11 @@ import Dict exposing (Dict)
 
 
 type alias Alias =
-    List String -> List Type
+    List Type -> List Type
 
 
 type alias Aliases =
-    Dict String (List String -> List Type)
+    Dict String Alias
 
 
 type alias Flag =

@@ -126,18 +126,6 @@ typeAliasDuplicate k v v2 =
         Dict.insert k v
 
 
-getTypes : List Statement -> List Type
-getTypes =
-    List.foldl foldTypes []
-
-
-foldTypes : Statement -> List Type -> List Type
-foldTypes s acc =
-    case Debug.log "s" s of
-        _ ->
-            acc
-
-
 getContext : List Statement -> ( Maybe Context, List Statement )
 getContext statements =
     case statements of

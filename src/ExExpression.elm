@@ -519,25 +519,12 @@ mapType c name =
         |> Maybe.map
             (\a ->
                 case a [] of
-                    [] ->
-                        Debug.crash "Empty type"
+                    [ TypeConstructor [ name ] _ ] ->
+                        elixirE c (Variable [ name ])
 
-                    list ->
-                        list
-                            |> List.map (ExType.typealias c)
-                            |> String.join " | "
-             --             list
-             --                 |> Debug.log "type"
-             --                 |> List.map
-             --                     (\a ->
-             --                         case Debug.log "a" a of
-             --                             TypeConstructor [ name ] _ ->
-             --                                 elixirE c (Variable [ name ])
-             --                             _ ->
-             --                                 Debug.crash
-             --                                     "Only simple type aliases. Sorry"
-             --                     )
-             --                 |> String.join " | "
+                    _ ->
+                        Debug.crash
+                            "Only simple type aliases. Sorry"
             )
         |> Maybe.withDefault (atomize name)
 

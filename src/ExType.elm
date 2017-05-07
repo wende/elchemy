@@ -88,7 +88,7 @@ elixirT flatten c t =
             "t"
 
         TypeConstructor [ t ] [] ->
-            aliasOr c t (atomize t)
+            aliasOr c t [] (atomize t)
 
         TypeConstructor t [] ->
             case lastAndRest t of
@@ -103,6 +103,7 @@ elixirT flatten c t =
         TypeConstructor [ t ] list ->
             aliasOr c
                 t
+                list
                 ("{"
                     ++ atomize t
                     ++ ", "
@@ -160,7 +161,7 @@ typespecf c t =
 
 typespec_ : Bool -> Context -> Type -> String
 typespec_ start c t =
-    case Debug.log "type" t of
+    case t of
         -- Last aruments
         TypeApplication other ((TypeApplication _ _) as app) ->
             (if start then
@@ -190,8 +191,7 @@ typespec_ start c t =
                 t =
                     case ExAlias.maybeAlias c.aliases n of
                         Just a ->
-                            -- we have to pass args here
-                            a []
+                            a args
                                 |> List.map (typealias c)
                                 |> String.join " | "
 
@@ -205,12 +205,6 @@ typespec_ start c t =
                 )
                     ++ t
 
-        -- ++ elixirTFlat c tc
-        -- ++ (if start then
-        --         ""
-        --     else
-        --         ", "
-        --    )
         (TypeVariable _) as t ->
             (if start then
                 " :: "
@@ -266,14 +260,15 @@ typealias c t =
         TypeVariable name ->
             name
 
+        -- TODO: TypeTuple
         other ->
             notImplemented "typealias" other
 
 
-aliasOr : Context -> String -> String -> String
-aliasOr c name default =
+aliasOr : Context -> String -> List Type -> String -> String
+aliasOr c name args default =
     ExAlias.maybeAlias c.aliases name
-        |> Maybe.map (\a -> a [])
+        |> Maybe.map (\a -> a args)
         |> Maybe.map
             (\a ->
                 case List.head a of

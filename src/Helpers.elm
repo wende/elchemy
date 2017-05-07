@@ -141,8 +141,9 @@ operators =
     , ( "^", "" )
     , ( "<<", "" )
     , ( "|>", "|>" )
+
     -- Exception
-    , ( "::", "cons")
+    , ( "::", "cons" )
     , ( "not", "!" )
     ]
         |> List.foldl (uncurry Dict.insert) Dict.empty
@@ -172,6 +173,18 @@ translateOperator op =
                 (op
                     ++ "is not a valid or not implemented yet operator"
                 )
+
+
 trimIndentations : String -> String
 trimIndentations line =
     Regex.replace All (regex "\\s+\\n") (always "\n") line
+
+
+zip : List a -> List b -> List ( a, b )
+zip xs ys =
+    case ( xs, ys ) of
+        ( x :: xBack, y :: yBack ) ->
+            ( x, y ) :: zip xBack yBack
+
+        ( _, _ ) ->
+            []
