@@ -71,8 +71,8 @@ elixirTypeInstances c e =
         List [] ->
             "[]"
 
-        List [ value ] ->
-            "[" ++ combineComas c value ++ "]"
+        List list ->
+            "[" ++ (List.map (elixirE c) list |> String.join ", ") ++ "]"
 
         Record keyValuePairs ->
             "%{"
@@ -155,10 +155,9 @@ getMetaLine a =
 generateMeta : Expression -> String
 generateMeta e =
     case e of
-        List [ args ] ->
-            map
-                (getMetaLine)
-                (flattenCommas args)
+        List args ->
+            args
+                |> map (getMetaLine)
                 |> map ((++) (ind 0))
                 |> String.join ""
                 |> flip (++) "\n"
@@ -175,13 +174,13 @@ combineComas c e =
 
 
 flattenCommas : Expression -> List Expression
-flattenCommas e =
-    case e of
-        BinOp (Variable [ "," ]) ((BinOp (Variable [ "," ]) l _) as n) r ->
-            flattenCommas n ++ [ r ]
+flattenCommas exp =
+    case exp of
+        BinOp (Variable [ "," ]) ((BinOp (Variable [ "," ]) _ _) as l) r ->
+            flattenCommas l ++ [ r ]
 
         BinOp (Variable [ "," ]) l r ->
-            [ l ] ++ [ r ]
+            [ l, r ]
 
         other ->
             [ other ]
@@ -356,42 +355,43 @@ lambda c args body =
 
 genElixirFunc : Context -> String -> List Expression -> Expression -> String
 genElixirFunc c name args body =
-    case (isOperator name, args) of
-        (True, [ l, r ]) ->
+    case ( isOperator name, args ) of
+        ( True, [ l, r ] ) ->
             (ind c.indent)
-            ++ "def"
-            ++ privateOrPublic c name
-            ++ " "
-            ++ elixirE c l
-            ++ " "
-            ++ translateOperator name
-            ++ " "
-            ++ elixirE c r
-            ++ " do"
-            ++ (ind <| c.indent + 1)
-            ++ elixirE (indent c) body
-            ++ ind c.indent
-            ++ "end"
+                ++ "def"
+                ++ privateOrPublic c name
+                ++ " "
+                ++ elixirE c l
+                ++ " "
+                ++ translateOperator name
+                ++ " "
+                ++ elixirE c r
+                ++ " do"
+                ++ (ind <| c.indent + 1)
+                ++ elixirE (indent c) body
+                ++ ind c.indent
+                ++ "end"
 
-        (True, _) ->
+        ( True, _ ) ->
             Debug.crash
                 "operator has to have 2 arguments"
-        (False, _) ->
+
+        ( False, _ ) ->
             (ind c.indent)
-            ++ "def"
-            ++ privateOrPublic c name
-            ++ " "
-            ++ toSnakeCase name
-            ++ "("
-            ++ (args
-                    |> List.map (elixirE c)
-                    |> String.join ", "
-               )
-            ++ ") do"
-            ++ (ind <| c.indent + 1)
-            ++ elixirE (indent c) body
-            ++ ind c.indent
-            ++ "end"
+                ++ "def"
+                ++ privateOrPublic c name
+                ++ " "
+                ++ toSnakeCase name
+                ++ "("
+                ++ (args
+                        |> List.map (elixirE c)
+                        |> String.join ", "
+                   )
+                ++ ") do"
+                ++ (ind <| c.indent + 1)
+                ++ elixirE (indent c) body
+                ++ ind c.indent
+                ++ "end"
 
 
 privateOrPublic : Context -> String -> String
@@ -412,13 +412,14 @@ privateOrPublic context name =
 
 functionCurry : Context -> String -> List Expression -> String
 functionCurry c name args =
-    case (List.length args, ExContext.hasFlag "nocurry" name c) of
-        (0, _) ->
+    case ( List.length args, ExContext.hasFlag "nocurry" name c ) of
+        ( 0, _ ) ->
             ""
 
-        (_, True) ->
+        ( _, True ) ->
             ""
-        (arity, False) ->
+
+        ( arity, False ) ->
             (ind c.indent)
                 ++ "curry"
                 ++ privateOrPublic c name
@@ -451,17 +452,17 @@ genOverloadedFunctionDefinition c name args body expressions =
     else
         functionCurry c name args
             ++ (expressions
-                |> List.map
-                    (\( left, right ) ->
-                        genElixirFunc
-                            c
-                            name
-                            [ left ]
-                            right
-                    )
-                |> List.foldr (++) ""
-                |> flip (++) "\n"
-           )
+                    |> List.map
+                        (\( left, right ) ->
+                            genElixirFunc
+                                c
+                                name
+                                [ left ]
+                                right
+                        )
+                    |> List.foldr (++) ""
+                    |> flip (++) "\n"
+               )
 
 
 getVariableName : Expression -> String
