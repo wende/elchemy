@@ -97,11 +97,15 @@ elixirPrimitives c e =
         Lambda args body ->
             lambda c args body
 
-        (If check onTrue onFalse) as exp ->
-            "cond do"
-                :: handleIfExp (indent c) exp
+        (If check onTrue (If _ _ _ as onFalse)) as exp ->
+            "cond do" :: handleIfExp (indent c) exp
                 ++ [ ind c.indent, "end" ]
                 |> String.join ""
+
+        If check onTrue onFalse ->
+            "if " ++ elixirE c check ++ " do "
+                ++ elixirE c onTrue ++ " else "
+                ++ elixirE c onFalse ++ " end"
 
         Let variables expression ->
             variables

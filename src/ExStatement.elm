@@ -238,6 +238,8 @@ maybeDoctest c line =
                     ++ "iex> import "
                     ++ c.mod
                     ++ ind (c.indent + 2)
+                    ++ "iex> use Elmchemy "
+                    ++ ind (c.indent + 2)
                     ++ "iex> "
                     ++ ExExpression.elixirE c l
                     ++ ind (c.indent + 2)

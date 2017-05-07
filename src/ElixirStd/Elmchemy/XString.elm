@@ -42,7 +42,6 @@ module Elmchemy.XString
         , any
         , all
         )
-
 {-| A built-in representation for efficient string manipulation. String literals
 are enclosed in `"double quotes"`. Strings are *not* lists of characters.
 
@@ -88,6 +87,10 @@ trim, trimLeft, trimRight
 -}
 
 import Elmchemy exposing (..)
+{- ex
+import Kernel, except: [{:length, 1}]
+import Elmchemy.XBasics, except: [{:to_float, 1}]
+-}
 
 
 {-| Determine if a string is empty.
@@ -188,7 +191,7 @@ map f str =
 
 {-| Keep only the characters that satisfy the predicate.
 
-    filter isDigit "R2-D2" == "22"
+    filter ((==) '2') "R2-D2" == "22"
 
 -}
 filter : (Char -> Bool) -> String -> String

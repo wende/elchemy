@@ -26,6 +26,9 @@ defmodule Elmchemy do
       require Elmchemy.Glue
 
       import Elmchemy.Glue
+      import Kernel, except: [
+        {:'++', 2}
+      ]
       import_std(Elmchemy.XBasics)
     end
   end
