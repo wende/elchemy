@@ -39,6 +39,11 @@ elixirE c e =
                 ++ "."
                 ++ String.join "." right
 
+        List vars ->
+            "[" ++
+                (map (elixirE c) vars
+                |> String.join ", ")
+            ++ "]"
         -- Basic operators that are functions in Elixir
         -- Exception, ( "//", "" )
         -- Exception, ( "%", "" )
@@ -155,13 +160,11 @@ getMetaLine a =
 generateMeta : Expression -> String
 generateMeta e =
     case e of
-        List [ args ] ->
-            map
-                (getMetaLine)
-                (flattenCommas args)
-                |> map ((++) (ind 0))
-                |> String.join ""
-                |> flip (++) "\n"
+        List args ->
+            map (getMetaLine) args
+               |> map ((++) (ind 0))
+               |> String.join ""
+               |> flip (++) "\n"
 
         _ ->
             Debug.crash "Meta function has to have specific format"
