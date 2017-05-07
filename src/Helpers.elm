@@ -84,7 +84,7 @@ prependAll with target =
 
 indAll : Int -> String -> String
 indAll i s =
-    prependAll (String.dropLeft 1 (ind i)) s
+    "\n" ++ prependAll (String.dropLeft 1 (ind i)) s
 
 
 uncons : List a -> ( Maybe a, List a )
