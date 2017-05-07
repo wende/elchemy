@@ -52,6 +52,10 @@ all =
             \() ->
                 "list = [[1, 2], 3]" |> has "[[1, 2], 3]"
 
+        , test "Cons operator" <|
+            \() ->
+                "list = 1 :: 2 :: [3]" |> has "[1 | [2 | [3]]]"
+
         -- Functions
         , test "Application" <|
             \() ->

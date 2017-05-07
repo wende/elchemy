@@ -53,42 +53,10 @@ elixirE c e =
 
         -- Rest
         e ->
-            elixirPrimitives c e
+            elixirControlFlow c e
 
-
-elixirTypeInstances : Context -> Expression -> String
-elixirTypeInstances c e =
-    case e of
-        Character value ->
-            toString value
-        Integer value ->
-            toString value
-
-        Float value ->
-            toString value
-
-        String value ->
-            toString value
-
-        List [] ->
-            "[]"
-
-        List [ value ] ->
-            "[" ++ combineComas c value ++ "]"
-
-        Record keyValuePairs ->
-            "%{"
-                ++ (map (\( a, b ) -> a ++ ": " ++ elixirE c b) keyValuePairs
-                        |> String.join ", "
-                   )
-                ++ "}"
-
-        _ ->
-            notImplemented "expression" e
-
-
-elixirPrimitives : Context -> Expression -> String
-elixirPrimitives c e =
+elixirControlFlow : Context -> Expression -> String
+elixirControlFlow c e =
     case e of
         Case var body ->
             caseE c var body
@@ -120,6 +88,38 @@ elixirPrimitives c e =
 
         _ ->
             elixirTypeInstances c e
+
+
+elixirTypeInstances : Context -> Expression -> String
+elixirTypeInstances c e =
+    case e of
+        Integer value ->
+            toString value
+
+        Float value ->
+            toString value
+
+	Character value ->
+            toString value
+	
+        String value ->
+            toString value
+
+        List vars ->
+            "[" ++
+                (map (elixirE c) vars
+                |> String.join ", ")
+            ++ "]"
+
+        Record keyValuePairs ->
+            "%{"
+                ++ (map (\( a, b ) -> a ++ ": " ++ elixirE c b) keyValuePairs
+                        |> String.join ", "
+                   )
+                ++ "}"
+
+        _ ->
+            notImplemented "expression" e
 
 
 handleIfExp : Context -> Expression -> List String
@@ -154,13 +154,11 @@ getMetaLine a =
 generateMeta : Expression -> String
 generateMeta e =
     case e of
-        List [ args ] ->
-            map
-                (getMetaLine)
-                (flattenCommas args)
-                |> map ((++) (ind 0))
-                |> String.join ""
-                |> flip (++) "\n"
+        List args ->
+            map (getMetaLine) args
+               |> map ((++) (ind 0))
+               |> String.join ""
+               |> flip (++) "\n"
 
         _ ->
             Debug.crash "Meta function has to have specific format"
@@ -575,14 +573,3 @@ elixirBinop c op l r =
         op ->
             [ elixirE c l, translateOperator op, elixirE c r ]
                 |> String.join " "
-
-
-produceLambda : Context -> List String -> Expression -> String
-produceLambda c args body =
-    case args of
-        arg :: rest ->
-            "fn " ++ toSnakeCase arg ++ " -> "
-            ++ produceLambda c rest body
-            ++ " end"
-        [] ->
-            elixirE c body
