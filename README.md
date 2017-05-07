@@ -16,7 +16,7 @@ https://wende.github.io/elmchemy/stable/
 - [node](https://nodejs.org/en/)
 - [elm-lang](https://guide.elm-lang.org/install.html)
 
-### Instalation in Elixir project
+### Installation in Elixir project
 Install `elmchemy` globally with
 
 ```shell
