@@ -68,11 +68,11 @@ elixirTypeInstances c e =
         String value ->
             toString value
 
-        List [] ->
-            "[]"
-
-        List [ value ] ->
-            "[" ++ combineComas c value ++ "]"
+        List vars ->
+            "[" ++
+                (map (elixirE c) vars
+                |> String.join ", ")
+            ++ "]"
 
         Record keyValuePairs ->
             "%{"
@@ -155,10 +155,8 @@ getMetaLine a =
 generateMeta : Expression -> String
 generateMeta e =
     case e of
-        List [ args ] ->
-            map
-                (getMetaLine)
-                (flattenCommas args)
+        List args ->
+            map getMetaLine args
                 |> map ((++) (ind 0))
                 |> String.join ""
                 |> flip (++) "\n"
