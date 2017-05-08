@@ -87,6 +87,7 @@ trim, trimLeft, trimRight
 -}
 
 import Elmchemy exposing (..)
+import Elmchemy.XList
 {- ex
 import Kernel, except: [{:length, 1}]
 import Elmchemy.XBasics, except: [{:to_float, 1}]
@@ -154,7 +155,7 @@ append a b =
 -}
 concat : List String -> String
 concat list =
-    ffi "Enum" "concat" ( "", list )
+    Elmchemy.XList.foldl (++) list
 
 
 {-| Get the length of a string.
@@ -388,7 +389,7 @@ trim str =
 -}
 trimLeft : String -> String
 trimLeft str =
-    ffi "String" "trim_trailing" str
+    ffi "String" "trim_leading" str
 
 
 {-| Get rid of whitespace on the right of a string.
@@ -398,7 +399,7 @@ trimLeft str =
 -}
 trimRight : String -> String
 trimRight str =
-    ffi "String" "trim_leading" str
+    ffi "String" "trim_trailing" str
 
 
 {-| Break a string into words, splitting on chunks of whitespace.

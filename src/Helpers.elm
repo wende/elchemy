@@ -129,7 +129,7 @@ operators =
     , ( "<|", "<<<" )
 
     -- Exception
-    , ( "%", "" )
+    , ( "%", "rem" )
 
     -- Exception
     , ( "//", "" )
@@ -145,6 +145,10 @@ operators =
     -- Exception
     , ( "::", "cons" )
     , ( "not", "!" )
+    , ( ",", "tuple2" )
+    , ( ",,", "tuple3" )
+    , ( ",,,", "tuple4" )
+    , ( ",,,,", "tuple5" )
     ]
         |> List.foldl (uncurry Dict.insert) Dict.empty
 
@@ -162,7 +166,7 @@ translateOperator op =
         Just "" ->
             Debug.crash
                 (op
-                    ++ "is not a valid or not implemented yet operator"
+                    ++ " is not a valid or not implemented yet operator"
                 )
 
         Just key ->
@@ -171,10 +175,16 @@ translateOperator op =
         _ ->
             Debug.crash
                 (op
-                    ++ "is not a valid or not implemented yet operator"
+                    ++ " is not a valid or not implemented yet operator"
                 )
 
 
 trimIndentations : String -> String
 trimIndentations line =
     Regex.replace All (regex "\\s+\\n") (always "\n") line
+
+generateArguments : Int -> List String
+generateArguments n =
+    List.range 1 n
+        |> map toString
+        |> map ((++) "x")

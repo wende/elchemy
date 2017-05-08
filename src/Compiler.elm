@@ -138,7 +138,7 @@ getContext statements =
                 base =
                     ExStatement.moduleStatement mod
             in
-                ( Just { base | aliases = (ExAlias.getAliases statements) }, statements )
+                ( Just { base | aliases = (ExAlias.getAliases base statements) }, statements )
 
 
 aggregateStatements : Statement -> ( Context, String ) -> ( Context, String )
@@ -171,7 +171,11 @@ parse m =
         Err ( (), { input, position }, [ msg ] ) ->
             Debug.crash
                 ("]ERR> Compilation error at: "
-                    ++ input
+                    ++ (input
+                            |> String.lines
+                            |> List.take 10
+                            |> String.join "\n"
+                       )
                     ++ "\n"
                 )
 

@@ -55,6 +55,7 @@ elixirE c e =
         e ->
             elixirControlFlow c e
 
+
 elixirControlFlow : Context -> Expression -> String
 elixirControlFlow c e =
     case e of
@@ -65,9 +66,9 @@ elixirControlFlow c e =
             lambda c args body
 
         (If check onTrue (If _ _ _ as onFalse)) as exp ->
-            "cond do" :: handleIfExp (indent c) exp
-                ++ [ ind c.indent, "end" ]
-                |> String.join ""
+              "cond do" :: handleIfExp (indent c) exp
+                  ++ [ ind c.indent, "end" ]
+                  |> String.join ""
 
         If check onTrue onFalse ->
             "if " ++ elixirE c check ++ " do "
@@ -78,15 +79,11 @@ elixirControlFlow c e =
             variables
                 |> map
                     (\( name, args, exp ) ->
-                        name
+                        toSnakeCase name
                             ++ (if List.length args == 0 then
                                     " = " ++ elixirE c exp
                                 else
-                                    " = fn ("
-                                        ++ String.join ", " args
-                                        ++ ") -> "
-                                        ++ elixirE c exp
-                                        ++ " end"
+                                    " = " ++ produceLambda c args exp
                                )
                             ++ (ind c.indent)
                     )
@@ -103,20 +100,27 @@ elixirTypeInstances c e =
         Integer value ->
             toString value
 
-        Character value ->
-            toString value
-
         Float value ->
+            let
+                name = toString value
+            in
+                if String.contains "." name then
+                    name
+                else
+                    name ++ ".0"
+
+        Character value ->
             toString value
 
         String value ->
             toString value
 
         List vars ->
-            "[" ++
-                (map (elixirE c) vars
-                |> String.join ", ")
-            ++ "]"
+            "["
+                ++ (map (elixirE c) vars
+                        |> String.join ", "
+                   )
+                ++ "]"
 
         Record keyValuePairs ->
             "%{"
@@ -217,6 +221,9 @@ isMacro e =
         Variable [ "lffi" ] ->
             True
 
+        Variable [ "flambda" ] ->
+            True
+
         other ->
             False
 
@@ -250,7 +257,6 @@ tupleOrFunction c a =
                 _ ->
                     Debug.crash "Wrong ffi"
 
-        -- "Wrong ffi"
         (Variable [ "lffi" ]) :: rest ->
             case rest of
                 [ fun, args ] ->
@@ -258,6 +264,14 @@ tupleOrFunction c a =
 
                 _ ->
                     Debug.crash "Wrong lffi"
+
+        (Variable [ "flambda" ]) :: rest ->
+            case rest of
+                [ Integer arity, fun ] ->
+                    resolveFfi c (Flambda arity fun)
+
+                _ ->
+                    Debug.crash "Wrong flambda"
 
         [ Variable [ "Just" ], arg ] ->
             "{" ++ elixirE c arg ++ "}"
@@ -281,6 +295,7 @@ tupleOrFunction c a =
 type Ffi
     = Lffi Expression Expression
     | Ffi Expression Expression Expression
+    | Flambda Int Expression
 
 
 resolveFfi : Context -> Ffi -> String
@@ -301,6 +316,20 @@ resolveFfi c ffi =
         -- One arg fun
         Lffi (String fun) any ->
             fun ++ "(" ++ elixirE c any ++ ")"
+
+        Flambda arity fun ->
+            let
+                args =
+                    generateArguments arity
+            in
+                "fn ("
+                    ++ String.join "," args
+                    ++ ") -> "
+                    ++ elixirE c fun
+                    ++ (map (\a -> ".(" ++ a ++ ")") args
+                            |> String.join ""
+                       )
+                    ++ " end"
 
         _ ->
             Debug.crash "Wrong ffi call"
@@ -381,7 +410,7 @@ genElixirFunc c name args body =
 
         ( True, _ ) ->
             Debug.crash
-                "operator has to have 2 arguments"
+                ("operator " ++ name ++ " has to have 2 arguments but has " ++ toString args)
 
         ( False, _ ) ->
             (ind c.indent)
@@ -503,7 +532,7 @@ elixirVariable c var =
                     |> Maybe.map
                         (\a ->
                             case a of
-                                TypeConstructor [ name ] _ ->
+                                (_, TypeConstructor [ name ] _) ->
                                     elixirE c (Variable [ name ])
 
                                 _ ->
@@ -548,13 +577,15 @@ elixirBinop c op l r =
                 ++ elixirE c r
                 ++ "]"
 
+        "<<" ->
+            elixirBinop c ">>" r l
+
         "|>" ->
             elixirE c l
                 ++ (flattenPipes r
-                        |> Debug.log "pipes"
                         |> map (elixirE c)
-                        |> map ((++) (ind c.indent ++ "|> "))
-                        |> map (flip (++) ".()")
+                        |> map ((++) (ind c.indent ++ "|> ("))
+                        |> map (flip (++) ").()")
                         |> String.join ""
                    )
 
