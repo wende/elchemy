@@ -1,7 +1,7 @@
 module Compiler exposing (..)
 
 import Ast
-import Ast.Statement exposing (Statement)
+import Ast.Statement exposing (Statement, Type)
 import List exposing (..)
 import Helpers exposing (..)
 import ExContext exposing (Context, Aliases)
@@ -136,8 +136,11 @@ getContext statements =
             let
                 base =
                     ExStatement.moduleStatement mod
+
+                aliases =
+                    ExAlias.getAliases statements
             in
-                ( Just { base | aliases = (ExAlias.getAliases statements) }, statements )
+                ( Just { base | aliases = aliases }, statements )
 
 
 aggregateStatements : Statement -> ( Context, String ) -> ( Context, String )

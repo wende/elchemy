@@ -4,8 +4,12 @@ import Ast.Statement exposing (ExportSet, Type)
 import Dict exposing (Dict)
 
 
+type alias Alias =
+    List Type -> List Type
+
+
 type alias Aliases =
-    Dict String Type
+    Dict String Alias
 
 
 type alias Flag =

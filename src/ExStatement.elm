@@ -7,6 +7,7 @@ import Ast.BinOp exposing (operators)
 import ExContext exposing (Context, indent, deindent)
 import ExExpression
 import ExType
+import ExAlias
 import Helpers exposing (..)
 import List exposing (..)
 import Dict exposing (Dict)
@@ -49,8 +50,9 @@ elixirS c s =
         --"alias?"
         FunctionTypeDeclaration name ((TypeApplication _ _) as t) ->
             (,) c <|
-                if isOperator name
-                    || ExContext.hasFlag "nospec" name c
+                if
+                    isOperator name
+                        || ExContext.hasFlag "nospec" name c
                 then
                     -- TODO implement operator specs
                     ""
@@ -119,13 +121,14 @@ elixirS c s =
                         (ind c.indent)
                             ++ "@doc \"\"\"\n "
                             ++ (content
-                               |> String.lines
-                               |> map (maybeDoctest c)
-                               |> map (flip (++) (ind c.indent))
-                               |> map trimIndentations
-                             |> String.join ""
-                            -- Drop an unnecessary \n at the end
-                             |> String.dropRight 1)
+                                    |> String.lines
+                                    |> map (maybeDoctest c)
+                                    |> map (flip (++) (ind c.indent))
+                                    |> map trimIndentations
+                                    |> String.join ""
+                                    -- Drop an unnecessary \n at the end
+                                    |> String.dropRight 1
+                               )
                             ++ (ind c.indent)
                             ++ "\"\"\""
 
@@ -190,7 +193,6 @@ elixirS c s =
                 notImplemented "statement" s
 
 
-
 getCommentType : String -> ElmchemyComment
 getCommentType comment =
     [ ( "^\\sex\\b", (Ex) )
@@ -232,19 +234,17 @@ maybeDoctest : Context -> String -> String
 maybeDoctest c line =
     if String.startsWith (ind (c.indent + 1)) ("\n" ++ line) then
         case Ast.parseExpression Ast.BinOp.operators (String.trim line) of
-            (Ok (_, _, BinOp (Variable ["=="]) l r)) ->
+            Ok ( _, _, BinOp (Variable [ "==" ]) l r ) ->
                 ind (c.indent + 2)
                     ++ "iex> import "
                     ++ c.mod
-                ++ ind (c.indent + 2)
+                    ++ ind (c.indent + 2)
                     ++ "iex> "
                     ++ ExExpression.elixirE c l
-                ++ ind (c.indent + 2)
+                    ++ ind (c.indent + 2)
                     ++ ExExpression.elixirE c r
 
             _ ->
                 Debug.crash "Error parsing doctests"
-
-
     else
         line
