@@ -38,6 +38,7 @@ elixirE c e =
             elixirE c left
                 ++ "."
                 ++ String.join "." right
+
         -- Basic operators that are functions in Elixir
         -- Exception, ( "//", "" )
         -- Exception, ( "%", "" )
@@ -54,6 +55,7 @@ elixirE c e =
         e ->
             elixirControlFlow c e
 
+
 elixirControlFlow : Context -> Expression -> String
 elixirControlFlow c e =
     case e of
@@ -63,25 +65,25 @@ elixirControlFlow c e =
         Lambda args body ->
             lambda c args body
 
-        (If check onTrue onFalse) as exp ->
-            "cond do"
-                :: handleIfExp (indent c) exp
-                ++ [ ind c.indent, "end" ]
-                |> String.join ""
+        (If check onTrue (If _ _ _ as onFalse)) as exp ->
+              "cond do" :: handleIfExp (indent c) exp
+                  ++ [ ind c.indent, "end" ]
+                  |> String.join ""
+
+        If check onTrue onFalse ->
+            "if " ++ elixirE c check ++ " do "
+                ++ elixirE c onTrue ++ " else "
+                ++ elixirE c onFalse ++ " end"
 
         Let variables expression ->
             variables
                 |> map
                     (\( name, args, exp ) ->
-                        name
+                        toSnakeCase name
                             ++ (if List.length args == 0 then
                                     " = " ++ elixirE c exp
                                 else
-                                    " = fn ("
-                                        ++ String.join ", " args
-                                        ++ ") -> "
-                                        ++ elixirE c exp
-                                        ++ " end"
+                                    " = " ++ produceLambda c args exp
                                )
                             ++ (ind c.indent)
                     )
@@ -98,20 +100,27 @@ elixirTypeInstances c e =
         Integer value ->
             toString value
 
-        Character value ->
-            toString value
-
         Float value ->
+            let
+                name = toString value
+            in
+                if String.contains "." name then
+                    name
+                else
+                    name ++ ".0"
+
+        Character value ->
             toString value
 
         String value ->
             toString value
 
         List vars ->
-            "[" ++
-                (map (elixirE c) vars
-                |> String.join ", ")
-            ++ "]"
+            "["
+                ++ (map (elixirE c) vars
+                        |> String.join ", "
+                   )
+                ++ "]"
 
         Record keyValuePairs ->
             "%{"
@@ -212,6 +221,9 @@ isMacro e =
         Variable [ "lffi" ] ->
             True
 
+        Variable [ "flambda" ] ->
+            True
+
         other ->
             False
 
@@ -253,6 +265,14 @@ tupleOrFunction c a =
                 _ ->
                     Debug.crash "Wrong lffi"
 
+        (Variable [ "flambda" ]) :: rest ->
+            case rest of
+                [ Integer arity, fun ] ->
+                    resolveFfi c (Flambda arity fun)
+
+                _ ->
+                    Debug.crash "Wrong flambda"
+
         [ Variable [ "Just" ], arg ] ->
             "{" ++ elixirE c arg ++ "}"
 
@@ -275,6 +295,7 @@ tupleOrFunction c a =
 type Ffi
     = Lffi Expression Expression
     | Ffi Expression Expression Expression
+    | Flambda Int Expression
 
 
 resolveFfi : Context -> Ffi -> String
@@ -295,6 +316,20 @@ resolveFfi c ffi =
         -- One arg fun
         Lffi (String fun) any ->
             fun ++ "(" ++ elixirE c any ++ ")"
+
+        Flambda arity fun ->
+            let
+                args =
+                    generateArguments arity
+            in
+                "fn ("
+                    ++ String.join "," args
+                    ++ ") -> "
+                    ++ elixirE c fun
+                    ++ (map (\a -> ".(" ++ a ++ ")") args
+                            |> String.join ""
+                       )
+                    ++ " end"
 
         _ ->
             Debug.crash "Wrong ffi call"
@@ -356,42 +391,43 @@ lambda c args body =
 
 genElixirFunc : Context -> String -> List Expression -> Expression -> String
 genElixirFunc c name args body =
-    case (isOperator name, args) of
-        (True, [ l, r ]) ->
+    case ( isOperator name, args ) of
+        ( True, [ l, r ] ) ->
             (ind c.indent)
-            ++ "def"
-            ++ privateOrPublic c name
-            ++ " "
-            ++ elixirE c l
-            ++ " "
-            ++ translateOperator name
-            ++ " "
-            ++ elixirE c r
-            ++ " do"
-            ++ (ind <| c.indent + 1)
-            ++ elixirE (indent c) body
-            ++ ind c.indent
-            ++ "end"
+                ++ "def"
+                ++ privateOrPublic c name
+                ++ " "
+                ++ elixirE c l
+                ++ " "
+                ++ translateOperator name
+                ++ " "
+                ++ elixirE c r
+                ++ " do"
+                ++ (ind <| c.indent + 1)
+                ++ elixirE (indent c) body
+                ++ ind c.indent
+                ++ "end"
 
-        (True, _) ->
+        ( True, _ ) ->
             Debug.crash
-                "operator has to have 2 arguments"
-        (False, _) ->
+                ("operator " ++ name ++ " has to have 2 arguments but has " ++ toString args)
+
+        ( False, _ ) ->
             (ind c.indent)
-            ++ "def"
-            ++ privateOrPublic c name
-            ++ " "
-            ++ toSnakeCase name
-            ++ "("
-            ++ (args
-                    |> List.map (elixirE c)
-                    |> String.join ", "
-               )
-            ++ ") do"
-            ++ (ind <| c.indent + 1)
-            ++ elixirE (indent c) body
-            ++ ind c.indent
-            ++ "end"
+                ++ "def"
+                ++ privateOrPublic c name
+                ++ " "
+                ++ toSnakeCase name
+                ++ "("
+                ++ (args
+                        |> List.map (elixirE c)
+                        |> String.join ", "
+                   )
+                ++ ") do"
+                ++ (ind <| c.indent + 1)
+                ++ elixirE (indent c) body
+                ++ ind c.indent
+                ++ "end"
 
 
 privateOrPublic : Context -> String -> String
@@ -412,13 +448,14 @@ privateOrPublic context name =
 
 functionCurry : Context -> String -> List Expression -> String
 functionCurry c name args =
-    case (List.length args, ExContext.hasFlag "nocurry" name c) of
-        (0, _) ->
+    case ( List.length args, ExContext.hasFlag "nocurry" name c ) of
+        ( 0, _ ) ->
             ""
 
-        (_, True) ->
+        ( _, True ) ->
             ""
-        (arity, False) ->
+
+        ( arity, False ) ->
             (ind c.indent)
                 ++ "curry"
                 ++ privateOrPublic c name
@@ -451,17 +488,17 @@ genOverloadedFunctionDefinition c name args body expressions =
     else
         functionCurry c name args
             ++ (expressions
-                |> List.map
-                    (\( left, right ) ->
-                        genElixirFunc
-                            c
-                            name
-                            [ left ]
-                            right
-                    )
-                |> List.foldr (++) ""
-                |> flip (++) "\n"
-           )
+                    |> List.map
+                        (\( left, right ) ->
+                            genElixirFunc
+                                c
+                                name
+                                [ left ]
+                                right
+                        )
+                    |> List.foldr (++) ""
+                    |> flip (++) "\n"
+               )
 
 
 getVariableName : Expression -> String
@@ -495,7 +532,7 @@ elixirVariable c var =
                     |> Maybe.map
                         (\a ->
                             case a of
-                                TypeConstructor [ name ] _ ->
+                                (_, TypeConstructor [ name ] _) ->
                                     elixirE c (Variable [ name ])
 
                                 _ ->
@@ -540,16 +577,32 @@ elixirBinop c op l r =
                 ++ elixirE c r
                 ++ "]"
 
+        "<<" ->
+            elixirBinop c ">>" r l
+
         "|>" ->
             elixirE c l
                 ++ (flattenPipes r
-                        |> Debug.log "pipes"
                         |> map (elixirE c)
-                        |> map ((++) (ind c.indent ++ "|> "))
-                        |> map (flip (++) ".()")
+                        |> map ((++) (ind c.indent ++ "|> ("))
+                        |> map (flip (++) ").()")
                         |> String.join ""
                    )
 
         op ->
             [ elixirE c l, translateOperator op, elixirE c r ]
                 |> String.join " "
+
+
+produceLambda : Context -> List String -> Expression -> String
+produceLambda c args body =
+    case args of
+        arg :: rest ->
+            "fn "
+                ++ toSnakeCase arg
+                ++ " -> "
+                ++ produceLambda c rest body
+                ++ " end"
+
+        [] ->
+            elixirE c body
