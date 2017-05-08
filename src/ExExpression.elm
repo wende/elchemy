@@ -532,7 +532,7 @@ elixirVariable c var =
                     |> Maybe.map
                         (\a ->
                             case a of
-                                TypeConstructor [ name ] _ ->
+                                (_, TypeConstructor [ name ] _) ->
                                     elixirE c (Variable [ name ])
 
                                 _ ->

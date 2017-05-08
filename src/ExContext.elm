@@ -5,7 +5,7 @@ import Dict exposing (Dict)
 
 
 type alias Aliases =
-    Dict String Type
+    Dict String (String, Type)
 
 
 type alias Flag =

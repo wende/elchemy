@@ -25,6 +25,10 @@ elixirTFlat =
 elixirTNoFlat =
     elixirT False
 
+find : (a -> Bool) -> List a -> Maybe a
+find f list =
+    list
+        |> foldl (\a acc -> if f a then Just a else acc) Nothing
 
 elixirT : Bool -> Context -> Type -> String
 elixirT flatten c t =
@@ -46,12 +50,16 @@ elixirT flatten c t =
         (TypeVariable name) as var ->
             c.aliases
                 |> Dict.values
-                |> List.member var
+                |> find (\(_, a) -> a == var)
                 |> (\a ->
-                        if a then
-                            name
-                        else
-                            "any"
+                        case a of
+                            Just (mod, _) ->
+                                if mod == c.mod then
+                                    name
+                                else
+                                    mod ++ "." ++ name
+                            Nothing ->
+                                "any"
                    )
 
         TypeConstructor [ "String" ] [] ->
@@ -176,5 +184,5 @@ typealias c t =
 aliasOr : Context -> String -> String -> String
 aliasOr c name default =
     ExAlias.maybeAlias c.aliases name
-        |> Maybe.map (elixirTNoFlat c)
+        |> Maybe.map (Tuple.second >> elixirTNoFlat c)
         |> Maybe.withDefault (default)

@@ -138,7 +138,7 @@ getContext statements =
                 base =
                     ExStatement.moduleStatement mod
             in
-                ( Just { base | aliases = (ExAlias.getAliases statements) }, statements )
+                ( Just { base | aliases = (ExAlias.getAliases base statements) }, statements )
 
 
 aggregateStatements : Statement -> ( Context, String ) -> ( Context, String )
