@@ -356,7 +356,7 @@ pad n c str =
 -}
 padLeft : Int -> Char -> String -> String
 padLeft n c str =
-    ffi "String" "pad_leading" ( str, n, c )
+    ffi "String" "pad_leading" ( str, n, fromChar c )
 
 
 {-| Pad a string on the right until it has a given length.
@@ -368,7 +368,7 @@ padLeft n c str =
 -}
 padRight : Int -> Char -> String -> String
 padRight n c str =
-    ffi "String" "pad_trailing" ( str, n, c )
+    ffi "String" "pad_trailing" ( str, n, fromChar c )
 
 
 {-| Get rid of whitespace on both sides of a string.
@@ -448,9 +448,9 @@ toLower str =
 
 {-| Determine whether *any* characters satisfy a predicate.
 
-    any isDigit "90210" == True
-    any isDigit "R2-D2" == True
-    any isDigit "heart" == False
+    any XChar.isDigit "90210" == True
+    any XChar.isDigit "R2-D2" == True
+    any XChar.isDigit "heart" == False
 
 -}
 any : (Char -> Bool) -> String -> Bool
@@ -464,9 +464,9 @@ any f str =
 
 {-| Determine whether *all* characters satisfy a predicate.
 
-    all isDigit "90210" == True
-    all isDigit "R2-D2" == False
-    all isDigit "heart" == False
+    all XChar.isDigit "90210" == True
+    all XChar.isDigit "R2-D2" == False
+    all XChar.isDigit "heart" == False
 
 -}
 all : (Char -> Bool) -> String -> Bool
@@ -531,16 +531,16 @@ indices pattern str =
 
 {-| Try to convert a string into an int, failing on improperly formatted strings.
 
-    String.toInt "123" == Ok 123
-    String.toInt "-42" == Ok -42
-    String.toInt "3.1" == Err "could not convert string '3.1' to an Int"
-    String.toInt "31a" == Err "could not convert string '31a' to an Int"
+    Elmchemy.XString.toInt "123" == Ok 123
+    Elmchemy.XString.toInt "-42" == Ok -42
+    Elmchemy.XString.toInt "3.1" == Err "could not convert string '3.1' to an Int"
+    Elmchemy.XString.toInt "31a" == Err "could not convert string '31a' to an Int"
 
 If you are extracting a number from some raw user input, you will typically
 want to use [`Result.withDefault`](Result#withDefault) to handle bad data:
 
-    Result.withDefault 0 (String.toInt "42") == 42
-    Result.withDefault 0 (String.toInt "ab") == 0
+    Result.withDefault 0 (Elmchemy.XString.toInt "42") == 42
+    Result.withDefault 0 (Elmchemy.XString.toInt "ab") == 0
 
 -}
 toInt : String -> Result String Int
@@ -550,16 +550,16 @@ toInt str =
 
 {-| Try to convert a string into a float, failing on improperly formatted strings.
 
-    String.toFloat "123" == Ok 123.0
-    String.toFloat "-42" == Ok -42.0
-    String.toFloat "3.1" == Ok 3.1
-    String.toFloat "31a" == Err "could not convert string '31a' to a Float"
+    Elmchemy.XString.toFloat "123" == Ok 123.0
+    Elmchemy.XString.toFloat "-42" == Ok -42.0
+    Elmchemy.XString.toFloat "3.1" == Ok 3.1
+    Elmchemy.XString.toFloat "31a" == Err "could not convert string '31a' to a Float"
 
 If you are extracting a number from some raw user input, you will typically
 want to use [`Result.withDefault`](Result#withDefault) to handle bad data:
 
-    Result.withDefault 0 (String.toFloat "42.5") == 42.5
-    Result.withDefault 0 (String.toFloat "cats") == 0
+    Result.withDefault 0 (Elmchemy.XString.toFloat "42.5") == 42.5
+    Result.withDefault 0 (Elmchemy.XString.toFloat "cats") == 0
 
 -}
 toFloat : String -> Result String Float
