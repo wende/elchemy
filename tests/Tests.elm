@@ -92,16 +92,21 @@ all =
             \() ->
                 "map : (List a) -> (a -> a) -> (List a)"
                     |> has "map(list(any), (any -> any)) :: list(any)"
+
+        , test "Typespecs with functions #2" <|
+            \() ->
+                "map : (a -> a) -> (b -> b) -> (List a)"
+                    |> has "map((any -> any), (any -> any)) :: list(any)"
         , test "Typespecs with multiple arg functions" <|
             \() ->
                 "map : (List a) -> (a -> a -> b) -> (List a)"
-                    |> has "map(list(any), (any, any -> any)) :: list(any) "
+                    |> has "map(list(any), (any -> (any -> any))) :: list(any) "
         , test "Typespecs names are snakecased" <|
             \() ->
                 "mapMap : a" |> has "@spec map_map"
         , test "Records in typespecs" <|
             \() ->
-                "record : { a : Int, b : String}" |> has "@spec record :: %{a: integer, b: String.t}"
+                "record : { a : Int, b : String}" |> has "@spec record() :: %{a: integer, b: String.t}"
         , test "Remote typespecs" <|
             \() ->
                 "f : Remote.Module.Type -> String.T"

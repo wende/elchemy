@@ -154,10 +154,11 @@ generateMeta : Expression -> String
 generateMeta e =
     case e of
         List args ->
-            map (getMetaLine) args
-               |> map ((++) (ind 0))
-               |> String.join ""
-               |> flip (++) "\n"
+            map getMetaLine args
+                |> map ((++) (ind 0))
+                |> String.join ""
+                |> flip (++) "\n"
+
 
         _ ->
             Debug.crash "Meta function has to have specific format"
