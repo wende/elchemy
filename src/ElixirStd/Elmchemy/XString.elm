@@ -290,7 +290,7 @@ are taken starting from the *end* of the list.
 -}
 slice : Int -> Int -> String -> String
 slice start len str =
-    ffi "String" "slice" ( str, start, len )
+    ffi "String" "slice" ( str, start, len - start )
 
 
 {-| Take *n* characters from the left side of a string.
@@ -388,7 +388,7 @@ trim str =
 -}
 trimLeft : String -> String
 trimLeft str =
-    ffi "String" "trim_left" str
+    ffi "String" "trim_trailing" str
 
 
 {-| Get rid of whitespace on the right of a string.
@@ -398,7 +398,7 @@ trimLeft str =
 -}
 trimRight : String -> String
 trimRight str =
-    ffi "String" "trim_right" str
+    ffi "String" "trim_leading" str
 
 
 {-| Break a string into words, splitting on chunks of whitespace.
@@ -418,7 +418,10 @@ words str =
 -}
 lines : String -> List String
 lines str =
-    ffi "String" "split" ( str, [ "\n", "\x0D", "\x0D\n" ] )
+    let
+        pattern = ffi ":binary" "compile_pattern" ([ "\n", "\x0D", "\x0D\n" ])
+    in
+        ffi "String" "split" ( str, pattern)
 
 
 {-| Convert a string to all upper case. Useful for case-insensitive comparisons
@@ -574,7 +577,7 @@ toFloat str =
 -}
 toList : String -> List Char
 toList str =
-    ffi "String" "graphemes" str
+    ffi "String" "to_charlist" str
 
 
 {-| Convert a list of characters into a String. Can be useful if you
