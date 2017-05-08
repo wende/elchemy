@@ -23,6 +23,7 @@ defmodule ElmchemyTest do
   doctest Elmchemy.XBasics
   doctest Elmchemy.XList
   doctest Elmchemy.XMaybe
+  doctest Elmchemy.XChar
 
   import Elmchemy.Test
 
