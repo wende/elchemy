@@ -88,6 +88,7 @@ trim, trimLeft, trimRight
 
 import Elmchemy exposing (..)
 import Elmchemy.XList
+import Elmchemy.XTuple
 {- ex
 import Kernel, except: [{:length, 1}]
 import Elmchemy.XBasics, except: [{:to_float, 1}]
@@ -134,7 +135,13 @@ pattern match on strings exactly as you would with lists.
 -}
 uncons : String -> Maybe ( Char, String )
 uncons str =
-    ffi "String" "first" str
+    let
+        result = ffi "String" "split_at" (str, 1)
+    in
+        if Elmchemy.XTuple.first result == "" then
+            Nothing
+        else
+            Just result
 
 
 {-| Append two strings. You can also use [the `(++)` operator](Basics#++)
@@ -155,7 +162,7 @@ append a b =
 -}
 concat : List String -> String
 concat list =
-    Elmchemy.XList.foldl (++) list
+    Elmchemy.XList.foldl (++) "" list
 
 
 {-| Get the length of a string.
