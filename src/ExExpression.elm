@@ -251,7 +251,7 @@ tupleOrFunction c a =
                     Debug.crash "Wrong lffi"
 
         [ Variable [ "Just" ], arg ] ->
-            elixirE c arg
+            "{" ++ elixirE c arg ++ "}"
 
         (Variable list) :: rest ->
             case lastAndRest list of
