@@ -38,7 +38,6 @@ elixirE c e =
             elixirE c left
                 ++ "."
                 ++ String.join "." right
-
         -- Basic operators that are functions in Elixir
         -- Exception, ( "//", "" )
         -- Exception, ( "%", "" )
@@ -53,43 +52,10 @@ elixirE c e =
 
         -- Rest
         e ->
-            elixirPrimitives c e
+            elixirControlFlow c e
 
-
-elixirTypeInstances : Context -> Expression -> String
-elixirTypeInstances c e =
-    case e of
-        Integer value ->
-            toString value
-
-        Float value ->
-            toString value
-
-        Character value ->
-            toString value
-
-        String value ->
-            toString value
-
-        List [] ->
-            "[]"
-
-        List [ value ] ->
-            "[" ++ combineComas c value ++ "]"
-
-        Record keyValuePairs ->
-            "%{"
-                ++ (map (\( a, b ) -> a ++ ": " ++ elixirE c b) keyValuePairs
-                        |> String.join ", "
-                   )
-                ++ "}"
-
-        _ ->
-            notImplemented "expression" e
-
-
-elixirPrimitives : Context -> Expression -> String
-elixirPrimitives c e =
+elixirControlFlow : Context -> Expression -> String
+elixirControlFlow c e =
     case e of
         Case var body ->
             caseE c var body
@@ -130,6 +96,38 @@ elixirPrimitives c e =
             elixirTypeInstances c e
 
 
+elixirTypeInstances : Context -> Expression -> String
+elixirTypeInstances c e =
+    case e of
+        Integer value ->
+            toString value
+
+        Character value ->
+            toString value
+
+        Float value ->
+            toString value
+
+        String value ->
+            toString value
+
+        List vars ->
+            "[" ++
+                (map (elixirE c) vars
+                |> String.join ", ")
+            ++ "]"
+
+        Record keyValuePairs ->
+            "%{"
+                ++ (map (\( a, b ) -> a ++ ": " ++ elixirE c b) keyValuePairs
+                        |> String.join ", "
+                   )
+                ++ "}"
+
+        _ ->
+            notImplemented "expression" e
+
+
 handleIfExp : Context -> Expression -> List String
 handleIfExp c e =
     case e of
@@ -162,13 +160,12 @@ getMetaLine a =
 generateMeta : Expression -> String
 generateMeta e =
     case e of
-        List [ args ] ->
-            map
-                (getMetaLine)
-                (flattenCommas args)
+        List args ->
+            map getMetaLine args
                 |> map ((++) (ind 0))
                 |> String.join ""
                 |> flip (++) "\n"
+
 
         _ ->
             Debug.crash "Meta function has to have specific format"
@@ -262,7 +259,7 @@ tupleOrFunction c a =
                     Debug.crash "Wrong lffi"
 
         [ Variable [ "Just" ], arg ] ->
-            elixirE c arg
+            "{" ++ elixirE c arg ++ "}"
 
         (Variable list) :: rest ->
             case lastAndRest list of

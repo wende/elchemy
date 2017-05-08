@@ -25,6 +25,8 @@ defmodule Elmchemy do
       import Elmchemy
       require Elmchemy.Glue
 
+      import Kernel, except: [{:"++", 2}]
+
       import Elmchemy.Glue
       import Kernel, except: [
         {:'++', 2}
