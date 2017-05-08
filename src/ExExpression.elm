@@ -100,9 +100,6 @@ elixirTypeInstances c e =
         Integer value ->
             toString value
 
-        Character value ->
-            toString value
-
         Float value ->
             let
                 name = toString value
