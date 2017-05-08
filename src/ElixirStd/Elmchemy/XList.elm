@@ -130,7 +130,7 @@ member x xs =
 
     map not [True,False,True] == [False,True,False]
 -}
-{- flag nospec:+map nospec:+map2 nospec:+map3 nospec:+map4 nospec:+map5 -}
+
 map : (a -> b) -> List a -> List b
 map f xs =
   foldr (\x acc -> f x :: acc) [] xs
@@ -141,7 +141,7 @@ element (starting at zero).
 
     indexedMap (,) ["Tom","Sue","Bob"] == [ (0,"Tom"), (1,"Sue"), (2,"Bob") ]
 -}
-{- flag nospec:+indexedMap -}
+
 indexedMap : (Int -> a -> b) -> List a -> List b
 indexedMap f xs =
   map2 f (range 0 (length xs - 1)) xs
@@ -151,7 +151,7 @@ indexedMap f xs =
 
     foldl (::) [] [1,2,3] == [3,2,1]
 -}
-{- flag nospec:+foldl -}
+
 foldl : (a -> b -> b) -> b -> List a -> b
 foldl func acc list =
   case list of
@@ -166,7 +166,7 @@ foldl func acc list =
 
     foldr (+) 0 [1,2,3] == 6
 -}
-{- flag nospec:+foldr -}
+
 foldr : (a -> b -> b) -> b -> List a -> b
 foldr f start list =
     ffi "List" "foldr" (list, start, (flambda 2 f))
@@ -176,7 +176,7 @@ foldr f start list =
 
     scanl (+) 0 [1,2,3,4] == [0,1,3,6,10]
 -}
-{- flag nospec:+scanl -}
+
 scanl : (a -> b -> b) -> b -> List a -> List b
 scanl f b xs =
   let
@@ -195,7 +195,7 @@ scanl f b xs =
 
     filter (flip (%) 2 >> (==) 0) [1,2,3,4,5,6] == [2,4,6]
 -}
-{- flag nospec:+filter -}
+
 filter : (a -> Bool) -> List a -> List a
 filter pred xs =
   let
@@ -215,12 +215,12 @@ the successes.
     filterMap (\a -> if a >= 18 then Just a else Nothing) [3, 15, 12, 18, 24] == [18, 24]
 
 -}
-{- flag nospec:+filterMap -}
+
 filterMap : (a -> Maybe b) -> List a -> List b
 filterMap f xs =
   foldr (maybeCons f) [] xs
 
-{- flag nospec:+maybeCons -}
+
 maybeCons : (a -> Maybe b) -> a -> List b -> List b
 maybeCons f mx xs =
   case f mx of
@@ -255,7 +255,7 @@ reverse list =
     all (\a -> a % 2 == 0) [2,3] == False
     all (\a -> a % 2 == 0) [] == True
 -}
-{- flag nospec:+all -}
+
 all : (a -> Bool) -> List a -> Bool
 all isOkay list =
   not (any (isOkay >> not) list)
@@ -267,7 +267,7 @@ all isOkay list =
     any (\a -> a % 2 == 0) [1,3] == False
     any (\a -> a % 2 == 0) [] == False
 -}
-{- flag nospec:+any -}
+
 any : (a -> Bool) -> List a -> Bool
 any isOkay list =
   case list of
@@ -312,7 +312,7 @@ concat lists =
 
     concatMap (range 2) [1] == concat (map (range 2) [1]) == true
 -}
-{- flag nospec:+concatMap -}
+
 concatMap : (a -> List b) -> List a -> List b
 concatMap f list =
   concat (map f list)
@@ -373,7 +373,7 @@ not.
     partition (\x -> x < 3)      [0,1,2,3,4,5] == ([0,1,2], [3,4,5])
     partition (\a -> a % 2 == 0) [0,1,2,3,4,5] == ([0,2,4], [1,3,5])
 -}
-{- flag nospec:+partition nospec:+partitionStep -}
+
 partition : (a -> Bool) -> List a -> (List a, List a)
 partition pred list =
     foldr (partitionStep pred) ([],[]) list
@@ -420,7 +420,7 @@ map2 f a b =
 
     unzip (repeat 3 (0, True)) == ([0,0,0], [True,True,True])
 -}
-{- flag nospec:+unzip nospec:+unzipStep -}
+
 unzip : List (a,b) -> (List a, List b)
 unzip pairs =
     foldr unzipStep ([], []) pairs
@@ -582,7 +582,7 @@ sort xs =
 
     sortBy (\a -> ffi "String" "length" a)  ["mouse","cat"] == ["cat","mouse"]
 -}
-{- flag nospec:+sortBy -}
+
 sortBy : (a -> comparable) ->  List a -> List a
 sortBy f list =
   sortWith (\a b -> compare (f a) (f b)) list
@@ -595,7 +595,7 @@ sortBy f list =
 This is also the most general sort function, allowing you
 to define any other: `sort == sortWith compare`
 -}
-{- flag nospec:+sortWith -}
+
 sortWith : (a -> a -> Order) ->  List a -> List a
 sortWith f list =
     let
