@@ -12,7 +12,7 @@ flattenTypeApplication : Type -> List Type
 flattenTypeApplication application =
     case application of
         TypeApplication left right ->
-            (flattenTypeApplication left) ++ [ right ]
+            left :: flattenTypeApplication right
 
         other ->
             [ other ]
@@ -147,92 +147,14 @@ typespec0 c t =
 
 typespec : Context -> Type -> String
 typespec c t =
-    typespec_ True c t
-
-
-typespecf : Context -> Type -> String
-typespecf c t =
-    typespec_ False c t
-
-
-typespec_ : Bool -> Context -> Type -> String
-typespec_ start c t =
-    case t of
-        -- Last aruments
-        TypeApplication other ((TypeApplication _ _) as app) ->
-            (if start then
-                "("
-             else
-                ""
-            )
-                ++ typespecf c other
-                ++ typespecf c app
-
-        TypeApplication pre_last last ->
-            (if start then
-                "("
-             else
-                ""
-            )
-                ++ elixirTFlat c pre_last
-                ++ ") :: "
-                ++ elixirTFlat c last
-
-        --TypeApplication tc t ->
-        (TypeConstructor _ _) as t ->
-            (if start then
-                " :: "
-             else
-                ""
-            )
-                ++ elixirTFlat c t
-                ++ (if start then
-                        ""
-                    else
-                        ", "
-                   )
-
-        (TypeVariable _) as t ->
-            (if start then
-                " :: "
-             else
-                ""
-            )
-                ++ elixirTFlat c t
-                ++ (if start then
-                        ""
-                    else
-                        ", "
-                   )
-
-        (TypeTuple _) as t ->
-            (if start then
-                " :: "
-             else
-                ""
-            )
-                ++ elixirTFlat c t
-                ++ (if start then
-                        ""
-                    else
-                        ", "
-                   )
-
-        (TypeRecord _) as t ->
-            (if start then
-                " :: "
-             else
-                ""
-            )
-                ++ elixirTFlat c t
-                ++ (if start then
-                        ""
-                    else
-                        ", "
-                   )
-
-        other ->
-            notImplemented "typespec" other
+    case lastAndRest (flattenTypeApplication t) of
+        (Just last, args) ->
+            "(" ++
+            (map (elixirTNoFlat c) args
+                |> String.join ", ")
+            ++ ") :: " ++ elixirTNoFlat c last
+        (Nothing, _) ->
+            Debug.crash "impossible"
 
 
 typealias : Context -> Type -> String
