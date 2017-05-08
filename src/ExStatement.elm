@@ -169,8 +169,9 @@ elixirS c s =
                 (ind c.indent)
                     ++ "import "
                     ++ String.join "." path
-                    ++ ", only: "
+                    ++ ", only: ["
                     ++ (map subsetExport exports |> foldl (++) [] |> String.join ",")
+                    ++ "]"
 
         ImportStatement path Nothing (Just AllExport) ->
             (,) c <|
@@ -215,7 +216,7 @@ subsetExport exp =
             []
 
         FunctionExport name ->
-            [ "{" ++ name ++ ", 0}" ]
+            [ "{:'" ++ name ++ "', 0}" ]
 
         _ ->
             crash ("You can't export " ++ toString exp)
