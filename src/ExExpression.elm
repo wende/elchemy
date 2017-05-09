@@ -28,11 +28,12 @@ elixirE c e =
                 ++ "}"
 
         -- Primitive operators
-        Access ((Variable (mod :: rest)) as left) right ->
-            mod
-                ++ "."
-                ++ String.join "." rest
-                ++ String.join "." right
+        Access ((Variable modAndRest) as left) right ->
+            case lastAndRest modAndRest of
+                ( last, rest ) ->
+                    String.join "." modAndRest
+                        ++ "."
+                        ++ String.join "." (map toSnakeCase right)
 
         Access left right ->
             elixirE c left
@@ -65,15 +66,20 @@ elixirControlFlow c e =
         Lambda args body ->
             lambda c args body
 
-        (If check onTrue (If _ _ _ as onFalse)) as exp ->
-              "cond do" :: handleIfExp (indent c) exp
-                  ++ [ ind c.indent, "end" ]
-                  |> String.join ""
+        (If check onTrue ((If _ _ _) as onFalse)) as exp ->
+            "cond do"
+                :: handleIfExp (indent c) exp
+                ++ [ ind c.indent, "end" ]
+                |> String.join ""
 
         If check onTrue onFalse ->
-            "if " ++ elixirE c check ++ " do "
-                ++ elixirE c onTrue ++ " else "
-                ++ elixirE c onFalse ++ " end"
+            "if "
+                ++ elixirE c check
+                ++ " do "
+                ++ elixirE c onTrue
+                ++ " else "
+                ++ elixirE c onFalse
+                ++ " end"
 
         Let variables expression ->
             variables
@@ -85,10 +91,9 @@ elixirControlFlow c e =
                                 else
                                     " = " ++ produceLambda c args exp
                                )
-                            ++ (ind c.indent)
                     )
                 |> String.join (ind c.indent)
-                |> flip (++) (elixirE c expression)
+                |> flip (++) (ind c.indent ++ elixirE c expression)
 
         _ ->
             elixirTypeInstances c e
@@ -102,7 +107,8 @@ elixirTypeInstances c e =
 
         Float value ->
             let
-                name = toString value
+                name =
+                    toString value
             in
                 if String.contains "." name then
                     name
@@ -113,7 +119,7 @@ elixirTypeInstances c e =
             toString value
 
         String value ->
-            toString value
+            unescape (toString value)
 
         List vars ->
             "["
@@ -170,7 +176,6 @@ generateMeta e =
                 |> map ((++) (ind 0))
                 |> String.join ""
                 |> flip (++) "\n"
-
 
         _ ->
             Debug.crash "Meta function has to have specific format"
@@ -305,7 +310,7 @@ resolveFfi c ffi =
         Ffi (String mod) (String fun) ((BinOp (Variable [ "," ]) _ _) as args) ->
             mod ++ "." ++ fun ++ "(" ++ combineComas c args ++ ")"
 
-        -- One arg fun
+        -- One or many arg fun
         Ffi (String mod) (String fun) any ->
             mod ++ "." ++ fun ++ "(" ++ elixirE c any ++ ")"
 
@@ -532,7 +537,7 @@ elixirVariable c var =
                     |> Maybe.map
                         (\a ->
                             case a of
-                                (_, TypeConstructor [ name ] _) ->
+                                ( _, TypeConstructor [ name ] _ ) ->
                                     elixirE c (Variable [ name ])
 
                                 _ ->
