@@ -1,0 +1,3 @@
+[submodule "elmchemy-core"]
+	path = elmchemy-core
+	url = git@github.com:wende/elmchemy-core.git
