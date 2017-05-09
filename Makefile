@@ -27,6 +27,7 @@ test-std:
 
 
 compile-std:
+	rm -rf elixir-stuff/elmchemy/lib/Elmchemy/*
 	make compile && ./elmchemy compile src/ElixirStd elixir-stuff/elmchemy/lib
 
 compile-std-watch:

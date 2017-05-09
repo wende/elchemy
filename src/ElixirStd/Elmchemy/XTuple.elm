@@ -1,4 +1,4 @@
-module XTuple exposing (..)
+module Elmchemy.XTuple exposing (..)
 
 
 first : ( a, b ) -> a

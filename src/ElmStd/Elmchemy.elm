@@ -33,3 +33,8 @@ flambda arity f =
 super : a
 super =
     Debug.crash "You can't use super in a browser"
+
+
+tryCatch : (() -> a) -> Result String a
+tryCatch a =
+    Debug.crash "You can't use 'try' in a browser"

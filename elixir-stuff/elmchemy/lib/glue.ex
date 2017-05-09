@@ -1,5 +1,16 @@
 defmodule Elmchemy.Glue do
 
+  def try_catch() do
+    fn func ->
+      try do
+        {:ok, func.(nil)}
+      rescue
+        e -> {:error, e.message}
+      end
+    end
+  end
+
+
   defmacro curry({:/, _, [{name, _, _}, arity]}) do
     args =
       1..arity |> Enum.map(&({:"arg#{&1}", [], Elixir}))
