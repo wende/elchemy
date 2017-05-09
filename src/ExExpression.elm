@@ -281,6 +281,10 @@ tupleOrFunction c a =
         [ Variable [ "Just" ], arg ] ->
             "{" ++ elixirE c arg ++ "}"
 
+        [ Variable [ "Err" ], arg ] ->
+            "{:error, " ++ elixirE c arg ++ "}"
+
+
         (Variable list) :: rest ->
             case lastAndRest list of
                 ( Just last, _ ) ->

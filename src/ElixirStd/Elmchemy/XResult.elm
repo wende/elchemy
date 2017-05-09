@@ -36,8 +36,8 @@ type Result error value
 {-| If the result is `Ok` return the value, but if the result is an `Err` then
 return a given default value. The following examples try to parse integers.
 
-    Result.withDefault 0 (XString.toInt "123") == 123
-    Result.withDefault 0 (XString.toInt "abc") == 0
+    XResult.withDefault 0 (XString.toInt "123") == 123
+    XResult.withDefault 0 (XString.toInt "abc") == 0
 -}
 withDefault : a -> Result x a -> a
 withDefault def result =

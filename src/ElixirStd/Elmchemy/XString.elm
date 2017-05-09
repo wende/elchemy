@@ -88,6 +88,7 @@ trim, trimLeft, trimRight
 
 import Elmchemy exposing (..)
 import Elmchemy.XList as XList
+import Elmchemy.XResult as XResult
 import Elmchemy.XTuple as XTuple
 {- ex
 import Kernel, except: [{:length, 1}]
@@ -564,40 +565,53 @@ indices pattern str =
 
 {-| Try to convert a string into an int, failing on improperly formatted strings.
 
-    Elmchemy.XString.toInt "123" == Ok 123
-    Elmchemy.XString.toInt "-42" == Ok -42
-    Elmchemy.XString.toInt "3.1" == Err "could not convert string '3.1' to an Int"
-    Elmchemy.XString.toInt "31a" == Err "could not convert string '31a' to an Int"
+    XString.toInt "123" == Ok 123
+    XString.toInt "-42" == Ok -42
+    XString.toInt "3.1" == Err "could not convert string '3.1' to an Int"
+    XString.toInt "31a" == Err "could not convert string '31a' to an Int"
 
 If you are extracting a number from some raw user input, you will typically
 want to use [`Result.withDefault`](Result#withDefault) to handle bad data:
 
-    Result.withDefault 0 (Elmchemy.XString.toInt "42") == 42
-    Result.withDefault 0 (Elmchemy.XString.toInt "ab") == 0
+    XResult.withDefault 0 (XString.toInt "42") == 42
+    XResult.withDefault 0 (XString.toInt "ab") == 0
 
 -}
 toInt : String -> Result String Int
 toInt str =
-    ffi "String" "to_integer" str
+    case tryCatch (\_ -> (ffi "String" "to_integer" str)) of
+        Err "argument error" ->
+            Err ("could not convert string '" ++ str ++ "' to an Int")
+
+        e ->
+            e
 
 
 {-| Try to convert a string into a float, failing on improperly formatted strings.
 
-    Elmchemy.XString.toFloat "123" == Ok 123.0
-    Elmchemy.XString.toFloat "-42" == Ok -42.0
-    Elmchemy.XString.toFloat "3.1" == Ok 3.1
-    Elmchemy.XString.toFloat "31a" == Err "could not convert string '31a' to a Float"
+    XString.toFloat "123" == Ok 123.0
+    XString.toFloat "-42" == Ok -42.0
+    XString.toFloat "3.1" == Ok 3.1
+    XString.toFloat "31a" == Err "could not convert string '31a' to a Float"
 
 If you are extracting a number from some raw user input, you will typically
 want to use [`Result.withDefault`](Result#withDefault) to handle bad data:
 
-    Result.withDefault 0 (Elmchemy.XString.toFloat "42.5") == 42.5
-    Result.withDefault 0 (Elmchemy.XString.toFloat "cats") == 0
+    XResult.withDefault 0 (XString.toFloat "42.5") == 42.5
+    XResult.withDefault 0 (XString.toFloat "cats") == 0
 
 -}
 toFloat : String -> Result String Float
 toFloat str =
-    ffi "String" "to_float" str
+    let
+        real = if contains "." str then str else str ++ ".0"
+    in
+        case tryCatch (\_ -> (ffi "String" "to_float" real)) of
+            Err "argument error" ->
+                Err ("could not convert string '" ++ str ++ "' to a Float")
+
+            e ->
+                e
 
 
 {-| Convert a string to a list of characters.
