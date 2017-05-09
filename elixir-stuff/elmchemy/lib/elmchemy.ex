@@ -28,6 +28,10 @@ defmodule Elmchemy do
       import Kernel, except: [{:"++", 2}]
 
       import Elmchemy.Glue
+      import Kernel, except: [
+        {:'++', 2}
+      ]
+      alias Elmchemy.{XBasics, XString, XMaybe, XChar}
       import_std(Elmchemy.XBasics)
     end
   end
