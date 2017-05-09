@@ -188,3 +188,12 @@ generateArguments n =
     List.range 1 n
         |> map toString
         |> map ((++) "x")
+
+
+unescape : String -> String
+unescape s =
+    Regex.replace All (regex "\\\\\\\\") (always "\\") s
+
+escape : String -> String
+escape s =
+    Regex.replace All (regex "\\\\n") (always "\\\\n") s

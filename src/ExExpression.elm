@@ -91,10 +91,9 @@ elixirControlFlow c e =
                                 else
                                     " = " ++ produceLambda c args exp
                                )
-                            ++ (ind c.indent)
                     )
                 |> String.join (ind c.indent)
-                |> flip (++) (elixirE c expression)
+                |> flip (++) (ind c.indent ++ elixirE c expression)
 
         _ ->
             elixirTypeInstances c e
@@ -120,7 +119,7 @@ elixirTypeInstances c e =
             toString value
 
         String value ->
-            toString value
+            unescape (toString value)
 
         List vars ->
             "["

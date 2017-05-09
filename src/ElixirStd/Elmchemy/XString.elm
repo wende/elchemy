@@ -87,8 +87,8 @@ trim, trimLeft, trimRight
 -}
 
 import Elmchemy exposing (..)
-import Elmchemy.XList
-import Elmchemy.XTuple
+import Elmchemy.XList as XList
+import Elmchemy.XTuple as XTuple
 {- ex
 import Kernel, except: [{:length, 1}]
 import Elmchemy.XBasics, except: [{:to_float, 1}]
@@ -136,9 +136,12 @@ pattern match on strings exactly as you would with lists.
 uncons : String -> Maybe ( Char, String )
 uncons str =
     let
-        result = ffi "String" "split_at" (str, 1)
+        result =
+            ffi "String" "split_at" (str, 1)
+                |> XTuple.mapFirst (\a -> ffi "String" "to_charlist" a)
+
     in
-        if Elmchemy.XTuple.first result == "" then
+        if XTuple.first result == [] then
             Nothing
         else
             Just result
@@ -162,7 +165,7 @@ append a b =
 -}
 concat : List String -> String
 concat list =
-    Elmchemy.XList.foldl (++) "" list
+    XList.foldr (++) "" list
 
 
 {-| Get the length of a string.
@@ -233,7 +236,7 @@ foldl : (Char -> b -> b) -> b -> String -> b
 foldl f acc str =
     str
         |> toList
-        |> (\str -> ffi ":lists" "foldl" ( f, acc, str ))
+        |> XList.foldl f acc
 
 
 
@@ -249,7 +252,7 @@ foldr : (Char -> b -> b) -> b -> String -> b
 foldr f acc str =
     str
         |> toList
-        |> (\str -> ffi ":lists" "foldr" ( f, acc, str ))
+        |> XList.foldr f acc
 
 
 {-| Split a string using a given separator.
@@ -296,9 +299,23 @@ are taken starting from the *end* of the list.
     slice -6 -1 "snakes on a plane!" == "plane"
 
 -}
+-- slice 7 9 = slice 7 (9 - 7)
+--                     7  2
+-- slice 0 6 = slice 0 (6 - 0)
+--                     0 6
+-- slice 0 -7 = slice 0 (18 - 7 - 0)
+--                      0  11
+-- slice -6 -1 = slice ((18 - 6)) (18 - 1 - 12)
+--                          12       5
 slice : Int -> Int -> String -> String
-slice start len str =
-    ffi "String" "slice" ( str, start, len - start )
+slice from to str =
+    let
+        l = length str
+        mirror a = if a < 0 then l + a else a
+        start = mirror from
+        len = (mirror to) - start
+    in
+        ffi "String" "slice" ( str, start, len)
 
 
 {-| Take *n* characters from the left side of a string.
@@ -318,7 +335,7 @@ left n str =
 -}
 right : Int -> String -> String
 right n str =
-    slice 0 (negate n) str
+    slice (negate n) (length str) str
 
 
 {-| Drop *n* characters from the left side of a string.
@@ -328,7 +345,7 @@ right n str =
 -}
 dropLeft : Int -> String -> String
 dropLeft n str =
-    slice n (length str - n) str
+    slice n (length str) str
 
 
 {-| Drop *n* characters from the right side of a string.
@@ -350,9 +367,13 @@ dropRight n str =
 -}
 pad : Int -> Char -> String -> String
 pad n c str =
-    str
-        |> padLeft n c
-        |> padRight n c
+    let
+        right = (length str + n) // 2
+        left = n
+    in
+        str
+        |> padRight right c
+        |> padLeft left c
 
 
 {-| Pad a string on the left until it has a given length.
@@ -466,7 +487,7 @@ toLower str =
 -}
 any : (Char -> Bool) -> String -> Bool
 any f str =
-    ffi "Enum" "any?" ( str, f )
+    ffi "Enum" "any?" ( toList str, f )
 
 
 
@@ -482,7 +503,7 @@ any f str =
 -}
 all : (Char -> Bool) -> String -> Bool
 all f str =
-    ffi "Enum" "all?" ( str, f )
+    ffi "Enum" "all?" ( toList str, f )
 
 
 {-| See if the second string contains the first one.
@@ -530,7 +551,8 @@ endsWith suffix str =
 -}
 indexes : String -> String -> List Int
 indexes pattern str =
-    ffi "Tuple" "to_list" (ffi ":binary" "match" ( str, pattern ))
+    ffi ":binary" "matches" ( str, pattern )
+        |> XList.map XTuple.first
 
 
 {-| Alias for `indexes`.
@@ -585,7 +607,10 @@ toFloat str =
 -}
 toList : String -> List Char
 toList str =
-    ffi "String" "to_charlist" str
+    let
+        charlist = (ffi "String" "to_charlist" str)
+    in
+        ffi "Enum" "map" (charlist, XList.singleton)
 
 
 {-| Convert a list of characters into a String. Can be useful if you

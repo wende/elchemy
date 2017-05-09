@@ -164,6 +164,13 @@ elixirS c s =
                     ++ "alias "
                     ++ String.join "." path
 
+        ImportStatement path (Just asName) Nothing  ->
+            (,) c <|
+                (ind c.indent)
+                    ++ "alias "
+                    ++ (String.join "." path)
+                    ++ ", as: " ++ asName
+
         ImportStatement path Nothing (Just (SubsetExport exports)) ->
             (,) c <|
                 (ind c.indent)
@@ -233,9 +240,9 @@ maybeDoctest c line =
                     ++ c.mod
                     ++ ind (c.indent + 2)
                     ++ "iex> "
-                    ++ ExExpression.elixirE c l
+                    ++ Helpers.escape (ExExpression.elixirE c l)
                     ++ ind (c.indent + 2)
-                    ++ ExExpression.elixirE c r
+                    ++ Helpers.escape (ExExpression.elixirE c r)
 
             _ ->
                 line
