@@ -45,7 +45,7 @@ install:
 
 script:
   - elm-test
-  - cd elmchemy-core/elixir-stuff/elmchemy/ && mix test
+  - make test-std
 
 notifications:
   email: false
