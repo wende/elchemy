@@ -53,16 +53,22 @@ elixirS c s =
                     -- TODO implement operator specs
                     ""
                 else
-                    onlyWithoutFlag c "nospec" name
+                    onlyWithoutFlag c
+                        "nospec"
+                        name
                         ((ind c.indent)
-                         ++ "@spec "
-                         ++ toSnakeCase name
-                         ++ (ExType.typespec c t))
-                    ++ onlyWithoutFlag c "nospec0" name
-                        ((ind c.indent)
-                        ++ "@spec "
-                        ++ toSnakeCase name
-                        ++ (ExType.typespec0 c t))
+                            ++ "@spec "
+                            ++ toSnakeCase name
+                            ++ (ExType.typespec c t)
+                        )
+                        ++ onlyWithoutFlag c
+                            "nospec0"
+                            name
+                            ((ind c.indent)
+                                ++ "@spec "
+                                ++ toSnakeCase name
+                                ++ (ExType.typespec0 c t)
+                            )
 
         --"alias?"
         FunctionTypeDeclaration name t ->
@@ -164,12 +170,13 @@ elixirS c s =
                     ++ "alias "
                     ++ String.join "." path
 
-        ImportStatement path (Just asName) Nothing  ->
+        ImportStatement path (Just asName) Nothing ->
             (,) c <|
                 (ind c.indent)
                     ++ "alias "
                     ++ (String.join "." path)
-                    ++ ", as: " ++ asName
+                    ++ ", as: "
+                    ++ asName
 
         ImportStatement path Nothing (Just (SubsetExport exports)) ->
             (,) c <|
@@ -249,6 +256,7 @@ maybeDoctest c line =
         --Debug.crash "Error parsing doctests"
     else
         line
+
 
 onlyWithoutFlag : Context -> String -> String -> String -> String
 onlyWithoutFlag c key value code =

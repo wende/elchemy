@@ -183,6 +183,7 @@ trimIndentations : String -> String
 trimIndentations line =
     Regex.replace All (regex "\\s+\\n") (always "\n") line
 
+
 generateArguments : Int -> List String
 generateArguments n =
     List.range 1 n
@@ -193,6 +194,7 @@ generateArguments n =
 unescape : String -> String
 unescape s =
     Regex.replace All (regex "\\\\\\\\") (always "\\") s
+
 
 escape : String -> String
 escape s =

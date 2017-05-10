@@ -25,10 +25,19 @@ elixirTFlat =
 elixirTNoFlat =
     elixirT False
 
+
 find : (a -> Bool) -> List a -> Maybe a
 find f list =
     list
-        |> foldl (\a acc -> if f a then Just a else acc) Nothing
+        |> foldl
+            (\a acc ->
+                if f a then
+                    Just a
+                else
+                    acc
+            )
+            Nothing
+
 
 elixirT : Bool -> Context -> Type -> String
 elixirT flatten c t =
@@ -39,9 +48,11 @@ elixirT flatten c t =
         TypeTuple [ a ] ->
             elixirT flatten c a
 
-        TypeTuple (a :: rest as list) ->
-            "{" ++ (map (elixirT flatten c) list
-                        |> String.join ", ")
+        TypeTuple ((a :: rest) as list) ->
+            "{"
+                ++ (map (elixirT flatten c) list
+                        |> String.join ", "
+                   )
                 ++ "}"
 
         TypeVariable "number" ->
@@ -50,14 +61,15 @@ elixirT flatten c t =
         (TypeVariable name) as var ->
             c.aliases
                 |> Dict.values
-                |> find (\(_, a) -> a == var)
+                |> find (\( _, a ) -> a == var)
                 |> (\a ->
                         case a of
-                            Just (mod, _) ->
+                            Just ( mod, _ ) ->
                                 if mod == c.mod then
                                     name
                                 else
                                     mod ++ "." ++ name
+
                             Nothing ->
                                 "any"
                    )
@@ -156,12 +168,15 @@ typespec0 c t =
 typespec : Context -> Type -> String
 typespec c t =
     case lastAndRest (flattenTypeApplication t) of
-        (Just last, args) ->
-            "(" ++
-            (map (elixirTNoFlat c) args
-                |> String.join ", ")
-            ++ ") :: " ++ elixirTNoFlat c last
-        (Nothing, _) ->
+        ( Just last, args ) ->
+            "("
+                ++ (map (elixirTNoFlat c) args
+                        |> String.join ", "
+                   )
+                ++ ") :: "
+                ++ elixirTNoFlat c last
+
+        ( Nothing, _ ) ->
             Debug.crash "impossible"
 
 

@@ -23,18 +23,17 @@ test:
 	elm test
 
 test-std:
-	cd elixir-stuff/elmchemy && mix test
-
+	cd elmchemy-core/elixir-stuff/elmchemy && mix test
 
 compile-std:
-	rm -rf elixir-stuff/elmchemy/lib/Elmchemy/*
-	make compile && ./elmchemy compile src/ElixirStd elixir-stuff/elmchemy/lib
+	rm -rf elmchemy-core/elixir-stuff/elmchemy/lib/Elmchemy/*
+	cd elmchemy-core && ../elmchemy compile src/Elmchemy/ elixir-stuff/elmchemy/lib/Elmchemy/
 
 compile-std-watch:
-	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr make compile-std
+	find elmchemy-core -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr make compile-std
 
 compile-std-tests-watch:
-	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c "make compile-std && cd elixir-stuff/elmchemy/ && sleep 2 && mix test"
+	find elmchemy-core -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c "make compile-std && sleep 2 && make test-std"
 
 tests-watch:
 	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr elm-test

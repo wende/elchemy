@@ -51,7 +51,6 @@ all =
         , test "Other nested list" <|
             \() ->
                 "list = [[1, 2], 3]" |> has "[[1, 2], 3]"
-
         , test "Cons operator" <|
             \() ->
                 "list = 1 :: 2 :: [3]" |> has "[1 | [2 | [3]]]"
@@ -66,7 +65,6 @@ all =
         , test "ffi" <|
             \() ->
                 "a f = flambda 2 f " |> has "fn (x1,x2) -> f.(x1).(x2) end"
-
         , test "function names are snakecased" <|
             \() ->
                 "camelCase = 1" |> has "camel_case()"
@@ -96,7 +94,6 @@ all =
             \() ->
                 "map : (List a) -> (a -> a) -> (List a)"
                     |> has "map(list(any), (any -> any)) :: list(any)"
-
         , test "Typespecs with functions #2" <|
             \() ->
                 "map : (a -> a) -> (b -> b) -> (List a)"
@@ -157,11 +154,12 @@ all =
         -- Doctest
         , test "Doctests" <|
             \() ->
-                "{-| A equals 1. It just does\n" ++
-                "what the hell\n" ++
-                "    a == 1\n" ++
-                "-}\n" ++
-                "a = 1"
-                |> has "iex> a\n"
+                "{-| A equals 1. It just does\n"
+                    ++ "what the hell\n"
+                    ++ "    a == 1\n"
+                    ++ "-}\n"
+                    ++ "a = 1"
+                    |> has "iex> a\n"
+
         -- End
         ]
