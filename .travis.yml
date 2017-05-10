@@ -41,6 +41,7 @@ install:
   - mix local.hex --force
   - mix deps.get
   - cd ../../..
+  - make compile
   - make compile-std
 
 script:
