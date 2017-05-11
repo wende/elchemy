@@ -12,7 +12,7 @@ import Dict
 
 version : String
 version =
-    "0.0.51"
+    "0.0.52"
 
 
 glueStart : String
