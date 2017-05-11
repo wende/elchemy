@@ -37,7 +37,7 @@ case "$1" in
     compile)
         rm -rf ".elmchemy"
         echo "" > .elmchemy_output
-        for f in `find $2 -name "*.elm" | grep -v "elm-stuff/build" | grep -v "#."`
+        for f in `{ find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#." & find $2/../elm-stuff -name "*.elm" | grep -v "elm-stuff/build" ;}`
         do
             echo "----------"
             echo "Compiling $f"
@@ -54,9 +54,7 @@ case "$1" in
                 current_file="${line/\/\///}"
                 current_file="${current_file%%.*}.ex"
                 current_file="${current_file/>>>>$2/$3}"
-                echo "1 ${current_file}"
                 current_file=$(create_file $current_file)
-                echo "2 ${current_file}"
                 else
                 if [ "$current_file" != "" ]; then
                     printf '%s\n' "$line" >> "$current_file"
