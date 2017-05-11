@@ -2,8 +2,8 @@
 
 function create_file {
     local file=$1
-    if [[ ${file} != *"elm-stuff/packages"* ]]; then
-        file=${file/elm-stuff\/packages/deps}
+    if [[ ${file} == *"elm-stuff/packages"* ]]; then
+        file=${file/elm-stuff\/packages/elm-deps}
     fi
     mkdir -p `dirname $file`
     echo "" > $file
@@ -59,7 +59,7 @@ case "$1" in
                 current_file="${current_file/>>>>$2/$3}"
                 echo "Linking: $current_file"
                 current_file=$(create_file $current_file)
-                echo "To: $current_file\n"
+                echo "To: $current_file"
                 else
                 if [ "$current_file" != "" ]; then
                     printf '%s\n' "$line" >> "$current_file"
