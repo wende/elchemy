@@ -8,6 +8,7 @@ if git diff-index --quiet HEAD --; then
     SEMVER='[0-9][0-9]*\.[0-9][0-9]*\.[0-9]*'
     VER=`npm ls | grep -o $SEMVER`
     sed -i "" "s/$SEMVER/$VER/g" src/Compiler.elm
+    make compile
     make release
     git commit -am "Release $VER"
     git tag $VER
