@@ -45,3 +45,6 @@ install-sysconf:
 	git clone "https://github.com/obmarg/libsysconfcpus.git"
 	cd libsysconfcpus && ./configure && make && make install
 	cd .. && rm -rf libsysconfcpus
+
+bump-patch:
+	npm ls | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9]*' | xargs -I '{}' sed -i  "s/[0-9][0-9]*\.[0-9][0-9]*\.[0-9]*/{}/g" src/Compiler.elm
