@@ -108,10 +108,10 @@ Definitely. Yes. Please do.
 You're a nosy one, aren't you?
 Elmchemy represents all type constructors as snake cased atoms, and all type applications as tuples.
 Which means that `MyType 42 "Fourty two" Error` in Elm equals to `{:my_type, 42, "Fourty Two", :error}` in Elixir.
-What means there's an additional premise to have in mind that even though in Elm `MyType 1 == (MyType, 1)` are two completely different things, in Elmchemy they're not. They're exactly the same. Which is `{:my_type, 1}`
+What means there's an additional premise to have in mind that even though in Elm `MyType 1 == (MyType, 1)` are two completely different things, in Elmchemy they're not. They're exactly the same. Which is `{:my_type, 1}`. You shouldn't be using that in a code though since it's considered bad design
 
 ## Can I use already existing Elm libraries with Elmchemy.
-Probably not. Unless you know a way to override standard Elm modules with our implementation
+Not yet. You will be able to use Elm libraries that don't have native modules or ports
 
 ## Can I use already existing Elixir libraries with Elmchemy
 Yes. You can do an `ffi` call to any function in any module. Whether it's Elixir module, Erlang module, or even a macro you can include it in your code. Just remember to wrap them in as small chunks as possible to not sacrifice any type safety.
