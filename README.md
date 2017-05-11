@@ -20,22 +20,15 @@ https://wende.github.io/elmchemy/stable/
 Install `elmchemy` globally with
 
 ```shell
-mix archive.install https://github.com/wende/elmchemy/releases/download/0.0.32/elmchemy-0.1.3.ez
 npm install -g elmchemy
 ```
 
-Then add it to your project by adding these two lines to your `mix.exs` file:
-
-```elixir
-def project do
-  [app: :my_app,
-   ...
-   compilers: [:elmchemy, :yecc, :leex, :erlang, :elixir, :app],
-   elmchemy_path: "elm",
-   ...
-   ]
-end
+Then in root of your project do:
+```shell
+elmchemy init
 ```
+
+And follow the instructions
 
 `elmchemy` will find all `*.elm` files specified in `elmchemy_path` and compile it into corresponding `*.ex` files in `lib` directory.
 
