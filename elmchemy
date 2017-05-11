@@ -36,7 +36,7 @@ case "$1" in
     compile)
         rm -rf ".elmchemy"
         echo "" > .elmchemy_output
-        for f in `{ find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#." ; find $2../elm-stuff/packages -name "*.elm" ;}`
+        for f in `{ find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#." ; find $2/../elm-stuff/packages -name "*.elm" ;}`
         do
             echo "----------"
             echo "Compiling $f"
