@@ -20,7 +20,7 @@ https://wende.github.io/elmchemy/stable/
 Install `elmchemy` globally with
 
 ```shell
-mix archive.install https://github.com/wende/elmchemy/releases/download/v0.0.1-mix-compiler/elmchemy-0.1.2.ez
+mix archive.install https://github.com/wende/elmchemy/releases/download/0.0.32/elmchemy-0.1.3.ez
 npm install -g elmchemy
 ```
 
