@@ -4,7 +4,7 @@ defmodule ElmchemyTest do
   doctest Hello
 
   test "Hello" do
-    assert Hello.hello() == "world"
+    assert Hello.hello() == "world!"
   end
 
 end

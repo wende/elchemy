@@ -241,8 +241,6 @@ maybeDoctest c line =
         case Ast.parseExpression Ast.BinOp.operators (String.trim line) of
             Ok ( _, _, BinOp (Variable [ "==" ]) l r ) ->
                 ind (c.indent + 2)
-                    ++ "iex> use Elmchemy "
-                    ++ ind (c.indent + 2)
                     ++ "iex> import "
                     ++ c.mod
                     ++ ind (c.indent + 2)
