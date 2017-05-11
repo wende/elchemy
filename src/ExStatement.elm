@@ -250,10 +250,8 @@ maybeDoctest c line =
                     ++ Helpers.escape (ExExpression.elixirE c l)
                     ++ ind (c.indent + 2)
                     ++ Helpers.escape (ExExpression.elixirE c r)
-
             _ ->
                 line
-        --Debug.crash "Error parsing doctests"
     else
         line
 
