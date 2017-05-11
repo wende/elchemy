@@ -1,7 +1,7 @@
 module Hello exposing (..)
 
 
-{-| Prints "wrold!"
+{-| Prints "world!"
 
     hello == "world!"
 -}
