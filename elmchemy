@@ -14,6 +14,7 @@ case "$1" in
         then
             mix archive.install https://github.com/wende/elmchemy/releases/download/0.0.32/elmchemy-0.1.3.ez
             mkdir -p elm
+            cp $SOURCE_DIR/templates/elm-package.json .
             printf "module Hello exposing (hello)\nimport Elmchemy exposing (..)\n\nhello : String\nhello = \"world\"\n" > elm/Hello.elm
             printf  "Elmchemy initialised. Make sure to add:\n\n\tcompilers: [:elmchemy, :yecc, :leex, :erlang, :elixir, :app],\n\telmchemy_path: \"elm\",\n\nto your mix.exs file\n"
         else
