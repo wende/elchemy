@@ -1,5 +1,17 @@
 #!/bin/bash
 
+function create_file {
+    local file=$1
+    if grep -q $file elm-stuff/packages; then
+        file=`sed sed "s/elm-stuff\/packages/deps/"`
+    fi
+    echo "Generating $1"
+    mkdir -p `dirname $1`
+    rm $1
+    touch $1
+    echo "$file"
+}
+
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
     DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
@@ -26,7 +38,7 @@ case "$1" in
     compile)
         rm -rf ".elmchemy"
         echo "" > .elmchemy_output
-        for f in `find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#."`
+        for f in `find $2 -name "*.elm" | grep -v "elm-stuff/build" | grep -v "#."`
         do
             echo "----------"
             echo "Compiling $f"
@@ -43,11 +55,8 @@ case "$1" in
                 current_file="${line/\/\///}"
                 current_file="${current_file%%.*}.ex"
                 current_file="${current_file/>>>>$2/$3}"
-                echo "Generating $current_file"
-                mkdir -p `dirname $current_file`
-                rm $current_file
-                touch $current_file
-            else
+                current_file = $(create_file $current_file)
+                else
                 if [ "$current_file" != "" ]; then
                     printf '%s\n' "$line" >> "$current_file"
                 fi
