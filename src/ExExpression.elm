@@ -31,7 +31,8 @@ elixirE c e =
         Access ((Variable modAndRest) as left) right ->
             case lastAndRest modAndRest of
                 ( last, rest ) ->
-                    String.join "." modAndRest
+                    (map maybeReplaceStd modAndRest
+                    |> String.join ".")
                         ++ "."
                         ++ String.join "." (map toSnakeCase right)
 

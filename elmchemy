@@ -9,7 +9,18 @@ done
 SOURCE_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 case "$1" in
-   compile)
+    init)
+        if [ -a ./mix.exs ]
+        then
+            mix archive.install https://github.com/wende/elmchemy/releases/download/v0.0.1-mix-compiler/elmchemy-0.1.2.ez
+            mkdir -p elm
+            printf "module Hello exposing (hello)\nimport Elmchemy exposing (..)\n\nhello : String\nhello = \"world\"\n" > elm/Hello.elm
+            printf  "Elmchemy initialised. Make sure to add:\n\n\tcompilers: [:elmchemy, :yecc, :leex, :erlang, :elixir, :app],\n\telmchemy_path: \"elm\",\n\nto your mix.exs file\n"
+        else
+            printf  "ERROR: No elixir project found. Make sure to run init in a project"
+        fi
+    ;;
+    compile)
         rm -rf ".elmchemy"
         echo "" > .elmchemy_output
         for f in `find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#."`

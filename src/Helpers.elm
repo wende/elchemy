@@ -3,7 +3,6 @@ module Helpers exposing (..)
 import Char
 import Tuple exposing (..)
 import List exposing (..)
-import ExContext exposing (Context)
 import Regex exposing (..)
 import Dict exposing (Dict)
 
@@ -12,6 +11,22 @@ type MaybeUpper
     = Upper String
     | Lower String
 
+isStdModule : String -> Bool
+isStdModule a =
+    List.member a
+        [ "Basics"
+        , "List"
+        , "String"
+        , "Maybe"
+        , "Char"
+        , "Result"
+        , "Tuple"
+        ]
+
+maybeReplaceStd : String -> String
+maybeReplaceStd s =
+    if isStdModule s then "X" ++ s
+    else s
 
 notImplemented : String -> a -> String
 notImplemented feature value =
