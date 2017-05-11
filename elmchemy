@@ -55,7 +55,7 @@ case "$1" in
                 current_file="${line/\/\///}"
                 current_file="${current_file%%.*}.ex"
                 current_file="${current_file/>>>>$2/$3}"
-                current_file = $(create_file $current_file)
+                current_file=$(create_file $current_file)
                 else
                 if [ "$current_file" != "" ]; then
                     printf '%s\n' "$line" >> "$current_file"
