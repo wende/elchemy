@@ -57,7 +57,7 @@ case "$1" in
                 current_file="${line/\/\///}"
                 current_file="${current_file%%.elm}.ex"
                 current_file="${current_file/>>>>$2/$3}"
-                echo "$current_file"
+                echo "Linking: $current_file"
                 current_file=$(create_file $current_file)
                 else
                 if [ "$current_file" != "" ]; then
