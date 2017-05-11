@@ -14411,31 +14411,25 @@ var _user$project$ExStatement$maybeDoctest = F2(
 					_user$project$Helpers$ind(c.indent + 2),
 					A2(
 						_elm_lang$core$Basics_ops['++'],
-						'iex> use Elmchemy ',
+						'iex> import ',
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							_user$project$Helpers$ind(c.indent + 2),
+							c.mod,
 							A2(
 								_elm_lang$core$Basics_ops['++'],
-								'iex> import ',
+								_user$project$Helpers$ind(c.indent + 2),
 								A2(
 									_elm_lang$core$Basics_ops['++'],
-									c.mod,
+									'iex> ',
 									A2(
 										_elm_lang$core$Basics_ops['++'],
-										_user$project$Helpers$ind(c.indent + 2),
+										_user$project$Helpers$escape(
+											A2(_user$project$ExExpression$elixirE, c, _p0._0._2._1)),
 										A2(
 											_elm_lang$core$Basics_ops['++'],
-											'iex> ',
-											A2(
-												_elm_lang$core$Basics_ops['++'],
-												_user$project$Helpers$escape(
-													A2(_user$project$ExExpression$elixirE, c, _p0._0._2._1)),
-												A2(
-													_elm_lang$core$Basics_ops['++'],
-													_user$project$Helpers$ind(c.indent + 2),
-													_user$project$Helpers$escape(
-														A2(_user$project$ExExpression$elixirE, c, _p0._0._2._2)))))))))));
+											_user$project$Helpers$ind(c.indent + 2),
+											_user$project$Helpers$escape(
+												A2(_user$project$ExExpression$elixirE, c, _p0._0._2._2)))))))));
 			} else {
 				return line;
 			}
@@ -15036,7 +15030,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elmchemy', '\n'));
-var _user$project$Compiler$version = '0.0.52';
+var _user$project$Compiler$version = '0.0.53';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		return A2(
