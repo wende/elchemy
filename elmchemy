@@ -38,6 +38,9 @@ case "$1" in
         echo "" > .elmchemy_output
         for f in `{ find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#." ; find $2/../elm-stuff/packages -name "*.elm" ;}`
         do
+            if echo $f | grep "elm-lang"; then
+                continue
+            fi
             echo "----------"
             echo "Compiling $f"
             echo ">>>>$f" >> .elmchemy_output
