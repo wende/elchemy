@@ -2,13 +2,12 @@
 
 function create_file {
     local file=$1
-    if grep -q $file elm-stuff/packages; then
+    if echo $file | grep elm-stuff/packages; then
         file=`sed sed "s/elm-stuff\/packages/deps/"`
     fi
-    echo "Generating $1"
-    mkdir -p `dirname $1`
-    rm $1
-    touch $1
+    mkdir -p `dirname $file`
+    rm $file
+    touch $file
     echo "$file"
 }
 
@@ -55,7 +54,9 @@ case "$1" in
                 current_file="${line/\/\///}"
                 current_file="${current_file%%.*}.ex"
                 current_file="${current_file/>>>>$2/$3}"
+                echo "1 ${current_file}"
                 current_file=$(create_file $current_file)
+                echo "2 ${current_file}"
                 else
                 if [ "$current_file" != "" ]; then
                     printf '%s\n' "$line" >> "$current_file"
