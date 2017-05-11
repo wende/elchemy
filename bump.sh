@@ -3,6 +3,7 @@
     exit 0
 fi
 if git diff-index --quiet HEAD --; then
+    git pull origin master
     npm version $1
     SEMVER='[0-9][0-9]*\.[0-9][0-9]*\.[0-9]*'
     VER=`npm ls | grep -o $SEMVER`
