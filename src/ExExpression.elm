@@ -28,13 +28,10 @@ elixirE c e =
                 ++ "}"
 
         -- Primitive operators
-        Access ((Variable modAndRest) as left) right ->
-            case lastAndRest modAndRest of
-                ( last, rest ) ->
-                    (map maybeReplaceStd modAndRest
-                    |> String.join ".")
-                        ++ "."
-                        ++ String.join "." (map toSnakeCase right)
+        Access ((Variable modules) as left) right ->
+            modulePath modules
+            ++ "."
+            ++ String.join "." (map toSnakeCase right)
 
         Access left right ->
             elixirE c left

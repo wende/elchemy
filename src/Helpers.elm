@@ -11,23 +11,6 @@ type MaybeUpper
     = Upper String
     | Lower String
 
-isStdModule : String -> Bool
-isStdModule a =
-    List.member a
-        [ "Basics"
-        , "List"
-        , "String"
-        , "Maybe"
-        , "Char"
-        , "Result"
-        , "Tuple"
-        ]
-
-maybeReplaceStd : String -> String
-maybeReplaceStd s =
-    if isStdModule s then "X" ++ s
-    else s
-
 notImplemented : String -> a -> String
 notImplemented feature value =
     " ## ERROR: No "
@@ -214,3 +197,25 @@ unescape s =
 escape : String -> String
 escape s =
     Regex.replace All (regex "\\\\n") (always "\\\\n") s
+
+modulePath : List String -> String
+modulePath list =
+    map maybeReplaceStd list |> String.join "."
+
+
+isStdModule : String -> Bool
+isStdModule a =
+    List.member a
+        [ "Basics"
+        , "List"
+        , "String"
+        , "Maybe"
+        , "Char"
+        , "Result"
+        , "Tuple"
+        ]
+
+maybeReplaceStd : String -> String
+maybeReplaceStd s =
+    if isStdModule s then "X" ++ s
+    else s

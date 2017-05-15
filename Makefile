@@ -33,7 +33,7 @@ compile-std-watch:
 	find elmchemy-core -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr make compile-std
 
 compile-std-tests-watch:
-	find elmchemy-core -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c "make compile-std && sleep 2 && make test-std"
+	find elmchemy-core -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c "make compile && make compile-std && make test-std"
 
 tests-watch:
 	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr elm-test

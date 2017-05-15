@@ -168,13 +168,13 @@ elixirS c s =
             (,) c <|
                 (ind c.indent)
                     ++ "alias "
-                    ++ String.join "." path
+                    ++ modulePath path
 
         ImportStatement path (Just asName) Nothing ->
             (,) c <|
                 (ind c.indent)
                     ++ "alias "
-                    ++ (String.join "." path)
+                    ++ modulePath path
                     ++ ", as: "
                     ++ asName
 
@@ -182,7 +182,7 @@ elixirS c s =
             (,) c <|
                 (ind c.indent)
                     ++ "import "
-                    ++ String.join "." path
+                    ++ modulePath path
                     ++ ", only: ["
                     ++ (map subsetExport exports |> foldl (++) [] |> String.join ",")
                     ++ "]"
@@ -191,7 +191,7 @@ elixirS c s =
             (,) c <|
                 (ind c.indent)
                     ++ "import "
-                    ++ String.join "." path
+                    ++ modulePath path
 
         s ->
             (,) c <|
