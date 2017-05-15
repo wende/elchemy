@@ -117,6 +117,17 @@ all =
         , test "Types" <|
             \() ->
                 "type AType = BType | CType" |> has "@type a_type :: :b_type | :c_type"
+        , test "TypeRecord" <|
+            \() ->
+                "type alias A = {a : Int, b: Int, c: Int} \n"
+                ++ "a = A 1 2 3"
+        |> has "%{a: arg1, b: arg2, c: arg3}"
+        , test "TypeTuple" <|
+            \() ->
+                "type alias A = (Int, Int, Int) \n"
+                ++ "a = A 1 2 "
+        |> has "{arg1, arg2, arg3}"
+
 
         -- Records
         , test "Records work" <|
