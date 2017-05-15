@@ -36,17 +36,20 @@ case "$1" in
     compile)
         rm -rf ".elmchemy"
         echo "" > .elmchemy_output
+        elm-package install -y
         for f in `{ find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#." ; find $2/../elm-stuff/packages -name "*.elm" ;}`
         do
-            if echo $f | grep "elm-lang"; then
+            if [[ ${f} == *"elm-lang"* ]]; then
                 continue
             fi
             echo "----------"
             echo "Compiling $f"
             echo ">>>>$f" >> .elmchemy_output
-            elm-package install -y
-            elm-make $f --output .elmchemy_output_tmp.js || { echo 'Compilation failed' ; exit 1; }
-            rm .elmchemy_output_tmp.js
+            # We don't need to typecheck deps again
+            if [[ ${f} != *"elm-stuff"* ]]; then
+                elm-make $f --output .elmchemy_output_tmp.js || { echo 'Compilation failed' ; exit 1; }
+                rm .elmchemy_output_tmp.js
+            fi
             cat $f >> .elmchemy_output
         done
         echo "-- Linking files --"
