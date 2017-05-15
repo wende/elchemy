@@ -21,7 +21,7 @@ number | number | number | yes
 none | comparable | comparable = term | 1/2
 0 arity fun | same | same | yes 
 \> 0 arity fun | curried fun | curried & multi arity funs with one definition | yes
-@spec | type definition | type definition compiles to typspec | yes but buggy #81
+@spec | function type definition | function type definition compiles to typspec | yes
 tests | tests | - - | planned 
 doctest | no | doctest | yes, but only oneliners for now
 @doc | {-\| -} | {-\| -} | yes 
