@@ -1,6 +1,7 @@
 module ExType exposing (..)
 
 import Ast.Statement exposing (..)
+import Ast.Expression exposing (..)
 import Helpers exposing (..)
 import List exposing (..)
 import ExContext exposing (Context)
@@ -195,6 +196,49 @@ typealias c t =
         other ->
             notImplemented "typealias" other
 
+typealiasConstructor : (String, Type) -> Expression
+typealiasConstructor modAndAlias =
+    case modAndAlias of
+        ( _, TypeConstructor [ name ] _ ) ->
+            Variable [ name ]
+        ( _, TypeRecord kvs ) ->
+            let
+                args = List.length kvs
+                     |> List.range 1
+                     |> List.map (toString >> (++) "arg")
+                varargs = kvs
+                        |> List.map2 (flip (,)) args
+                        |> List.map (Tuple.mapFirst Tuple.first)
+                        |> List.map
+                           (Tuple.mapSecond (singleton >> Variable))
+
+            in
+                Lambda args (Record varargs)
+
+        ( _, TypeTuple kvs ) ->
+            let
+                args = List.length kvs
+                     |> List.range 1
+                     |> List.map (toString >> (++) "arg")
+            in
+                Lambda args (constructTuple args)
+
+        _ ->
+            Debug.crash "Only simple type aliases. Sorry"
+
+constructTuple : List String -> Expression
+constructTuple args =
+    case args of
+        [] -> Variable ["()"]
+        first :: rest ->
+            rest
+            |> foldl (\a acc ->
+                          BinOp
+                             (Variable [","])
+                             (acc)
+                             (Variable [a])
+                     )
+               (Variable [first])
 
 aliasOr : Context -> String -> String -> String
 aliasOr c name default =

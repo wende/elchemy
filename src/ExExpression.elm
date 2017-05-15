@@ -6,7 +6,7 @@ import Ast.Statement exposing (..)
 import ExContext exposing (Context, indent, deindent)
 import List exposing (..)
 import ExAlias
-
+import ExType
 
 elixirE : Context -> Expression -> String
 elixirE c e =
@@ -16,7 +16,7 @@ elixirE c e =
 
         -- Primitive types
         (Application name arg) as application ->
-            tupleOrFunction c application
+                  (tupleOrFunction c application)
 
         RecordUpdate name keyValuePairs ->
             "%{"
@@ -230,7 +230,6 @@ isMacro e =
         other ->
             False
 
-
 flattenApplication : Expression -> List Expression
 flattenApplication application =
     case application of
@@ -285,11 +284,25 @@ tupleOrFunction c a =
         (Variable list) :: rest ->
             case lastAndRest list of
                 ( Just last, _ ) ->
-                    "{"
+                    ExAlias.maybeAlias c.aliases last
+                    |> Maybe.map
+                       (ExType.typealiasConstructor
+                            >> elixirE c
+                            >> (++) "("
+                            >> flip (++)
+                                (rest
+                                |> map (elixirE c)
+                                |> String.join ").("
+                                |> (++) ").("
+                                |> flip (++) ")"
+                                )
+                       )
+                    |> Maybe.withDefault
+                       ("{"
                         ++ elixirE c (Variable [ last ])
                         ++ ", "
                         ++ (map (elixirE c) rest |> String.join ", ")
-                        ++ "}"
+                        ++ "}")
 
                 _ ->
                     Debug.crash "Won't ever happen"
@@ -536,15 +549,8 @@ elixirVariable c var =
             if isCapitilzed name then
                 ExAlias.maybeAlias c.aliases name
                     |> Maybe.map
-                        (\a ->
-                            case a of
-                                ( _, TypeConstructor [ name ] _ ) ->
-                                    elixirE c (Variable [ name ])
-
-                                _ ->
-                                    Debug.crash
-                                        "Only simple type aliases. Sorry"
-                        )
+                       (ExType.typealiasConstructor
+                            >> elixirE c)
                     |> Maybe.withDefault (atomize name)
             else if isOperator name then
                 -- We need a curried version, so kernel won't work
