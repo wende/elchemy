@@ -591,6 +591,9 @@ elixirBinop c op l r =
         "<<" ->
             elixirBinop c ">>" r l
 
+        "<|" ->
+            elixirBinop c "|>" r l
+
         "|>" ->
             elixirE c l
                 ++ (flattenPipes r
