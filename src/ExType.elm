@@ -221,24 +221,10 @@ typealiasConstructor modAndAlias =
                      |> List.range 1
                      |> List.map (toString >> (++) "arg")
             in
-                Lambda args (constructTuple args)
+                Lambda args (Tuple (map (singleton >> Variable) args))
 
         _ ->
             Debug.crash "Only simple type aliases. Sorry"
-
-constructTuple : List String -> Expression
-constructTuple args =
-    case args of
-        [] -> Variable ["()"]
-        first :: rest ->
-            rest
-            |> foldl (\a acc ->
-                          BinOp
-                             (Variable [","])
-                             (acc)
-                             (Variable [a])
-                     )
-               (Variable [first])
 
 aliasOr : Context -> String -> String -> String
 aliasOr c name default =
