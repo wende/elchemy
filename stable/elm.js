@@ -7617,7 +7617,10 @@ var _Bogdanp$elm_ast$Ast_Expression$lambda = function (ops) {
 						_elm_community$parser_combinators$Combine_ops['*>'],
 						_Bogdanp$elm_ast$Ast_Helpers$symbol('\\'),
 						_elm_community$parser_combinators$Combine$many(
-							A2(_Bogdanp$elm_ast$Ast_Helpers$between_, _Bogdanp$elm_ast$Ast_Helpers$spaces, _Bogdanp$elm_ast$Ast_Helpers$loName)))),
+							A2(
+								_Bogdanp$elm_ast$Ast_Helpers$between_,
+								_Bogdanp$elm_ast$Ast_Helpers$spaces,
+								_Bogdanp$elm_ast$Ast_Expression$term(ops))))),
 				A2(
 					_elm_community$parser_combinators$Combine_ops['*>'],
 					_Bogdanp$elm_ast$Ast_Helpers$symbol('->'),
@@ -7631,16 +7634,15 @@ var _Bogdanp$elm_ast$Ast_Expression$letExpression = function (ops) {
 			return A2(
 				_elm_community$parser_combinators$Combine_ops['<*>'],
 				A2(
-					_elm_community$parser_combinators$Combine_ops['<*>'],
+					_elm_community$parser_combinators$Combine_ops['<$>'],
+					F2(
+						function (v0, v1) {
+							return {ctor: '_Tuple2', _0: v0, _1: v1};
+						}),
 					A2(
-						_elm_community$parser_combinators$Combine_ops['<$>'],
-						F3(
-							function (v0, v1, v2) {
-								return {ctor: '_Tuple3', _0: v0, _1: v1, _2: v2};
-							}),
-						A2(_Bogdanp$elm_ast$Ast_Helpers$between_, _elm_community$parser_combinators$Combine$whitespace, _Bogdanp$elm_ast$Ast_Helpers$loName)),
-					_elm_community$parser_combinators$Combine$many(
-						A2(_Bogdanp$elm_ast$Ast_Helpers$between_, _elm_community$parser_combinators$Combine$whitespace, _Bogdanp$elm_ast$Ast_Helpers$loName))),
+						_Bogdanp$elm_ast$Ast_Helpers$between_,
+						_elm_community$parser_combinators$Combine$whitespace,
+						_Bogdanp$elm_ast$Ast_Expression$expression(ops))),
 				A2(
 					_elm_community$parser_combinators$Combine_ops['*>'],
 					_Bogdanp$elm_ast$Ast_Helpers$symbol('='),
@@ -12401,25 +12403,25 @@ var _user$project$Helpers$operators = A3(
 															_0: {ctor: '_Tuple2', _0: '>>', _1: '>>>'},
 															_1: {
 																ctor: '::',
-																_0: {ctor: '_Tuple2', _0: '<|', _1: '<<<'},
+																_0: {ctor: '_Tuple2', _0: '<|', _1: ''},
 																_1: {
 																	ctor: '::',
-																	_0: {ctor: '_Tuple2', _0: '%', _1: 'rem'},
+																	_0: {ctor: '_Tuple2', _0: '<<', _1: ''},
 																	_1: {
 																		ctor: '::',
-																		_0: {ctor: '_Tuple2', _0: '//', _1: ''},
+																		_0: {ctor: '_Tuple2', _0: '|>', _1: '|>'},
 																		_1: {
 																			ctor: '::',
-																			_0: {ctor: '_Tuple2', _0: 'rem', _1: ''},
+																			_0: {ctor: '_Tuple2', _0: '%', _1: 'rem'},
 																			_1: {
 																				ctor: '::',
-																				_0: {ctor: '_Tuple2', _0: '^', _1: ''},
+																				_0: {ctor: '_Tuple2', _0: '//', _1: ''},
 																				_1: {
 																					ctor: '::',
-																					_0: {ctor: '_Tuple2', _0: '<<', _1: ''},
+																					_0: {ctor: '_Tuple2', _0: 'rem', _1: ''},
 																					_1: {
 																						ctor: '::',
-																						_0: {ctor: '_Tuple2', _0: '|>', _1: '|>'},
+																						_0: {ctor: '_Tuple2', _0: '^', _1: ''},
 																						_1: {
 																							ctor: '::',
 																							_0: {ctor: '_Tuple2', _0: '::', _1: 'cons'},
@@ -12753,46 +12755,97 @@ var _user$project$ExAlias$getAliases = F2(
 			list);
 	});
 
+var _user$project$ExType$constructApplication = function (list) {
+	var _p0 = list;
+	if (_p0.ctor === '[]') {
+		return _elm_lang$core$Native_Utils.crashCase(
+			'ExType',
+			{
+				start: {line: 231, column: 5},
+				end: {line: 237, column: 22}
+			},
+			_p0)('Wrong application');
+	} else {
+		if (_p0._1.ctor === '[]') {
+			return {
+				ctor: '::',
+				_0: _Bogdanp$elm_ast$Ast_Expression$Variable(
+					{
+						ctor: '::',
+						_0: _p0._0,
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			};
+		} else {
+			return {
+				ctor: '::',
+				_0: A3(
+					_elm_lang$core$List$foldl,
+					F2(
+						function (a, acc) {
+							return A2(
+								_Bogdanp$elm_ast$Ast_Expression$Application,
+								acc,
+								_Bogdanp$elm_ast$Ast_Expression$Variable(
+									{
+										ctor: '::',
+										_0: a,
+										_1: {ctor: '[]'}
+									}));
+						}),
+					_Bogdanp$elm_ast$Ast_Expression$Variable(
+						{
+							ctor: '::',
+							_0: _p0._0,
+							_1: {ctor: '[]'}
+						}),
+					_p0._1),
+				_1: {ctor: '[]'}
+			};
+		}
+	}
+};
 var _user$project$ExType$typealiasConstructor = function (modAndAlias) {
-	var _p0 = modAndAlias;
-	_v0_3:
+	var _p2 = modAndAlias;
+	_v1_3:
 	do {
-		if (_p0.ctor === '_Tuple2') {
-			switch (_p0._1.ctor) {
+		if (_p2.ctor === '_Tuple2') {
+			switch (_p2._1.ctor) {
 				case 'TypeConstructor':
-					if ((_p0._1._0.ctor === '::') && (_p0._1._0._1.ctor === '[]')) {
+					if ((_p2._1._0.ctor === '::') && (_p2._1._0._1.ctor === '[]')) {
 						return _Bogdanp$elm_ast$Ast_Expression$Variable(
 							{
 								ctor: '::',
-								_0: _p0._1._0._0,
+								_0: _p2._1._0._0,
 								_1: {ctor: '[]'}
 							});
 					} else {
-						break _v0_3;
+						break _v1_3;
 					}
 				case 'TypeRecord':
-					var _p3 = _p0._1._0;
+					var _p5 = _p2._1._0;
 					var args = A2(
 						_elm_lang$core$List$map,
-						function (_p1) {
+						function (_p3) {
 							return A2(
 								F2(
 									function (x, y) {
 										return A2(_elm_lang$core$Basics_ops['++'], x, y);
 									}),
 								'arg',
-								_elm_lang$core$Basics$toString(_p1));
+								_elm_lang$core$Basics$toString(_p3));
 						},
 						A2(
 							_elm_lang$core$List$range,
 							1,
-							_elm_lang$core$List$length(_p3)));
+							_elm_lang$core$List$length(_p5)));
 					var varargs = A2(
 						_elm_lang$core$List$map,
 						_elm_lang$core$Tuple$mapSecond(
-							function (_p2) {
+							function (_p4) {
 								return _Bogdanp$elm_ast$Ast_Expression$Variable(
-									_elm_lang$core$List$singleton(_p2));
+									_elm_lang$core$List$singleton(_p4));
 							}),
 						A2(
 							_elm_lang$core$List$map,
@@ -12805,43 +12858,43 @@ var _user$project$ExType$typealiasConstructor = function (modAndAlias) {
 											return {ctor: '_Tuple2', _0: v0, _1: v1};
 										})),
 								args,
-								_p3)));
+								_p5)));
 					return A2(
 						_Bogdanp$elm_ast$Ast_Expression$Lambda,
-						args,
+						_user$project$ExType$constructApplication(args),
 						_Bogdanp$elm_ast$Ast_Expression$Record(varargs));
 				case 'TypeTuple':
 					var args = A2(
 						_elm_lang$core$List$map,
-						function (_p4) {
+						function (_p6) {
 							return A2(
 								F2(
 									function (x, y) {
 										return A2(_elm_lang$core$Basics_ops['++'], x, y);
 									}),
 								'arg',
-								_elm_lang$core$Basics$toString(_p4));
+								_elm_lang$core$Basics$toString(_p6));
 						},
 						A2(
 							_elm_lang$core$List$range,
 							1,
-							_elm_lang$core$List$length(_p0._1._0)));
+							_elm_lang$core$List$length(_p2._1._0)));
 					return A2(
 						_Bogdanp$elm_ast$Ast_Expression$Lambda,
-						args,
+						_user$project$ExType$constructApplication(args),
 						_Bogdanp$elm_ast$Ast_Expression$Tuple(
 							A2(
 								_elm_lang$core$List$map,
-								function (_p5) {
+								function (_p7) {
 									return _Bogdanp$elm_ast$Ast_Expression$Variable(
-										_elm_lang$core$List$singleton(_p5));
+										_elm_lang$core$List$singleton(_p7));
 								},
 								args)));
 				default:
-					break _v0_3;
+					break _v1_3;
 			}
 		} else {
-			break _v0_3;
+			break _v1_3;
 		}
 	} while(false);
 	return _elm_lang$core$Native_Utils.crashCase(
@@ -12850,7 +12903,7 @@ var _user$project$ExType$typealiasConstructor = function (modAndAlias) {
 			start: {line: 201, column: 5},
 			end: {line: 227, column: 58}
 		},
-		_p0)('Only simple type aliases. Sorry');
+		_p2)('Only simple type aliases. Sorry');
 };
 var _user$project$ExType$find = F2(
 	function (f, list) {
@@ -12864,17 +12917,17 @@ var _user$project$ExType$find = F2(
 			list);
 	});
 var _user$project$ExType$flattenTypeApplication = function (application) {
-	var _p7 = application;
-	if (_p7.ctor === 'TypeApplication') {
+	var _p9 = application;
+	if (_p9.ctor === 'TypeApplication') {
 		return {
 			ctor: '::',
-			_0: _p7._0,
-			_1: _user$project$ExType$flattenTypeApplication(_p7._1)
+			_0: _p9._0,
+			_1: _user$project$ExType$flattenTypeApplication(_p9._1)
 		};
 	} else {
 		return {
 			ctor: '::',
-			_0: _p7,
+			_0: _p9,
 			_1: {ctor: '[]'}
 		};
 	}
@@ -12883,23 +12936,23 @@ var _user$project$ExType$elixirT = F3(
 	function (flatten, c, t) {
 		elixirT:
 		while (true) {
-			var _p8 = t;
-			_v2_20:
+			var _p10 = t;
+			_v3_20:
 			do {
-				_v2_17:
+				_v3_17:
 				do {
-					switch (_p8.ctor) {
+					switch (_p10.ctor) {
 						case 'TypeTuple':
-							if (_p8._0.ctor === '[]') {
+							if (_p10._0.ctor === '[]') {
 								return 'no_return';
 							} else {
-								if (_p8._0._1.ctor === '[]') {
-									var _v3 = flatten,
-										_v4 = c,
-										_v5 = _p8._0._0;
-									flatten = _v3;
-									c = _v4;
-									t = _v5;
+								if (_p10._0._1.ctor === '[]') {
+									var _v4 = flatten,
+										_v5 = c,
+										_v6 = _p10._0._0;
+									flatten = _v4;
+									c = _v5;
+									t = _v6;
 									continue elixirT;
 								} else {
 									return A2(
@@ -12913,69 +12966,69 @@ var _user$project$ExType$elixirT = F3(
 												A2(
 													_elm_lang$core$List$map,
 													A2(_user$project$ExType$elixirT, flatten, c),
-													_p8._0)),
+													_p10._0)),
 											'}'));
 								}
 							}
 						case 'TypeVariable':
-							if (_p8._0 === 'number') {
+							if (_p10._0 === 'number') {
 								return 'number';
 							} else {
-								var _p13 = _p8._0;
+								var _p15 = _p10._0;
 								return function (a) {
-									var _p9 = a;
-									if (_p9.ctor === 'Just') {
-										var _p10 = _p9._0._0;
-										return _elm_lang$core$Native_Utils.eq(_p10, c.mod) ? _p13 : A2(
+									var _p11 = a;
+									if (_p11.ctor === 'Just') {
+										var _p12 = _p11._0._0;
+										return _elm_lang$core$Native_Utils.eq(_p12, c.mod) ? _p15 : A2(
 											_elm_lang$core$Basics_ops['++'],
-											_p10,
-											A2(_elm_lang$core$Basics_ops['++'], '.', _p13));
+											_p12,
+											A2(_elm_lang$core$Basics_ops['++'], '.', _p15));
 									} else {
 										return 'any';
 									}
 								}(
 									A2(
 										_user$project$ExType$find,
-										function (_p11) {
-											var _p12 = _p11;
-											return _elm_lang$core$Native_Utils.eq(_p12._1, _p8);
+										function (_p13) {
+											var _p14 = _p13;
+											return _elm_lang$core$Native_Utils.eq(_p14._1, _p10);
 										},
 										_elm_lang$core$Dict$values(c.aliases)));
 							}
 						case 'TypeConstructor':
-							if ((_p8._0.ctor === '::') && (_p8._0._1.ctor === '[]')) {
-								if (_p8._1.ctor === '::') {
-									if (_p8._1._1.ctor === '[]') {
-										switch (_p8._0._0) {
+							if ((_p10._0.ctor === '::') && (_p10._0._1.ctor === '[]')) {
+								if (_p10._1.ctor === '::') {
+									if (_p10._1._1.ctor === '[]') {
+										switch (_p10._0._0) {
 											case 'List':
 												return A2(
 													_elm_lang$core$Basics_ops['++'],
 													'list(',
 													A2(
 														_elm_lang$core$Basics_ops['++'],
-														A3(_user$project$ExType$elixirT, flatten, c, _p8._1._0),
+														A3(_user$project$ExType$elixirT, flatten, c, _p10._1._0),
 														')'));
 											case 'Maybe':
 												return A2(
 													_elm_lang$core$Basics_ops['++'],
-													A3(_user$project$ExType$elixirT, flatten, c, _p8._1._0),
+													A3(_user$project$ExType$elixirT, flatten, c, _p10._1._0),
 													' | nil');
 											case 'Just':
-												var _v8 = flatten,
-													_v9 = c,
-													_v10 = _p8._1._0;
-												flatten = _v8;
-												c = _v9;
-												t = _v10;
+												var _v9 = flatten,
+													_v10 = c,
+													_v11 = _p10._1._0;
+												flatten = _v9;
+												c = _v10;
+												t = _v11;
 												continue elixirT;
 											default:
-												break _v2_17;
+												break _v3_17;
 										}
 									} else {
-										break _v2_17;
+										break _v3_17;
 									}
 								} else {
-									switch (_p8._0._0) {
+									switch (_p10._0._0) {
 										case 'String':
 											return 'String.t';
 										case 'Bool':
@@ -12991,25 +13044,25 @@ var _user$project$ExType$elixirT = F3(
 										case 'T':
 											return 't';
 										default:
-											var _p14 = _p8._0._0;
+											var _p16 = _p10._0._0;
 											return A3(
 												_user$project$ExType$aliasOr,
 												c,
-												_p14,
-												_user$project$Helpers$atomize(_p14));
+												_p16,
+												_user$project$Helpers$atomize(_p16));
 									}
 								}
 							} else {
-								if (_p8._1.ctor === '[]') {
-									var _p15 = _user$project$Helpers$lastAndRest(_p8._0);
-									if ((_p15.ctor === '_Tuple2') && (_p15._0.ctor === 'Just')) {
+								if (_p10._1.ctor === '[]') {
+									var _p17 = _user$project$Helpers$lastAndRest(_p10._0);
+									if ((_p17.ctor === '_Tuple2') && (_p17._0.ctor === 'Just')) {
 										return A2(
 											_elm_lang$core$Basics_ops['++'],
-											A2(_elm_lang$core$String$join, '.', _p15._1),
+											A2(_elm_lang$core$String$join, '.', _p17._1),
 											A2(
 												_elm_lang$core$Basics_ops['++'],
 												'.',
-												_user$project$Helpers$toSnakeCase(_p15._0._0)));
+												_user$project$Helpers$toSnakeCase(_p17._0._0)));
 									} else {
 										return _elm_lang$core$Native_Utils.crashCase(
 											'ExType',
@@ -13017,10 +13070,10 @@ var _user$project$ExType$elixirT = F3(
 												start: {line: 112, column: 13},
 												end: {line: 119, column: 56}
 											},
-											_p15)('Shouldn\'t ever happen');
+											_p17)('Shouldn\'t ever happen');
 									}
 								} else {
-									break _v2_20;
+									break _v3_20;
 								}
 							}
 						case 'TypeRecord':
@@ -13034,28 +13087,28 @@ var _user$project$ExType$elixirT = F3(
 										', ',
 										A2(
 											_elm_lang$core$List$map,
-											function (_p18) {
-												var _p19 = _p18;
+											function (_p20) {
+												var _p21 = _p20;
 												return A2(
 													_elm_lang$core$Basics_ops['++'],
-													_p19._0,
+													_p21._0,
 													A2(
 														_elm_lang$core$Basics_ops['++'],
 														': ',
-														A3(_user$project$ExType$elixirT, flatten, c, _p19._1)));
+														A3(_user$project$ExType$elixirT, flatten, c, _p21._1)));
 											},
-											_p8._0)),
+											_p10._0)),
 									'}'));
 						case 'TypeApplication':
-							var _p23 = _p8._1;
-							var _p22 = _p8._0;
+							var _p25 = _p10._1;
+							var _p24 = _p10._0;
 							return flatten ? A2(
 								_elm_lang$core$Basics_ops['++'],
 								'(',
 								A2(
 									_elm_lang$core$Basics_ops['++'],
-									function (_p20) {
-										var _p21 = _p20;
+									function (_p22) {
+										var _p23 = _p22;
 										return A2(
 											_elm_lang$core$Basics_ops['++'],
 											A2(
@@ -13064,7 +13117,7 @@ var _user$project$ExType$elixirT = F3(
 												A2(
 													_elm_lang$core$List$map,
 													A2(_user$project$ExType$elixirT, flatten, c),
-													{ctor: '::', _0: _p22, _1: _p21._1})),
+													{ctor: '::', _0: _p24, _1: _p23._1})),
 											A2(
 												_elm_lang$core$Basics_ops['++'],
 												' -> ',
@@ -13074,38 +13127,38 @@ var _user$project$ExType$elixirT = F3(
 													A2(
 														_elm_lang$core$Maybe$map,
 														A2(_user$project$ExType$elixirT, flatten, c),
-														_p21._0))));
+														_p23._0))));
 									}(
 										_user$project$Helpers$lastAndRest(
-											_user$project$ExType$flattenTypeApplication(_p23))),
+											_user$project$ExType$flattenTypeApplication(_p25))),
 									')')) : A2(
 								_elm_lang$core$Basics_ops['++'],
 								'(',
 								A2(
 									_elm_lang$core$Basics_ops['++'],
-									A3(_user$project$ExType$elixirT, flatten, c, _p22),
+									A3(_user$project$ExType$elixirT, flatten, c, _p24),
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										' -> ',
 										A2(
 											_elm_lang$core$Basics_ops['++'],
-											A3(_user$project$ExType$elixirT, flatten, c, _p23),
+											A3(_user$project$ExType$elixirT, flatten, c, _p25),
 											')'))));
 						default:
-							break _v2_20;
+							break _v3_20;
 					}
 				} while(false);
-				var _p17 = _p8._0._0;
+				var _p19 = _p10._0._0;
 				return A3(
 					_user$project$ExType$aliasOr,
 					c,
-					_p17,
+					_p19,
 					A2(
 						_elm_lang$core$Basics_ops['++'],
 						'{',
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							_user$project$Helpers$atomize(_p17),
+							_user$project$Helpers$atomize(_p19),
 							A2(
 								_elm_lang$core$Basics_ops['++'],
 								', ',
@@ -13117,10 +13170,10 @@ var _user$project$ExType$elixirT = F3(
 										A2(
 											_elm_lang$core$List$map,
 											A2(_user$project$ExType$elixirT, flatten, c),
-											_p8._1)),
+											_p10._1)),
 									'}')))));
 			} while(false);
-			return A2(_user$project$Helpers$notImplemented, 'type', _p8);
+			return A2(_user$project$Helpers$notImplemented, 'type', _p10);
 		}
 	});
 var _user$project$ExType$aliasOr = F3(
@@ -13130,11 +13183,11 @@ var _user$project$ExType$aliasOr = F3(
 			$default,
 			A2(
 				_elm_lang$core$Maybe$map,
-				function (_p24) {
+				function (_p26) {
 					return A2(
 						_user$project$ExType$elixirTNoFlat,
 						c,
-						_elm_lang$core$Tuple$second(_p24));
+						_elm_lang$core$Tuple$second(_p26));
 				},
 				A2(_user$project$ExAlias$maybeAlias, c.aliases, name)));
 	});
@@ -13149,26 +13202,26 @@ var _user$project$ExType$typespec0 = F2(
 	});
 var _user$project$ExType$typealias = F2(
 	function (c, t) {
-		var _p25 = t;
-		switch (_p25.ctor) {
+		var _p27 = t;
+		switch (_p27.ctor) {
 			case 'TypeApplication':
 				return A2(
 					_elm_lang$core$Basics_ops['++'],
-					A2(_user$project$ExType$typealias, c, _p25._0),
-					A2(_user$project$ExType$typealias, c, _p25._1));
+					A2(_user$project$ExType$typealias, c, _p27._0),
+					A2(_user$project$ExType$typealias, c, _p27._1));
 			case 'TypeConstructor':
-				return A2(_user$project$ExType$elixirTNoFlat, c, _p25);
+				return A2(_user$project$ExType$elixirTNoFlat, c, _p27);
 			case 'TypeVariable':
-				return _p25._0;
+				return _p27._0;
 			default:
-				return A2(_user$project$Helpers$notImplemented, 'typealias', _p25);
+				return A2(_user$project$Helpers$notImplemented, 'typealias', _p27);
 		}
 	});
 var _user$project$ExType$typespec = F2(
 	function (c, t) {
-		var _p26 = _user$project$Helpers$lastAndRest(
+		var _p28 = _user$project$Helpers$lastAndRest(
 			_user$project$ExType$flattenTypeApplication(t));
-		if (_p26._0.ctor === 'Just') {
+		if (_p28._0.ctor === 'Just') {
 			return A2(
 				_elm_lang$core$Basics_ops['++'],
 				'(',
@@ -13180,11 +13233,11 @@ var _user$project$ExType$typespec = F2(
 						A2(
 							_elm_lang$core$List$map,
 							_user$project$ExType$elixirTNoFlat(c),
-							_p26._1)),
+							_p28._1)),
 					A2(
 						_elm_lang$core$Basics_ops['++'],
 						') :: ',
-						A2(_user$project$ExType$elixirTNoFlat, c, _p26._0._0))));
+						A2(_user$project$ExType$elixirTNoFlat, c, _p28._0._0))));
 		} else {
 			return _elm_lang$core$Native_Utils.crashCase(
 				'ExType',
@@ -13192,7 +13245,7 @@ var _user$project$ExType$typespec = F2(
 					start: {line: 171, column: 5},
 					end: {line: 181, column: 37}
 				},
-				_p26)('impossible');
+				_p28)('impossible');
 		}
 	});
 
@@ -13204,8 +13257,8 @@ var _user$project$ExExpression$getVariableName = function (e) {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExExpression',
 			{
-				start: {line: 524, column: 5},
-				end: {line: 529, column: 46}
+				start: {line: 534, column: 5},
+				end: {line: 539, column: 46}
 			},
 			_p0)('It\'s not a variable');
 	}
@@ -13229,8 +13282,8 @@ var _user$project$ExExpression$privateOrPublic = F2(
 				return _elm_lang$core$Native_Utils.crashCase(
 					'ExExpression',
 					{
-						start: {line: 453, column: 5},
-						end: {line: 464, column: 41}
+						start: {line: 463, column: 5},
+						end: {line: 474, column: 41}
 					},
 					_p2)('No such export');
 		}
@@ -13305,8 +13358,8 @@ var _user$project$ExExpression$isTuple = function (a) {
 						return _elm_lang$core$Native_Utils.crashCase(
 							'ExExpression',
 							{
-								start: {line: 366, column: 13},
-								end: {line: 371, column: 56}
+								start: {line: 376, column: 13},
+								end: {line: 381, column: 56}
 							},
 							_p6)('Shouldn\'t ever happen');
 					}
@@ -13316,20 +13369,39 @@ var _user$project$ExExpression$isTuple = function (a) {
 		}
 	}
 };
+var _user$project$ExExpression$applicationToList = function (application) {
+	var _p8 = application;
+	if (_p8.ctor === 'Application') {
+		return A2(
+			_elm_lang$core$Basics_ops['++'],
+			_user$project$ExExpression$applicationToList(_p8._0),
+			{
+				ctor: '::',
+				_0: _p8._1,
+				_1: {ctor: '[]'}
+			});
+	} else {
+		return {
+			ctor: '::',
+			_0: _p8,
+			_1: {ctor: '[]'}
+		};
+	}
+};
 var _user$project$ExExpression$isMacro = function (e) {
 	isMacro:
 	while (true) {
-		var _p8 = e;
-		_v7_4:
+		var _p9 = e;
+		_v8_4:
 		do {
-			switch (_p8.ctor) {
+			switch (_p9.ctor) {
 				case 'Application':
-					var _v8 = _p8._0;
-					e = _v8;
+					var _v9 = _p9._0;
+					e = _v9;
 					continue isMacro;
 				case 'Variable':
-					if ((_p8._0.ctor === '::') && (_p8._0._1.ctor === '[]')) {
-						switch (_p8._0._0) {
+					if ((_p9._0.ctor === '::') && (_p9._0._1.ctor === '[]')) {
+						switch (_p9._0._0) {
 							case 'ffi':
 								return true;
 							case 'lffi':
@@ -13337,36 +13409,36 @@ var _user$project$ExExpression$isMacro = function (e) {
 							case 'flambda':
 								return true;
 							default:
-								break _v7_4;
+								break _v8_4;
 						}
 					} else {
-						break _v7_4;
+						break _v8_4;
 					}
 				default:
-					break _v7_4;
+					break _v8_4;
 			}
 		} while(false);
 		return false;
 	}
 };
 var _user$project$ExExpression$flattenApplication = function (application) {
-	var _p9 = application;
-	if (_p9.ctor === 'Application') {
-		var _p11 = _p9._1;
-		var _p10 = _p9._0;
+	var _p10 = application;
+	if (_p10.ctor === 'Application') {
+		var _p12 = _p10._1;
+		var _p11 = _p10._0;
 		return _user$project$ExExpression$isMacro(application) ? A2(
 			_elm_lang$core$Basics_ops['++'],
-			_user$project$ExExpression$flattenApplication(_p10),
+			_user$project$ExExpression$flattenApplication(_p11),
 			{
 				ctor: '::',
-				_0: _p11,
+				_0: _p12,
 				_1: {ctor: '[]'}
 			}) : (_user$project$ExExpression$isTuple(application) ? A2(
 			_elm_lang$core$Basics_ops['++'],
-			_user$project$ExExpression$flattenApplication(_p10),
+			_user$project$ExExpression$flattenApplication(_p11),
 			{
 				ctor: '::',
-				_0: _p11,
+				_0: _p12,
 				_1: {ctor: '[]'}
 			}) : {
 			ctor: '::',
@@ -13376,49 +13448,37 @@ var _user$project$ExExpression$flattenApplication = function (application) {
 	} else {
 		return {
 			ctor: '::',
-			_0: _p9,
+			_0: _p10,
 			_1: {ctor: '[]'}
 		};
 	}
 };
 var _user$project$ExExpression$flattenPipes = function (e) {
-	var _p12 = e;
-	if (((((_p12.ctor === 'BinOp') && (_p12._0.ctor === 'Variable')) && (_p12._0._0.ctor === '::')) && (_p12._0._0._0 === '|>')) && (_p12._0._0._1.ctor === '[]')) {
-		if (((((_p12._2.ctor === 'BinOp') && (_p12._2._0.ctor === 'Variable')) && (_p12._2._0._0.ctor === '::')) && (_p12._2._0._0._0 === '|>')) && (_p12._2._0._0._1.ctor === '[]')) {
+	var _p13 = e;
+	if (((((_p13.ctor === 'BinOp') && (_p13._0.ctor === 'Variable')) && (_p13._0._0.ctor === '::')) && (_p13._0._0._0 === '|>')) && (_p13._0._0._1.ctor === '[]')) {
+		if (((((_p13._2.ctor === 'BinOp') && (_p13._2._0.ctor === 'Variable')) && (_p13._2._0._0.ctor === '::')) && (_p13._2._0._0._0 === '|>')) && (_p13._2._0._0._1.ctor === '[]')) {
 			return A2(
 				_elm_lang$core$Basics_ops['++'],
 				{
 					ctor: '::',
-					_0: _p12._1,
+					_0: _p13._1,
 					_1: {ctor: '[]'}
 				},
-				_user$project$ExExpression$flattenPipes(_p12._2));
+				_user$project$ExExpression$flattenPipes(_p13._2));
 		} else {
 			return A2(
 				_elm_lang$core$Basics_ops['++'],
 				{
 					ctor: '::',
-					_0: _p12._1,
+					_0: _p13._1,
 					_1: {ctor: '[]'}
 				},
 				{
 					ctor: '::',
-					_0: _p12._2,
+					_0: _p13._2,
 					_1: {ctor: '[]'}
 				});
 		}
-	} else {
-		return {
-			ctor: '::',
-			_0: _p12,
-			_1: {ctor: '[]'}
-		};
-	}
-};
-var _user$project$ExExpression$flattenCommas = function (e) {
-	var _p13 = e;
-	if (_p13.ctor === 'Tuple') {
-		return _p13._0;
 	} else {
 		return {
 			ctor: '::',
@@ -13427,23 +13487,35 @@ var _user$project$ExExpression$flattenCommas = function (e) {
 		};
 	}
 };
-var _user$project$ExExpression$getMetaLine = function (a) {
-	var _p14 = a;
-	if (_p14.ctor === 'String') {
+var _user$project$ExExpression$flattenCommas = function (e) {
+	var _p14 = e;
+	if (_p14.ctor === 'Tuple') {
 		return _p14._0;
+	} else {
+		return {
+			ctor: '::',
+			_0: _p14,
+			_1: {ctor: '[]'}
+		};
+	}
+};
+var _user$project$ExExpression$getMetaLine = function (a) {
+	var _p15 = a;
+	if (_p15.ctor === 'String') {
+		return _p15._0;
 	} else {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExExpression',
 			{
-				start: {line: 166, column: 5},
-				end: {line: 171, column: 68}
+				start: {line: 170, column: 5},
+				end: {line: 175, column: 68}
 			},
-			_p14)('Meta function has to have specific format');
+			_p15)('Meta function has to have specific format');
 	}
 };
 var _user$project$ExExpression$generateMeta = function (e) {
-	var _p16 = e;
-	if (_p16.ctor === 'List') {
+	var _p17 = e;
+	if (_p17.ctor === 'List') {
 		return A3(
 			_elm_lang$core$Basics$flip,
 			F2(
@@ -13461,15 +13533,15 @@ var _user$project$ExExpression$generateMeta = function (e) {
 							return A2(_elm_lang$core$Basics_ops['++'], x, y);
 						})(
 						_user$project$Helpers$ind(0)),
-					A2(_elm_lang$core$List$map, _user$project$ExExpression$getMetaLine, _p16._0))));
+					A2(_elm_lang$core$List$map, _user$project$ExExpression$getMetaLine, _p17._0))));
 	} else {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExExpression',
 			{
-				start: {line: 176, column: 5},
-				end: {line: 184, column: 68}
+				start: {line: 180, column: 5},
+				end: {line: 188, column: 68}
 			},
-			_p16)('Meta function has to have specific format');
+			_p17)('Meta function has to have specific format');
 	}
 };
 var _user$project$ExExpression$Flambda = F2(
@@ -13486,116 +13558,120 @@ var _user$project$ExExpression$Lffi = F2(
 	});
 var _user$project$ExExpression$tupleOrFunction = F2(
 	function (c, a) {
-		var _p18 = _user$project$ExExpression$flattenApplication(a);
-		_v14_7:
+		var _p19 = _user$project$ExExpression$flattenApplication(a);
+		_v15_7:
 		do {
-			_v14_6:
+			_v15_6:
 			do {
-				if (_p18.ctor === '::') {
-					switch (_p18._0.ctor) {
+				if (_p19.ctor === '::') {
+					switch (_p19._0.ctor) {
 						case 'Application':
-							return A2(
-								_elm_lang$core$Basics_ops['++'],
-								A2(_user$project$ExExpression$elixirE, c, _p18._0._0),
-								A2(
+							if (_p19._1.ctor === '[]') {
+								return A2(
 									_elm_lang$core$Basics_ops['++'],
-									'.(',
+									A2(_user$project$ExExpression$elixirE, c, _p19._0._0),
 									A2(
 										_elm_lang$core$Basics_ops['++'],
-										A2(_user$project$ExExpression$elixirE, c, _p18._0._1),
-										')')));
+										'.(',
+										A2(
+											_elm_lang$core$Basics_ops['++'],
+											A2(_user$project$ExExpression$elixirE, c, _p19._0._1),
+											')')));
+							} else {
+								break _v15_7;
+							}
 						case 'Variable':
-							if ((_p18._0._0.ctor === '::') && (_p18._0._0._1.ctor === '[]')) {
-								switch (_p18._0._0._0) {
+							if ((_p19._0._0.ctor === '::') && (_p19._0._0._1.ctor === '[]')) {
+								switch (_p19._0._0._0) {
 									case 'ffi':
-										var _p19 = _p18._1;
-										if ((((_p19.ctor === '::') && (_p19._1.ctor === '::')) && (_p19._1._1.ctor === '::')) && (_p19._1._1._1.ctor === '[]')) {
+										var _p20 = _p19._1;
+										if ((((_p20.ctor === '::') && (_p20._1.ctor === '::')) && (_p20._1._1.ctor === '::')) && (_p20._1._1._1.ctor === '[]')) {
 											return A2(
 												_user$project$ExExpression$resolveFfi,
 												c,
-												A3(_user$project$ExExpression$Ffi, _p19._0, _p19._1._0, _p19._1._1._0));
+												A3(_user$project$ExExpression$Ffi, _p20._0, _p20._1._0, _p20._1._1._0));
 										} else {
 											return _elm_lang$core$Native_Utils.crashCase(
 												'ExExpression',
 												{
-													start: {line: 254, column: 13},
-													end: {line: 259, column: 44}
+													start: {line: 264, column: 13},
+													end: {line: 269, column: 44}
 												},
-												_p19)('Wrong ffi');
+												_p20)('Wrong ffi');
 										}
 									case 'lffi':
-										var _p21 = _p18._1;
-										if (((_p21.ctor === '::') && (_p21._1.ctor === '::')) && (_p21._1._1.ctor === '[]')) {
+										var _p22 = _p19._1;
+										if (((_p22.ctor === '::') && (_p22._1.ctor === '::')) && (_p22._1._1.ctor === '[]')) {
 											return A2(
 												_user$project$ExExpression$resolveFfi,
 												c,
-												A2(_user$project$ExExpression$Lffi, _p21._0, _p21._1._0));
+												A2(_user$project$ExExpression$Lffi, _p22._0, _p22._1._0));
 										} else {
 											return _elm_lang$core$Native_Utils.crashCase(
 												'ExExpression',
 												{
-													start: {line: 262, column: 13},
-													end: {line: 267, column: 45}
+													start: {line: 272, column: 13},
+													end: {line: 277, column: 45}
 												},
-												_p21)('Wrong lffi');
+												_p22)('Wrong lffi');
 										}
 									case 'flambda':
-										var _p23 = _p18._1;
-										if ((((_p23.ctor === '::') && (_p23._0.ctor === 'Integer')) && (_p23._1.ctor === '::')) && (_p23._1._1.ctor === '[]')) {
+										var _p24 = _p19._1;
+										if ((((_p24.ctor === '::') && (_p24._0.ctor === 'Integer')) && (_p24._1.ctor === '::')) && (_p24._1._1.ctor === '[]')) {
 											return A2(
 												_user$project$ExExpression$resolveFfi,
 												c,
-												A2(_user$project$ExExpression$Flambda, _p23._0._0, _p23._1._0));
+												A2(_user$project$ExExpression$Flambda, _p24._0._0, _p24._1._0));
 										} else {
 											return _elm_lang$core$Native_Utils.crashCase(
 												'ExExpression',
 												{
-													start: {line: 270, column: 13},
-													end: {line: 275, column: 48}
+													start: {line: 280, column: 13},
+													end: {line: 285, column: 48}
 												},
-												_p23)('Wrong flambda');
+												_p24)('Wrong flambda');
 										}
 									case 'Just':
-										if ((_p18._1.ctor === '::') && (_p18._1._1.ctor === '[]')) {
+										if ((_p19._1.ctor === '::') && (_p19._1._1.ctor === '[]')) {
 											return A2(
 												_elm_lang$core$Basics_ops['++'],
 												'{',
 												A2(
 													_elm_lang$core$Basics_ops['++'],
-													A2(_user$project$ExExpression$elixirE, c, _p18._1._0),
+													A2(_user$project$ExExpression$elixirE, c, _p19._1._0),
 													'}'));
 										} else {
-											break _v14_6;
+											break _v15_6;
 										}
 									case 'Err':
-										if ((_p18._1.ctor === '::') && (_p18._1._1.ctor === '[]')) {
+										if ((_p19._1.ctor === '::') && (_p19._1._1.ctor === '[]')) {
 											return A2(
 												_elm_lang$core$Basics_ops['++'],
 												'{:error, ',
 												A2(
 													_elm_lang$core$Basics_ops['++'],
-													A2(_user$project$ExExpression$elixirE, c, _p18._1._0),
+													A2(_user$project$ExExpression$elixirE, c, _p19._1._0),
 													'}'));
 										} else {
-											break _v14_6;
+											break _v15_6;
 										}
 									default:
-										break _v14_6;
+										break _v15_6;
 								}
 							} else {
-								break _v14_6;
+								break _v15_6;
 							}
 						default:
-							break _v14_7;
+							break _v15_7;
 					}
 				} else {
-					break _v14_7;
+					break _v15_7;
 				}
 			} while(false);
-			var _p29 = _p18._1;
-			var _p25 = _user$project$Helpers$lastAndRest(_p18._0._0);
-			if ((_p25.ctor === '_Tuple2') && (_p25._0.ctor === 'Just')) {
-				var _p27 = _p25._0._0;
+			var _p30 = _p19._1;
+			var _p26 = _user$project$Helpers$lastAndRest(_p19._0._0);
+			if ((_p26.ctor === '_Tuple2') && (_p26._0.ctor === 'Just')) {
+				var _p28 = _p26._0._0;
 				return A2(
 					_elm_lang$core$Maybe$withDefault,
 					A2(
@@ -13609,7 +13685,7 @@ var _user$project$ExExpression$tupleOrFunction = F2(
 								_Bogdanp$elm_ast$Ast_Expression$Variable(
 									{
 										ctor: '::',
-										_0: _p27,
+										_0: _p28,
 										_1: {ctor: '[]'}
 									})),
 							A2(
@@ -13623,11 +13699,11 @@ var _user$project$ExExpression$tupleOrFunction = F2(
 										A2(
 											_elm_lang$core$List$map,
 											_user$project$ExExpression$elixirE(c),
-											_p29)),
+											_p30)),
 									'}')))),
 					A2(
 						_elm_lang$core$Maybe$map,
-						function (_p26) {
+						function (_p27) {
 							return A3(
 								_elm_lang$core$Basics$flip,
 								F2(
@@ -13653,7 +13729,7 @@ var _user$project$ExExpression$tupleOrFunction = F2(
 											A2(
 												_elm_lang$core$List$map,
 												_user$project$ExExpression$elixirE(c),
-												_p29)))),
+												_p30)))),
 								A2(
 									F2(
 										function (x, y) {
@@ -13663,48 +13739,48 @@ var _user$project$ExExpression$tupleOrFunction = F2(
 									A2(
 										_user$project$ExExpression$elixirE,
 										c,
-										_user$project$ExType$typealiasConstructor(_p26))));
+										_user$project$ExType$typealiasConstructor(_p27))));
 						},
-						A2(_user$project$ExAlias$maybeAlias, c.aliases, _p27)));
+						A2(_user$project$ExAlias$maybeAlias, c.aliases, _p28)));
 			} else {
 				return _elm_lang$core$Native_Utils.crashCase(
 					'ExExpression',
 					{
-						start: {line: 284, column: 13},
-						end: {line: 307, column: 52}
+						start: {line: 294, column: 13},
+						end: {line: 317, column: 52}
 					},
-					_p25)('Won\'t ever happen');
+					_p26)('Won\'t ever happen');
 			}
 		} while(false);
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExExpression',
 			{
-				start: {line: 249, column: 5},
-				end: {line: 310, column: 70}
+				start: {line: 259, column: 5},
+				end: {line: 320, column: 70}
 			},
-			_p18)(
+			_p19)(
 			A2(
 				_elm_lang$core$Basics_ops['++'],
 				'Shouldn\'t ever work for',
-				_elm_lang$core$Basics$toString(_p18)));
+				_elm_lang$core$Basics$toString(_p19)));
 	});
 var _user$project$ExExpression$elixirE = F2(
 	function (c, e) {
-		var _p31 = e;
-		_v19_6:
+		var _p32 = e;
+		_v20_6:
 		do {
-			switch (_p31.ctor) {
+			switch (_p32.ctor) {
 				case 'Variable':
-					return A2(_user$project$ExExpression$elixirVariable, c, _p31._0);
+					return A2(_user$project$ExExpression$elixirVariable, c, _p32._0);
 				case 'Application':
-					return A2(_user$project$ExExpression$tupleOrFunction, c, _p31);
+					return A2(_user$project$ExExpression$tupleOrFunction, c, _p32);
 				case 'RecordUpdate':
 					return A2(
 						_elm_lang$core$Basics_ops['++'],
 						'%{',
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							_user$project$Helpers$toSnakeCase(_p31._0),
+							_user$project$Helpers$toSnakeCase(_p32._0),
 							A2(
 								_elm_lang$core$Basics_ops['++'],
 								' | ',
@@ -13715,57 +13791,57 @@ var _user$project$ExExpression$elixirE = F2(
 										', ',
 										A2(
 											_elm_lang$core$List$map,
-											function (_p32) {
-												var _p33 = _p32;
+											function (_p33) {
+												var _p34 = _p33;
 												return A2(
 													_elm_lang$core$Basics_ops['++'],
-													_p33._0,
+													_p34._0,
 													A2(
 														_elm_lang$core$Basics_ops['++'],
 														': ',
-														A2(_user$project$ExExpression$elixirE, c, _p33._1)));
+														A2(_user$project$ExExpression$elixirE, c, _p34._1)));
 											},
-											_p31._1)),
+											_p32._1)),
 									'}'))));
 				case 'Access':
-					if (_p31._0.ctor === 'Variable') {
+					if (_p32._0.ctor === 'Variable') {
 						return A2(
 							_elm_lang$core$Basics_ops['++'],
-							_user$project$Helpers$modulePath(_p31._0._0),
+							_user$project$Helpers$modulePath(_p32._0._0),
 							A2(
 								_elm_lang$core$Basics_ops['++'],
 								'.',
 								A2(
 									_elm_lang$core$String$join,
 									'.',
-									A2(_elm_lang$core$List$map, _user$project$Helpers$toSnakeCase, _p31._1))));
+									A2(_elm_lang$core$List$map, _user$project$Helpers$toSnakeCase, _p32._1))));
 					} else {
 						return A2(
 							_elm_lang$core$Basics_ops['++'],
-							A2(_user$project$ExExpression$elixirE, c, _p31._0),
+							A2(_user$project$ExExpression$elixirE, c, _p32._0),
 							A2(
 								_elm_lang$core$Basics_ops['++'],
 								'.',
-								A2(_elm_lang$core$String$join, '.', _p31._1)));
+								A2(_elm_lang$core$String$join, '.', _p32._1)));
 					}
 				case 'BinOp':
-					if (((_p31._0.ctor === 'Variable') && (_p31._0._0.ctor === '::')) && (_p31._0._0._1.ctor === '[]')) {
-						return A4(_user$project$ExExpression$elixirBinop, c, _p31._0._0._0, _p31._1, _p31._2);
+					if (((_p32._0.ctor === 'Variable') && (_p32._0._0.ctor === '::')) && (_p32._0._0._1.ctor === '[]')) {
+						return A4(_user$project$ExExpression$elixirBinop, c, _p32._0._0._0, _p32._1, _p32._2);
 					} else {
-						break _v19_6;
+						break _v20_6;
 					}
 				default:
-					break _v19_6;
+					break _v20_6;
 			}
 		} while(false);
-		return A2(_user$project$ExExpression$elixirControlFlow, c, _p31);
+		return A2(_user$project$ExExpression$elixirControlFlow, c, _p32);
 	});
 var _user$project$ExExpression$elixirBinop = F4(
 	function (c, op, l, r) {
 		elixirBinop:
 		while (true) {
-			var _p34 = op;
-			switch (_p34) {
+			var _p35 = op;
+			switch (_p35) {
 				case '//':
 					return A2(
 						_elm_lang$core$Basics_ops['++'],
@@ -13823,14 +13899,24 @@ var _user$project$ExExpression$elixirBinop = F4(
 									A2(_user$project$ExExpression$elixirE, c, r),
 									']'))));
 				case '<<':
-					var _v22 = c,
-						_v23 = '>>',
-						_v24 = r,
-						_v25 = l;
-					c = _v22;
-					op = _v23;
-					l = _v24;
-					r = _v25;
+					var _v23 = c,
+						_v24 = '>>',
+						_v25 = r,
+						_v26 = l;
+					c = _v23;
+					op = _v24;
+					l = _v25;
+					r = _v26;
+					continue elixirBinop;
+				case '<|':
+					var _v27 = c,
+						_v28 = '|>',
+						_v29 = r,
+						_v30 = l;
+					c = _v27;
+					op = _v28;
+					l = _v29;
+					r = _v30;
 					continue elixirBinop;
 				case '|>':
 					return A2(
@@ -13871,7 +13957,7 @@ var _user$project$ExExpression$elixirBinop = F4(
 							_0: A2(_user$project$ExExpression$elixirE, c, l),
 							_1: {
 								ctor: '::',
-								_0: _user$project$Helpers$translateOperator(_p34),
+								_0: _user$project$Helpers$translateOperator(_p35),
 								_1: {
 									ctor: '::',
 									_0: A2(_user$project$ExExpression$elixirE, c, r),
@@ -13884,14 +13970,14 @@ var _user$project$ExExpression$elixirBinop = F4(
 	});
 var _user$project$ExExpression$elixirControlFlow = F2(
 	function (c, e) {
-		var _p35 = e;
-		switch (_p35.ctor) {
+		var _p36 = e;
+		switch (_p36.ctor) {
 			case 'Case':
-				return A3(_user$project$ExExpression$caseE, c, _p35._0, _p35._1);
+				return A3(_user$project$ExExpression$caseE, c, _p36._0, _p36._1);
 			case 'Lambda':
-				return A3(_user$project$ExExpression$lambda, c, _p35._0, _p35._1);
+				return A3(_user$project$ExExpression$lambda, c, _p36._0, _p36._1);
 			case 'If':
-				if (_p35._2.ctor === 'If') {
+				if (_p36._2.ctor === 'If') {
 					return A2(
 						_elm_lang$core$String$join,
 						'',
@@ -13903,7 +13989,7 @@ var _user$project$ExExpression$elixirControlFlow = F2(
 								A2(
 									_user$project$ExExpression$handleIfExp,
 									_user$project$ExContext$indent(c),
-									_p35),
+									_p36),
 								{
 									ctor: '::',
 									_0: _user$project$Helpers$ind(c.indent),
@@ -13920,19 +14006,19 @@ var _user$project$ExExpression$elixirControlFlow = F2(
 						'if ',
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							A2(_user$project$ExExpression$elixirE, c, _p35._0),
+							A2(_user$project$ExExpression$elixirE, c, _p36._0),
 							A2(
 								_elm_lang$core$Basics_ops['++'],
 								' do ',
 								A2(
 									_elm_lang$core$Basics_ops['++'],
-									A2(_user$project$ExExpression$elixirE, c, _p35._1),
+									A2(_user$project$ExExpression$elixirE, c, _p36._1),
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										' else ',
 										A2(
 											_elm_lang$core$Basics_ops['++'],
-											A2(_user$project$ExExpression$elixirE, c, _p35._2),
+											A2(_user$project$ExExpression$elixirE, c, _p36._2),
 											' end'))))));
 				}
 			case 'Let':
@@ -13945,30 +14031,45 @@ var _user$project$ExExpression$elixirControlFlow = F2(
 					A2(
 						_elm_lang$core$Basics_ops['++'],
 						_user$project$Helpers$ind(c.indent),
-						A2(_user$project$ExExpression$elixirE, c, _p35._1)),
+						A2(_user$project$ExExpression$elixirE, c, _p36._1)),
 					A2(
 						_elm_lang$core$String$join,
 						_user$project$Helpers$ind(c.indent),
 						A2(
 							_elm_lang$core$List$map,
-							function (_p36) {
-								var _p37 = _p36;
-								var _p39 = _p37._2;
-								var _p38 = _p37._1;
-								return A2(
-									_elm_lang$core$Basics_ops['++'],
-									_user$project$Helpers$toSnakeCase(_p37._0),
-									_elm_lang$core$Native_Utils.eq(
-										_elm_lang$core$List$length(_p38),
-										0) ? A2(
-										_elm_lang$core$Basics_ops['++'],
-										' = ',
-										A2(_user$project$ExExpression$elixirE, c, _p39)) : A2(
-										_elm_lang$core$Basics_ops['++'],
-										' = ',
-										A3(_user$project$ExExpression$produceLambda, c, _p38, _p39)));
+							function (_p37) {
+								var _p38 = _p37;
+								var _p41 = _p38._1;
+								var _p39 = _user$project$ExExpression$applicationToList(_p38._0);
+								if ((((_p39.ctor === '::') && (_p39._0.ctor === 'Variable')) && (_p39._0._0.ctor === '::')) && (_p39._0._0._1.ctor === '[]')) {
+									if (_p39._1.ctor === '[]') {
+										return A2(
+											_elm_lang$core$Basics_ops['++'],
+											_user$project$Helpers$toSnakeCase(_p39._0._0._0),
+											A2(
+												_elm_lang$core$Basics_ops['++'],
+												' = ',
+												A2(_user$project$ExExpression$elixirE, c, _p41)));
+									} else {
+										return A2(
+											_elm_lang$core$Basics_ops['++'],
+											_user$project$Helpers$toSnakeCase(_p39._0._0._0),
+											A2(
+												_elm_lang$core$Basics_ops['++'],
+												' = ',
+												A3(_user$project$ExExpression$produceLambda, c, _p39._1, _p41)));
+									}
+								} else {
+									return _elm_lang$core$Native_Utils.crashCase(
+										'ExExpression',
+										{
+											start: {line: 84, column: 26},
+											end: {line: 93, column: 59}
+										},
+										_p39)('Impossible');
+								}
 							},
-							_p35._0)));
+							_p36._0)));
 			default:
 				return A2(_user$project$ExExpression$elixirTypeInstances, c, e);
 		}
@@ -14019,18 +14120,18 @@ var _user$project$ExExpression$caseInstance = F2(
 	});
 var _user$project$ExExpression$elixirTypeInstances = F2(
 	function (c, e) {
-		var _p40 = e;
-		switch (_p40.ctor) {
+		var _p42 = e;
+		switch (_p42.ctor) {
 			case 'Integer':
-				return _elm_lang$core$Basics$toString(_p40._0);
+				return _elm_lang$core$Basics$toString(_p42._0);
 			case 'Float':
-				var name = _elm_lang$core$Basics$toString(_p40._0);
+				var name = _elm_lang$core$Basics$toString(_p42._0);
 				return A2(_elm_lang$core$String$contains, '.', name) ? name : A2(_elm_lang$core$Basics_ops['++'], name, '.0');
 			case 'Character':
-				return _elm_lang$core$Basics$toString(_p40._0);
+				return _elm_lang$core$Basics$toString(_p42._0);
 			case 'String':
 				return _user$project$Helpers$unescape(
-					_elm_lang$core$Basics$toString(_p40._0));
+					_elm_lang$core$Basics$toString(_p42._0));
 			case 'List':
 				return A2(
 					_elm_lang$core$Basics_ops['++'],
@@ -14043,7 +14144,7 @@ var _user$project$ExExpression$elixirTypeInstances = F2(
 							A2(
 								_elm_lang$core$List$map,
 								_user$project$ExExpression$elixirE(c),
-								_p40._0)),
+								_p42._0)),
 						']'));
 			case 'Tuple':
 				return A2(
@@ -14057,7 +14158,7 @@ var _user$project$ExExpression$elixirTypeInstances = F2(
 							A2(
 								_elm_lang$core$List$map,
 								_user$project$ExExpression$elixirE(c),
-								_p40._0)),
+								_p42._0)),
 						'}'));
 			case 'Record':
 				return A2(
@@ -14070,17 +14171,17 @@ var _user$project$ExExpression$elixirTypeInstances = F2(
 							', ',
 							A2(
 								_elm_lang$core$List$map,
-								function (_p41) {
-									var _p42 = _p41;
+								function (_p43) {
+									var _p44 = _p43;
 									return A2(
 										_elm_lang$core$Basics_ops['++'],
-										_p42._0,
+										_p44._0,
 										A2(
 											_elm_lang$core$Basics_ops['++'],
 											': ',
-											A2(_user$project$ExExpression$elixirE, c, _p42._1)));
+											A2(_user$project$ExExpression$elixirE, c, _p44._1)));
 								},
-								_p40._0)),
+								_p42._0)),
 						'}'));
 			default:
 				return A2(_user$project$Helpers$notImplemented, 'expression', e);
@@ -14088,8 +14189,8 @@ var _user$project$ExExpression$elixirTypeInstances = F2(
 	});
 var _user$project$ExExpression$handleIfExp = F2(
 	function (c, e) {
-		var _p43 = e;
-		if (_p43.ctor === 'If') {
+		var _p45 = e;
+		if (_p45.ctor === 'If') {
 			return A2(
 				F2(
 					function (x, y) {
@@ -14103,7 +14204,7 @@ var _user$project$ExExpression$handleIfExp = F2(
 						_0: A2(
 							_user$project$ExExpression$elixirE,
 							_user$project$ExContext$indent(c),
-							_p43._0),
+							_p45._0),
 						_1: {
 							ctor: '::',
 							_0: ' -> ',
@@ -14112,13 +14213,13 @@ var _user$project$ExExpression$handleIfExp = F2(
 								_0: A2(
 									_user$project$ExExpression$elixirE,
 									_user$project$ExContext$indent(c),
-									_p43._1),
+									_p45._1),
 								_1: {ctor: '[]'}
 							}
 						}
 					}
 				},
-				A2(_user$project$ExExpression$handleIfExp, c, _p43._2));
+				A2(_user$project$ExExpression$handleIfExp, c, _p45._2));
 		} else {
 			return {
 				ctor: '::',
@@ -14140,20 +14241,20 @@ var _user$project$ExExpression$handleIfExp = F2(
 	});
 var _user$project$ExExpression$lambda = F3(
 	function (c, args, body) {
-		var _p44 = args;
-		if (_p44.ctor === '::') {
+		var _p46 = args;
+		if (_p46.ctor === '::') {
 			return A2(
 				_elm_lang$core$Basics_ops['++'],
 				'fn(',
 				A2(
 					_elm_lang$core$Basics_ops['++'],
-					_p44._0,
+					A2(_user$project$ExExpression$elixirE, c, _p46._0),
 					A2(
 						_elm_lang$core$Basics_ops['++'],
 						') -> ',
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							A3(_user$project$ExExpression$lambda, c, _p44._1, body),
+							A3(_user$project$ExExpression$lambda, c, _p46._1, body),
 							' end'))));
 		} else {
 			return A2(_user$project$ExExpression$elixirE, c, body);
@@ -14161,20 +14262,20 @@ var _user$project$ExExpression$lambda = F3(
 	});
 var _user$project$ExExpression$produceLambda = F3(
 	function (c, args, body) {
-		var _p45 = args;
-		if (_p45.ctor === '::') {
+		var _p47 = args;
+		if (_p47.ctor === '::') {
 			return A2(
 				_elm_lang$core$Basics_ops['++'],
-				'fn ',
+				'fn(',
 				A2(
 					_elm_lang$core$Basics_ops['++'],
-					_user$project$Helpers$toSnakeCase(_p45._0),
+					A2(_user$project$ExExpression$elixirE, c, _p47._0),
 					A2(
 						_elm_lang$core$Basics_ops['++'],
-						' -> ',
+						') -> ',
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							A3(_user$project$ExExpression$produceLambda, c, _p45._1, body),
+							A3(_user$project$ExExpression$produceLambda, c, _p47._1, body),
 							' end'))));
 		} else {
 			return A2(_user$project$ExExpression$elixirE, c, body);
@@ -14182,12 +14283,12 @@ var _user$project$ExExpression$produceLambda = F3(
 	});
 var _user$project$ExExpression$elixirVariable = F2(
 	function (c, $var) {
-		var _p46 = $var;
-		if (_p46.ctor === '[]') {
+		var _p48 = $var;
+		if (_p48.ctor === '[]') {
 			return '';
 		} else {
-			if (_p46._1.ctor === '[]') {
-				switch (_p46._0) {
+			if (_p48._1.ctor === '[]') {
+				switch (_p48._0) {
 					case 'Nothing':
 						return 'nil';
 					case 'curry':
@@ -14195,37 +14296,37 @@ var _user$project$ExExpression$elixirVariable = F2(
 					case 'uncurry':
 						return 'uncurried';
 					default:
-						var _p48 = _p46._0;
-						return _user$project$Helpers$isCapitilzed(_p48) ? A2(
+						var _p50 = _p48._0;
+						return _user$project$Helpers$isCapitilzed(_p50) ? A2(
 							_elm_lang$core$Maybe$withDefault,
-							_user$project$Helpers$atomize(_p48),
+							_user$project$Helpers$atomize(_p50),
 							A2(
 								_elm_lang$core$Maybe$map,
-								function (_p47) {
+								function (_p49) {
 									return A2(
 										_user$project$ExExpression$elixirE,
 										c,
-										_user$project$ExType$typealiasConstructor(_p47));
+										_user$project$ExType$typealiasConstructor(_p49));
 								},
-								A2(_user$project$ExAlias$maybeAlias, c.aliases, _p48))) : (_user$project$Helpers$isOperator(_p48) ? A2(
+								A2(_user$project$ExAlias$maybeAlias, c.aliases, _p50))) : (_user$project$Helpers$isOperator(_p50) ? A2(
 							_elm_lang$core$Basics_ops['++'],
 							'(&',
 							A2(
 								_elm_lang$core$Basics_ops['++'],
-								_user$project$Helpers$translateOperator(_p48),
-								'/0).()')) : _user$project$Helpers$toSnakeCase(_p48));
+								_user$project$Helpers$translateOperator(_p50),
+								'/0).()')) : _user$project$Helpers$toSnakeCase(_p50));
 				}
 			} else {
-				var _p50 = _p46;
-				var _p49 = _user$project$Helpers$lastAndRest(_p50);
-				if ((_p49.ctor === '_Tuple2') && (_p49._0.ctor === 'Just')) {
+				var _p52 = _p48;
+				var _p51 = _user$project$Helpers$lastAndRest(_p52);
+				if ((_p51.ctor === '_Tuple2') && (_p51._0.ctor === 'Just')) {
 					return A2(
 						_user$project$ExExpression$elixirE,
 						c,
 						_Bogdanp$elm_ast$Ast_Expression$Variable(
 							{
 								ctor: '::',
-								_0: _p49._0._0,
+								_0: _p51._0._0,
 								_1: {ctor: '[]'}
 							}));
 				} else {
@@ -14233,93 +14334,93 @@ var _user$project$ExExpression$elixirVariable = F2(
 						_elm_lang$core$Native_Utils.crash(
 							'ExExpression',
 							{
-								start: {line: 566, column: 21},
-								end: {line: 566, column: 32}
+								start: {line: 576, column: 21},
+								end: {line: 576, column: 32}
 							}),
 						'Shouldn\'t ever happen',
 						_elm_lang$core$String$join,
 						'.',
-						_p50);
+						_p52);
 				}
 			}
 		}
 	});
 var _user$project$ExExpression$resolveFfi = F2(
 	function (c, ffi) {
-		var _p51 = ffi;
-		_v35_5:
+		var _p53 = ffi;
+		_v41_5:
 		do {
-			switch (_p51.ctor) {
+			switch (_p53.ctor) {
 				case 'Ffi':
-					if ((_p51._0.ctor === 'String') && (_p51._1.ctor === 'String')) {
-						if (_p51._2.ctor === 'Tuple') {
+					if ((_p53._0.ctor === 'String') && (_p53._1.ctor === 'String')) {
+						if (_p53._2.ctor === 'Tuple') {
 							return A2(
 								_elm_lang$core$Basics_ops['++'],
-								_p51._0._0,
+								_p53._0._0,
 								A2(
 									_elm_lang$core$Basics_ops['++'],
 									'.',
 									A2(
 										_elm_lang$core$Basics_ops['++'],
-										_p51._1._0,
+										_p53._1._0,
 										A2(
 											_elm_lang$core$Basics_ops['++'],
 											'(',
 											A2(
 												_elm_lang$core$Basics_ops['++'],
-												A2(_user$project$ExExpression$combineComas, c, _p51._2),
+												A2(_user$project$ExExpression$combineComas, c, _p53._2),
 												')')))));
 						} else {
 							return A2(
 								_elm_lang$core$Basics_ops['++'],
-								_p51._0._0,
+								_p53._0._0,
 								A2(
 									_elm_lang$core$Basics_ops['++'],
 									'.',
 									A2(
 										_elm_lang$core$Basics_ops['++'],
-										_p51._1._0,
+										_p53._1._0,
 										A2(
 											_elm_lang$core$Basics_ops['++'],
 											'(',
 											A2(
 												_elm_lang$core$Basics_ops['++'],
-												A2(_user$project$ExExpression$elixirE, c, _p51._2),
+												A2(_user$project$ExExpression$elixirE, c, _p53._2),
 												')')))));
 						}
 					} else {
-						break _v35_5;
+						break _v41_5;
 					}
 				case 'Lffi':
-					if (_p51._0.ctor === 'String') {
-						if (_p51._1.ctor === 'Tuple') {
+					if (_p53._0.ctor === 'String') {
+						if (_p53._1.ctor === 'Tuple') {
 							return A2(
 								_elm_lang$core$Basics_ops['++'],
-								_p51._0._0,
+								_p53._0._0,
 								A2(
 									_elm_lang$core$Basics_ops['++'],
 									'(',
 									A2(
 										_elm_lang$core$Basics_ops['++'],
-										A2(_user$project$ExExpression$combineComas, c, _p51._1),
+										A2(_user$project$ExExpression$combineComas, c, _p53._1),
 										')')));
 						} else {
 							return A2(
 								_elm_lang$core$Basics_ops['++'],
-								_p51._0._0,
+								_p53._0._0,
 								A2(
 									_elm_lang$core$Basics_ops['++'],
 									'(',
 									A2(
 										_elm_lang$core$Basics_ops['++'],
-										A2(_user$project$ExExpression$elixirE, c, _p51._1),
+										A2(_user$project$ExExpression$elixirE, c, _p53._1),
 										')')));
 						}
 					} else {
-						break _v35_5;
+						break _v41_5;
 					}
 				default:
-					var args = _user$project$Helpers$generateArguments(_p51._0);
+					var args = _user$project$Helpers$generateArguments(_p53._0);
 					return A2(
 						_elm_lang$core$Basics_ops['++'],
 						'fn (',
@@ -14331,7 +14432,7 @@ var _user$project$ExExpression$resolveFfi = F2(
 								') -> ',
 								A2(
 									_elm_lang$core$Basics_ops['++'],
-									A2(_user$project$ExExpression$elixirE, c, _p51._1),
+									A2(_user$project$ExExpression$elixirE, c, _p53._1),
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										A2(
@@ -14352,10 +14453,10 @@ var _user$project$ExExpression$resolveFfi = F2(
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExExpression',
 			{
-				start: {line: 321, column: 5},
-				end: {line: 353, column: 41}
+				start: {line: 331, column: 5},
+				end: {line: 363, column: 41}
 			},
-			_p51)('Wrong ffi call');
+			_p53)('Wrong ffi call');
 	});
 var _user$project$ExExpression$combineComas = F2(
 	function (c, e) {
@@ -14369,13 +14470,13 @@ var _user$project$ExExpression$combineComas = F2(
 	});
 var _user$project$ExExpression$genElixirFunc = F4(
 	function (c, name, args, body) {
-		var _p53 = {
+		var _p55 = {
 			ctor: '_Tuple2',
 			_0: _user$project$Helpers$isOperator(name),
 			_1: args
 		};
-		if (_p53._0 === true) {
-			if (((_p53._1.ctor === '::') && (_p53._1._1.ctor === '::')) && (_p53._1._1._1.ctor === '[]')) {
+		if (_p55._0 === true) {
+			if (((_p55._1.ctor === '::') && (_p55._1._1.ctor === '::')) && (_p55._1._1._1.ctor === '[]')) {
 				return A2(
 					_elm_lang$core$Basics_ops['++'],
 					_user$project$Helpers$ind(c.indent),
@@ -14390,7 +14491,7 @@ var _user$project$ExExpression$genElixirFunc = F4(
 								' ',
 								A2(
 									_elm_lang$core$Basics_ops['++'],
-									A2(_user$project$ExExpression$elixirE, c, _p53._1._0),
+									A2(_user$project$ExExpression$elixirE, c, _p55._1._0),
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										' ',
@@ -14402,7 +14503,7 @@ var _user$project$ExExpression$genElixirFunc = F4(
 												' ',
 												A2(
 													_elm_lang$core$Basics_ops['++'],
-													A2(_user$project$ExExpression$elixirE, c, _p53._1._1._0),
+													A2(_user$project$ExExpression$elixirE, c, _p55._1._1._0),
 													A2(
 														_elm_lang$core$Basics_ops['++'],
 														' do',
@@ -14423,10 +14524,10 @@ var _user$project$ExExpression$genElixirFunc = F4(
 				return _elm_lang$core$Native_Utils.crashCase(
 					'ExExpression',
 					{
-						start: {line: 412, column: 5},
-						end: {line: 448, column: 25}
+						start: {line: 422, column: 5},
+						end: {line: 458, column: 25}
 					},
-					_p53)(
+					_p55)(
 					A2(
 						_elm_lang$core$Basics_ops['++'],
 						'operator ',
@@ -14515,18 +14616,18 @@ var _user$project$ExExpression$genOverloadedFunctionDefinition = F5(
 					'',
 					A2(
 						_elm_lang$core$List$map,
-						function (_p55) {
-							var _p56 = _p55;
+						function (_p57) {
+							var _p58 = _p57;
 							return A4(
 								_user$project$ExExpression$genElixirFunc,
 								c,
 								name,
 								{
 									ctor: '::',
-									_0: _p56._0,
+									_0: _p58._0,
 									_1: {ctor: '[]'}
 								},
-								_p56._1);
+								_p58._1);
 						},
 						expressions))));
 	});
@@ -15046,52 +15147,59 @@ var _user$project$ExStatement$elixirS = F2(
 			A2(_user$project$Helpers$notImplemented, 'statement', _p12));
 	});
 
-var _user$project$Compiler$parse = function (m) {
-	var _p0 = _Bogdanp$elm_ast$Ast$parse(m);
-	_v0_2:
-	do {
-		if (_p0.ctor === 'Ok') {
-			if (_p0._0.ctor === '_Tuple3') {
-				return _p0._0._2;
+var _user$project$Compiler$parse = F2(
+	function (fileName, m) {
+		var _p0 = _Bogdanp$elm_ast$Ast$parse(m);
+		_v0_2:
+		do {
+			if (_p0.ctor === 'Ok') {
+				if (_p0._0.ctor === '_Tuple3') {
+					return _p0._0._2;
+				} else {
+					break _v0_2;
+				}
 			} else {
-				break _v0_2;
-			}
-		} else {
-			if ((((_p0._0.ctor === '_Tuple3') && (_p0._0._0.ctor === '_Tuple0')) && (_p0._0._2.ctor === '::')) && (_p0._0._2._1.ctor === '[]')) {
-				return _elm_lang$core$Native_Utils.crashCase(
-					'Compiler',
-					{
-						start: {line: 167, column: 5},
-						end: {line: 183, column: 39}
-					},
-					_p0)(
-					A2(
-						_elm_lang$core$Basics_ops['++'],
-						']ERR> Compilation error at: ',
+				if ((((_p0._0.ctor === '_Tuple3') && (_p0._0._0.ctor === '_Tuple0')) && (_p0._0._2.ctor === '::')) && (_p0._0._2._1.ctor === '[]')) {
+					return _elm_lang$core$Native_Utils.crashCase(
+						'Compiler',
+						{
+							start: {line: 167, column: 5},
+							end: {line: 185, column: 39}
+						},
+						_p0)(
 						A2(
 							_elm_lang$core$Basics_ops['++'],
+							']ERR> Compilation error in:\n ',
 							A2(
-								_elm_lang$core$String$join,
-								'\n',
+								_elm_lang$core$Basics_ops['++'],
+								fileName,
 								A2(
-									_elm_lang$core$List$take,
-									10,
-									_elm_lang$core$String$lines(_p0._0._1.input))),
-							'\n')));
-			} else {
-				break _v0_2;
+									_elm_lang$core$Basics_ops['++'],
+									'\nat:\n ',
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										A2(
+											_elm_lang$core$String$join,
+											'\n',
+											A2(
+												_elm_lang$core$List$take,
+												10,
+												_elm_lang$core$String$lines(_p0._0._1.input))),
+										'\n')))));
+				} else {
+					break _v0_2;
+				}
 			}
-		}
-	} while(false);
-	return _elm_lang$core$Native_Utils.crashCase(
-		'Compiler',
-		{
-			start: {line: 167, column: 5},
-			end: {line: 183, column: 39}
-		},
-		_p0)(
-		_elm_lang$core$Basics$toString(_p0));
-};
+		} while(false);
+		return _elm_lang$core$Native_Utils.crashCase(
+			'Compiler',
+			{
+				start: {line: 167, column: 5},
+				end: {line: 185, column: 39}
+			},
+			_p0)(
+			_elm_lang$core$Basics$toString(_p0));
+	});
 var _user$project$Compiler$aggregateStatements = F2(
 	function (s, _p3) {
 		var _p4 = _p3;
@@ -15170,7 +15278,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elmchemy', '\n'));
-var _user$project$Compiler$version = '0.2.1';
+var _user$project$Compiler$version = '0.2.2';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		return A2(
@@ -15217,60 +15325,61 @@ var _user$project$Compiler$tree = function (m) {
 			}
 		}(
 			_user$project$Compiler$getContext(
-				_user$project$Compiler$parse(_p9._0)));
+				A2(_user$project$Compiler$parse, 'NoName.elm', _p9._0)));
 	} else {
 		var files = A2(
 			_elm_lang$core$List$map,
 			function (_p14) {
 				var _p15 = _p14;
+				var _p16 = _p15._0;
 				return {
 					ctor: '_Tuple2',
-					_0: _p15._0,
-					_1: _user$project$Compiler$parse(_p15._1)
+					_0: _p16,
+					_1: A2(_user$project$Compiler$parse, _p16, _p15._1)
 				};
 			},
 			A2(_elm_lang$core$List$map, _user$project$Compiler$getName, _p9));
 		var wContexts = A2(
 			_elm_lang$core$List$filterMap,
 			function (a) {
-				var _p16 = a;
-				if (_p16._1._0.ctor === 'Nothing') {
+				var _p17 = a;
+				if (_p17._1._0.ctor === 'Nothing') {
 					return _elm_lang$core$Maybe$Nothing;
 				} else {
 					return _elm_lang$core$Maybe$Just(
-						{ctor: '_Tuple3', _0: _p16._0, _1: _p16._1._0._0, _2: _p16._1._1});
+						{ctor: '_Tuple3', _0: _p17._0, _1: _p17._1._0._0, _2: _p17._1._1});
 				}
 			},
 			A2(
 				_elm_lang$core$List$map,
-				function (_p17) {
-					var _p18 = _p17;
+				function (_p18) {
+					var _p19 = _p18;
 					return {
 						ctor: '_Tuple2',
-						_0: _p18._0,
-						_1: _user$project$Compiler$getContext(_p18._1)
+						_0: _p19._0,
+						_1: _user$project$Compiler$getContext(_p19._1)
 					};
 				},
 				files));
 		var commonAliases = _user$project$Compiler$getCommonAliases(
 			A2(
 				_elm_lang$core$List$map,
-				function (_p19) {
-					var _p20 = _p19;
-					return _p20._1.aliases;
+				function (_p20) {
+					var _p21 = _p20;
+					return _p21._1.aliases;
 				},
 				wContexts));
 		var wTrueContexts = A2(
 			_elm_lang$core$List$map,
-			function (_p21) {
-				var _p22 = _p21;
+			function (_p22) {
+				var _p23 = _p22;
 				return {
 					ctor: '_Tuple3',
-					_0: _p22._0,
+					_0: _p23._0,
 					_1: _elm_lang$core$Native_Utils.update(
-						_p22._1,
+						_p23._1,
 						{aliases: commonAliases}),
-					_2: _p22._2
+					_2: _p23._2
 				};
 			},
 			wContexts);
@@ -15279,18 +15388,18 @@ var _user$project$Compiler$tree = function (m) {
 			'\n',
 			A2(
 				_elm_lang$core$List$map,
-				function (_p23) {
-					var _p24 = _p23;
+				function (_p24) {
+					var _p25 = _p24;
 					return A2(
 						_elm_lang$core$Basics_ops['++'],
 						'>>>>',
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							_p24._0,
+							_p25._0,
 							A2(
 								_elm_lang$core$Basics_ops['++'],
 								'\n',
-								A2(_user$project$Compiler$getCode, _p24._1, _p24._2))));
+								A2(_user$project$Compiler$getCode, _p25._1, _p25._2))));
 				},
 				wTrueContexts));
 	}
