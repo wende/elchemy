@@ -80,13 +80,17 @@ elixirControlFlow c e =
         Let variables expression ->
             variables
                 |> map
-                    (\( name, args, exp ) ->
-                        toSnakeCase name
-                            ++ (if List.length args == 0 then
-                                    " = " ++ elixirE c exp
-                                else
-                                    " = " ++ produceLambda c args exp
-                               )
+                    (\( var, exp ) ->
+                         case applicationToList var of
+                             [ Variable [name] ] ->
+                                  toSnakeCase name
+                                  ++ " = "
+                                  ++ elixirE c exp
+                             Variable [name] :: args ->
+                                 toSnakeCase name
+                                 ++ " = "
+                                 ++ produceLambda c args exp
+                             _ -> Debug.crash "Impossible"
                     )
                 |> String.join (ind c.indent)
                 |> flip (++) (ind c.indent ++ elixirE c expression)
@@ -243,12 +247,18 @@ flattenApplication application =
         other ->
             [ other ]
 
+applicationToList : Expression -> List Expression
+applicationToList application =
+    case application of
+        Application left right ->
+            (applicationToList left) ++ [right]
+        other -> [ other ]
 
 tupleOrFunction : Context -> Expression -> String
 tupleOrFunction c a =
     case flattenApplication a of
-        (Application left right) :: rest ->
-            elixirE c left ++ ".(" ++ elixirE c right ++ ")"
+        (Application left right) :: [] ->
+             elixirE c left ++ ".(" ++ elixirE c right ++ ")"
 
         (Variable [ "ffi" ]) :: rest ->
             case rest of
@@ -393,14 +403,14 @@ caseInstance c a =
         ++ (elixirE c (Tuple.second a))
 
 
-lambda : Context -> List String -> Expression -> String
+lambda : Context -> List Expression -> Expression -> String
 lambda c args body =
     case args of
         arg :: rest ->
             "fn("
-                ++ arg
+                ++ elixirE c arg
                 ++ ") -> "
-                ++ (lambda c rest body)
+                ++ lambda c rest body
                 ++ " end"
 
         [] ->
@@ -591,6 +601,9 @@ elixirBinop c op l r =
         "<<" ->
             elixirBinop c ">>" r l
 
+        "<|" ->
+            elixirBinop c "|>" r l
+
         "|>" ->
             elixirE c l
                 ++ (flattenPipes r
@@ -605,13 +618,13 @@ elixirBinop c op l r =
                 |> String.join " "
 
 
-produceLambda : Context -> List String -> Expression -> String
+produceLambda : Context -> List Expression -> Expression -> String
 produceLambda c args body =
     case args of
         arg :: rest ->
-            "fn "
-                ++ toSnakeCase arg
-                ++ " -> "
+            "fn("
+                ++ (elixirE c arg)
+                ++ ") -> "
                 ++ produceLambda c rest body
                 ++ " end"
 

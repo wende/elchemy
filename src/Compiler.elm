@@ -46,7 +46,7 @@ tree m =
     case String.split ">>>>" m of
         [ single ] ->
             single
-                |> parse
+                |> parse "NoName.elm"
                 |> getContext
                 |> (\( c, a ) ->
                         case c of
@@ -62,7 +62,7 @@ tree m =
                 files =
                     multiple
                         |> map getName
-                        |> map (\( name, code ) -> ( name, parse code ))
+                        |> map (\( name, code ) -> ( name, parse name code ))
 
                 wContexts =
                     files
@@ -162,16 +162,18 @@ getCode context statements =
         ++ glueEnd
 
 
-parse : String -> List Statement
-parse m =
+parse : String -> String -> List Statement
+parse fileName m =
     case Ast.parse m of
         Ok ( _, _, statements ) ->
             statements
 
         Err ( (), { input, position }, [ msg ] ) ->
             Debug.crash
-                ("]ERR> Compilation error at: "
-                    ++ (input
+                ("]ERR> Compilation error in:\n "
+                     ++ fileName
+                     ++ "\nat:\n "
+                     ++ (input
                             |> String.lines
                             |> List.take 10
                             |> String.join "\n"
