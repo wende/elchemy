@@ -44,8 +44,6 @@ elixirE c e =
         -- Exception, ( "rem", "" )
         -- Exception, ( "^", "" )
         -- Tuple is an exception
-        (BinOp (Variable [ "," ]) a b) as binop ->
-            "{" ++ combineComas c binop ++ "}"
 
         BinOp (Variable [ op ]) l r ->
             elixirBinop c op l r
@@ -126,6 +124,13 @@ elixirTypeInstances c e =
                    )
                 ++ "]"
 
+        Tuple vars ->
+            "{"
+                ++ (map (elixirE c) vars
+                        |> String.join ", "
+                   )
+                ++ "}"
+
         Record keyValuePairs ->
             "%{"
                 ++ (map (\( a, b ) -> a ++ ": " ++ elixirE c b) keyValuePairs
@@ -189,15 +194,9 @@ combineComas c e =
 flattenCommas : Expression -> List Expression
 flattenCommas e =
     case e of
-        BinOp (Variable [ "," ]) ((BinOp (Variable [ "," ]) l _) as n) r ->
-            flattenCommas n ++ [ r ]
-
-        BinOp (Variable [ "," ]) l r ->
-            [ l ] ++ [ r ]
-
-        other ->
-            [ other ]
-
+        Tuple kvs ->
+            kvs
+        a -> [ a ]
 
 flattenPipes : Expression -> List Expression
 flattenPipes e =
@@ -321,7 +320,7 @@ resolveFfi : Context -> Ffi -> String
 resolveFfi c ffi =
     case ffi of
         -- Elmchemy hack
-        Ffi (String mod) (String fun) ((BinOp (Variable [ "," ]) _ _) as args) ->
+        Ffi (String mod) (String fun) (Tuple _ as args) ->
             mod ++ "." ++ fun ++ "(" ++ combineComas c args ++ ")"
 
         -- One or many arg fun
@@ -329,7 +328,7 @@ resolveFfi c ffi =
             mod ++ "." ++ fun ++ "(" ++ elixirE c any ++ ")"
 
         -- Elmchemy hack
-        Lffi (String fun) ((BinOp (Variable [ "," ]) _ _) as args) ->
+        Lffi (String fun) (Tuple _ as args) ->
             fun ++ "(" ++ combineComas c args ++ ")"
 
         -- One arg fun

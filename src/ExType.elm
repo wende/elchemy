@@ -233,10 +233,7 @@ constructTuple args =
         first :: rest ->
             rest
             |> foldl (\a acc ->
-                          BinOp
-                             (Variable [","])
-                             (acc)
-                             (Variable [a])
+                          Tuple [acc, Variable [a]]
                      )
                (Variable [first])
 
