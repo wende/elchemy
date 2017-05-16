@@ -213,7 +213,7 @@ typealiasConstructor modAndAlias =
                            (Tuple.mapSecond (singleton >> Variable))
 
             in
-                Lambda args (Record varargs)
+                Lambda (constructApplication args) (Record varargs)
 
         ( _, TypeTuple kvs ) ->
             let
@@ -221,10 +221,21 @@ typealiasConstructor modAndAlias =
                      |> List.range 1
                      |> List.map (toString >> (++) "arg")
             in
-                Lambda args (Tuple (map (singleton >> Variable) args))
+                Lambda (constructApplication args) (Tuple (map (singleton >> Variable) args))
 
         _ ->
             Debug.crash "Only simple type aliases. Sorry"
+
+constructApplication : List String -> List Expression
+constructApplication list  =
+    case list of
+        [] -> Debug.crash "Wrong application"
+        [ one ] -> [Variable [one]]
+        head :: tail ->
+            [foldl (\a acc -> Application acc (Variable [a]))
+                (Variable [head])
+                tail]
+
 
 aliasOr : Context -> String -> String -> String
 aliasOr c name default =
