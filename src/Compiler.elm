@@ -8,6 +8,7 @@ import ExContext exposing (Context, Aliases)
 import ExAlias
 import ExStatement
 import Dict
+import Regex exposing (..)
 
 
 version : String
@@ -94,15 +95,6 @@ tree m =
                     |> String.join "\n"
 
 
-
--- (first f) ++ "\n" ++
---      (parse (second f)
---      |>
---      )
--- )
--- |> String.join ">>>>"
-
-
 getCommonAliases : List Aliases -> Aliases
 getCommonAliases a =
     foldl
@@ -164,16 +156,16 @@ getCode context statements =
 
 parse : String -> String -> List Statement
 parse fileName m =
-    case Ast.parse m of
+    case Ast.parse (prepare m) of
         Ok ( _, _, statements ) ->
             statements
 
         Err ( (), { input, position }, [ msg ] ) ->
             Debug.crash
                 ("]ERR> Compilation error in:\n "
-                     ++ fileName
-                     ++ "\nat:\n "
-                     ++ (input
+                    ++ fileName
+                    ++ "\nat:\n "
+                    ++ (input
                             |> String.lines
                             |> List.take 10
                             |> String.join "\n"
@@ -183,3 +175,23 @@ parse fileName m =
 
         err ->
             Debug.crash (toString err)
+
+
+prepare : String -> String
+prepare codebase =
+    codebase |> removeComments
+
+
+removeComments : String -> String
+removeComments =
+    Regex.replace All (regex "--.$") (always "")
+
+
+crunchSplitLines : String -> String
+crunchSplitLines =
+    Regex.replace All (regex "(?:({-(?:\\n|.)*?-})|([\\w\\])}\"][\\t ]*)\\n[\\t ]+((?!.*\\s->\\s)(?!.*=)(?!.*\\bin\\b)[\\w[({\"]))") <|
+        \m ->
+            m.submatches
+                |> map (Maybe.map (flip (++) " "))
+                |> filterMap identity
+                |> String.join " "
