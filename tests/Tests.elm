@@ -51,6 +51,9 @@ all =
         , test "Other nested list" <|
             \() ->
                 "list = [[1, 2], 3]" |> has "[[1, 2], 3]"
+        , test "Cons operator" <|
+            \() ->
+                "list = 1 :: 2 :: [3]" |> has "[1 | [2 | [3]]]"
 
         -- Functions
         , test "Application" <|
@@ -59,6 +62,9 @@ all =
         , test "ffi" <|
             \() ->
                 "upcase name = ffi \"String\" \"to_upper\" name " |> has "String.to_upper(name)"
+        , test "ffi" <|
+            \() ->
+                "a f = flambda 2 f " |> has "fn (x1,x2) -> f.(x1).(x2) end"
         , test "function names are snakecased" <|
             \() ->
                 "camelCase = 1" |> has "camel_case()"
@@ -88,16 +94,20 @@ all =
             \() ->
                 "map : (List a) -> (a -> a) -> (List a)"
                     |> has "map(list(any), (any -> any)) :: list(any)"
+        , test "Typespecs with functions #2" <|
+            \() ->
+                "map : (a -> a) -> (b -> b) -> (List a)"
+                    |> has "map((any -> any), (any -> any)) :: list(any)"
         , test "Typespecs with multiple arg functions" <|
             \() ->
                 "map : (List a) -> (a -> a -> b) -> (List a)"
-                    |> has "map(list(any), (any, any -> any)) :: list(any) "
+                    |> has "map(list(any), (any -> (any -> any))) :: list(any) "
         , test "Typespecs names are snakecased" <|
             \() ->
                 "mapMap : a" |> has "@spec map_map"
         , test "Records in typespecs" <|
             \() ->
-                "record : { a : Int, b : String}" |> has "@spec record :: %{a: integer, b: String.t}"
+                "record : { a : Int, b : String}" |> has "@spec record() :: %{a: integer, b: String.t}"
         , test "Remote typespecs" <|
             \() ->
                 "f : Remote.Module.Type -> String.T"
@@ -107,6 +117,17 @@ all =
         , test "Types" <|
             \() ->
                 "type AType = BType | CType" |> has "@type a_type :: :b_type | :c_type"
+        , test "TypeRecord" <|
+            \() ->
+                "type alias A = {a : Int, b: Int, c: Int} \n"
+                ++ "a = A 1 2 3"
+        |> has "%{a: arg1, b: arg2, c: arg3}"
+        , test "TypeTuple" <|
+            \() ->
+                "type alias A = (Int, Int, Int) \n"
+                ++ "a = A 1 2 "
+        |> has "{arg1, arg2, arg3}"
+
 
         -- Records
         , test "Records work" <|
@@ -144,11 +165,12 @@ all =
         -- Doctest
         , test "Doctests" <|
             \() ->
-                "{-| A equals 1. It just does\n" ++
-                "what the hell\n" ++
-                "    a == 1\n" ++
-                "-}\n" ++
-                "a = 1"
-                |> has "iex> a\n"
+                "{-| A equals 1. It just does\n"
+                    ++ "what the hell\n"
+                    ++ "    a == 1\n"
+                    ++ "-}\n"
+                    ++ "a = 1"
+                    |> has "iex> a\n"
+
         -- End
         ]

@@ -1,6 +1,7 @@
 module ExType exposing (..)
 
 import Ast.Statement exposing (..)
+import Ast.Expression exposing (..)
 import Helpers exposing (..)
 import List exposing (..)
 import ExContext exposing (Context)
@@ -12,7 +13,7 @@ flattenTypeApplication : Type -> List Type
 flattenTypeApplication application =
     case application of
         TypeApplication left right ->
-            (flattenTypeApplication left) ++ [ right ]
+            left :: flattenTypeApplication right
 
         other ->
             [ other ]
@@ -26,6 +27,19 @@ elixirTNoFlat =
     elixirT False
 
 
+find : (a -> Bool) -> List a -> Maybe a
+find f list =
+    list
+        |> foldl
+            (\a acc ->
+                if f a then
+                    Just a
+                else
+                    acc
+            )
+            Nothing
+
+
 elixirT : Bool -> Context -> Type -> String
 elixirT flatten c t =
     case t of
@@ -35,11 +49,11 @@ elixirT flatten c t =
         TypeTuple [ a ] ->
             elixirT flatten c a
 
-        TypeTuple [ a, b ] ->
+        TypeTuple ((a :: rest) as list) ->
             "{"
-                ++ elixirT flatten c a
-                ++ ", "
-                ++ elixirT flatten c b
+                ++ (map (elixirT flatten c) list
+                        |> String.join ", "
+                   )
                 ++ "}"
 
         TypeVariable "number" ->
@@ -48,12 +62,17 @@ elixirT flatten c t =
         (TypeVariable name) as var ->
             c.aliases
                 |> Dict.values
-                |> List.member var
+                |> find (\( _, a ) -> a == var)
                 |> (\a ->
-                        if a then
-                            name
-                        else
-                            "any"
+                        case a of
+                            Just ( mod, _ ) ->
+                                if mod == c.mod then
+                                    name
+                                else
+                                    mod ++ "." ++ name
+
+                            Nothing ->
+                                "any"
                    )
 
         TypeConstructor [ "String" ] [] ->
@@ -149,92 +168,17 @@ typespec0 c t =
 
 typespec : Context -> Type -> String
 typespec c t =
-    typespec_ True c t
-
-
-typespecf : Context -> Type -> String
-typespecf c t =
-    typespec_ False c t
-
-
-typespec_ : Bool -> Context -> Type -> String
-typespec_ start c t =
-    case t of
-        -- Last aruments
-        TypeApplication other ((TypeApplication _ _) as app) ->
-            (if start then
-                "("
-             else
-                ""
-            )
-                ++ typespecf c other
-                ++ typespecf c app
-
-        TypeApplication pre_last last ->
-            (if start then
-                "("
-             else
-                ""
-            )
-                ++ elixirTFlat c pre_last
+    case lastAndRest (flattenTypeApplication t) of
+        ( Just last, args ) ->
+            "("
+                ++ (map (elixirTNoFlat c) args
+                        |> String.join ", "
+                   )
                 ++ ") :: "
-                ++ elixirTFlat c last
+                ++ elixirTNoFlat c last
 
-        --TypeApplication tc t ->
-        (TypeConstructor _ _) as t ->
-            (if start then
-                " :: "
-             else
-                ""
-            )
-                ++ elixirTFlat c t
-                ++ (if start then
-                        ""
-                    else
-                        ", "
-                   )
-
-        (TypeVariable _) as t ->
-            (if start then
-                " :: "
-             else
-                ""
-            )
-                ++ elixirTFlat c t
-                ++ (if start then
-                        ""
-                    else
-                        ", "
-                   )
-
-        (TypeTuple _) as t ->
-            (if start then
-                " :: "
-             else
-                ""
-            )
-                ++ elixirTFlat c t
-                ++ (if start then
-                        ""
-                    else
-                        ", "
-                   )
-
-        (TypeRecord _) as t ->
-            (if start then
-                " :: "
-             else
-                ""
-            )
-                ++ elixirTFlat c t
-                ++ (if start then
-                        ""
-                    else
-                        ", "
-                   )
-
-        other ->
-            notImplemented "typespec" other
+        ( Nothing, _ ) ->
+            Debug.crash "impossible"
 
 
 typealias : Context -> Type -> String
@@ -252,9 +196,49 @@ typealias c t =
         other ->
             notImplemented "typealias" other
 
+typealiasConstructor : (String, Type) -> Expression
+typealiasConstructor modAndAlias =
+    case modAndAlias of
+        ( _, TypeConstructor [ name ] _ ) ->
+            Variable [ name ]
+        ( _, TypeRecord kvs ) ->
+            let
+                args = List.length kvs
+                     |> List.range 1
+                     |> List.map (toString >> (++) "arg")
+                varargs = kvs
+                        |> List.map2 (flip (,)) args
+                        |> List.map (Tuple.mapFirst Tuple.first)
+                        |> List.map
+                           (Tuple.mapSecond (singleton >> Variable))
+
+            in
+                Lambda (constructApplication args) (Record varargs)
+
+        ( _, TypeTuple kvs ) ->
+            let
+                args = List.length kvs
+                     |> List.range 1
+                     |> List.map (toString >> (++) "arg")
+            in
+                Lambda (constructApplication args) (Tuple (map (singleton >> Variable) args))
+
+        _ ->
+            Debug.crash "Only simple type aliases. Sorry"
+
+constructApplication : List String -> List Expression
+constructApplication list  =
+    case list of
+        [] -> Debug.crash "Wrong application"
+        [ one ] -> [Variable [one]]
+        head :: tail ->
+            [foldl (\a acc -> Application acc (Variable [a]))
+                (Variable [head])
+                tail]
+
 
 aliasOr : Context -> String -> String -> String
 aliasOr c name default =
     ExAlias.maybeAlias c.aliases name
-        |> Maybe.map (elixirTNoFlat c)
+        |> Maybe.map (Tuple.second >> elixirTNoFlat c)
         |> Maybe.withDefault (default)

@@ -1,6 +1,6 @@
 {
   "name": "elmchemy",
-  "version": "0.0.22",
+  "version": "0.2.2",
   "description": "Write Elixir code using Elm-inspired syntax (elm-make compatible)",
   "directories": {
     "example": "example",
@@ -32,7 +32,7 @@
   },
   "lint-staged": {
     "*.elm": [
-      "elm-format --yes",
+      "node_modules/.bin/elm-format --yes",
       "git add"
     ]
   }

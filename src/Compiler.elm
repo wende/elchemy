@@ -8,10 +8,12 @@ import ExContext exposing (Context, Aliases)
 import ExAlias
 import ExStatement
 import Dict
+import Regex exposing (..)
 
 
+version : String
 version =
-    "0.0.22"
+    "0.2.2"
 
 
 glueStart : String
@@ -45,7 +47,7 @@ tree m =
     case String.split ">>>>" m of
         [ single ] ->
             single
-                |> parse
+                |> parse "NoName.elm"
                 |> getContext
                 |> (\( c, a ) ->
                         case c of
@@ -61,7 +63,7 @@ tree m =
                 files =
                     multiple
                         |> map getName
-                        |> map (\( name, code ) -> ( name, parse code ))
+                        |> map (\( name, code ) -> ( name, parse name code ))
 
                 wContexts =
                     files
@@ -91,15 +93,6 @@ tree m =
                             ">>>>" ++ name ++ "\n" ++ getCode c ast
                         )
                     |> String.join "\n"
-
-
-
--- (first f) ++ "\n" ++
---      (parse (second f)
---      |>
---      )
--- )
--- |> String.join ">>>>"
 
 
 getCommonAliases : List Aliases -> Aliases
@@ -137,7 +130,7 @@ getContext statements =
                 base =
                     ExStatement.moduleStatement mod
             in
-                ( Just { base | aliases = (ExAlias.getAliases statements) }, statements )
+                ( Just { base | aliases = (ExAlias.getAliases base statements) }, statements )
 
 
 aggregateStatements : Statement -> ( Context, String ) -> ( Context, String )
@@ -161,18 +154,44 @@ getCode context statements =
         ++ glueEnd
 
 
-parse : String -> List Statement
-parse m =
-    case Ast.parse m of
+parse : String -> String -> List Statement
+parse fileName m =
+    case Ast.parse (prepare m) of
         Ok ( _, _, statements ) ->
             statements
 
         Err ( (), { input, position }, [ msg ] ) ->
             Debug.crash
-                ("]ERR> Compilation error at: "
-                    ++ input
+                ("]ERR> Compilation error in:\n "
+                    ++ fileName
+                    ++ "\nat:\n "
+                    ++ (input
+                            |> String.lines
+                            |> List.take 10
+                            |> String.join "\n"
+                       )
                     ++ "\n"
                 )
 
         err ->
             Debug.crash (toString err)
+
+
+prepare : String -> String
+prepare codebase =
+    codebase |> removeComments
+
+
+removeComments : String -> String
+removeComments =
+    Regex.replace All (regex "--.$") (always "")
+
+
+crunchSplitLines : String -> String
+crunchSplitLines =
+    Regex.replace All (regex "(?:({-(?:\\n|.)*?-})|([\\w\\])}\"][\\t ]*)\\n[\\t ]+((?!.*\\s->\\s)(?!.*=)(?!.*\\bin\\b)[\\w[({\"]))") <|
+        \m ->
+            m.submatches
+                |> map (Maybe.map (flip (++) " "))
+                |> filterMap identity
+                |> String.join " "

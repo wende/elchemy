@@ -3,7 +3,6 @@ module Helpers exposing (..)
 import Char
 import Tuple exposing (..)
 import List exposing (..)
-import ExContext exposing (Context)
 import Regex exposing (..)
 import Dict exposing (Dict)
 
@@ -11,7 +10,6 @@ import Dict exposing (Dict)
 type MaybeUpper
     = Upper String
     | Lower String
-
 
 notImplemented : String -> a -> String
 notImplemented feature value =
@@ -84,7 +82,7 @@ prependAll with target =
 
 indAll : Int -> String -> String
 indAll i s =
-    prependAll (String.dropLeft 1 (ind i)) s
+    "\n" ++ prependAll (String.dropLeft 1 (ind i)) s
 
 
 uncons : List a -> ( Maybe a, List a )
@@ -126,10 +124,12 @@ operators =
     , ( "*", "*" )
     , ( "/", "/" )
     , ( ">>", ">>>" )
-    , ( "<|", "<<<" )
+    , ( "<|", "" )
+    , ( "<<", "" )
+    , ( "|>", "|>" )
 
     -- Exception
-    , ( "%", "" )
+    , ( "%", "rem" )
 
     -- Exception
     , ( "//", "" )
@@ -139,11 +139,14 @@ operators =
 
     -- Exception
     , ( "^", "" )
-    , ( "<<", "" )
-    , ( "|>", "|>" )
+
     -- Exception
-    , ( "::", "cons")
+    , ( "::", "cons" )
     , ( "not", "!" )
+    , ( ",", "tuple2" )
+    , ( ",,", "tuple3" )
+    , ( ",,,", "tuple4" )
+    , ( ",,,,", "tuple5" )
     ]
         |> List.foldl (uncurry Dict.insert) Dict.empty
 
@@ -161,7 +164,7 @@ translateOperator op =
         Just "" ->
             Debug.crash
                 (op
-                    ++ "is not a valid or not implemented yet operator"
+                    ++ " is not a valid or not implemented yet operator"
                 )
 
         Just key ->
@@ -170,8 +173,49 @@ translateOperator op =
         _ ->
             Debug.crash
                 (op
-                    ++ "is not a valid or not implemented yet operator"
+                    ++ " is not a valid or not implemented yet operator"
                 )
+
+
 trimIndentations : String -> String
 trimIndentations line =
     Regex.replace All (regex "\\s+\\n") (always "\n") line
+
+
+generateArguments : Int -> List String
+generateArguments n =
+    List.range 1 n
+        |> map toString
+        |> map ((++) "x")
+
+
+unescape : String -> String
+unescape s =
+    Regex.replace All (regex "\\\\\\\\") (always "\\") s
+
+
+escape : String -> String
+escape s =
+    Regex.replace All (regex "\\\\n") (always "\\\\n") s
+
+modulePath : List String -> String
+modulePath list =
+    map maybeReplaceStd list |> String.join "."
+
+
+isStdModule : String -> Bool
+isStdModule a =
+    List.member a
+        [ "Basics"
+        , "List"
+        , "String"
+        , "Maybe"
+        , "Char"
+        , "Result"
+        , "Tuple"
+        ]
+
+maybeReplaceStd : String -> String
+maybeReplaceStd s =
+    if isStdModule s then "X" ++ s
+    else s

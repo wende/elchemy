@@ -49,20 +49,26 @@ elixirS c s =
         --"alias?"
         FunctionTypeDeclaration name ((TypeApplication _ _) as t) ->
             (,) c <|
-                if isOperator name
-                    || ExContext.hasFlag "nospec" name c
-                then
+                if isOperator name then
                     -- TODO implement operator specs
                     ""
                 else
-                    (ind c.indent)
-                        ++ "@spec "
-                        ++ toSnakeCase name
-                        ++ (ExType.typespec c t)
-                        ++ (ind c.indent)
-                        ++ "@spec "
-                        ++ toSnakeCase name
-                        ++ (ExType.typespec0 c t)
+                    onlyWithoutFlag c
+                        "nospec"
+                        name
+                        ((ind c.indent)
+                            ++ "@spec "
+                            ++ toSnakeCase name
+                            ++ (ExType.typespec c t)
+                        )
+                        ++ onlyWithoutFlag c
+                            "nospec0"
+                            name
+                            ((ind c.indent)
+                                ++ "@spec "
+                                ++ toSnakeCase name
+                                ++ (ExType.typespec0 c t)
+                            )
 
         --"alias?"
         FunctionTypeDeclaration name t ->
@@ -82,16 +88,8 @@ elixirS c s =
                     ExExpression.generateMeta body
                 else
                     case body of
-                        Case (Variable _) expressions ->
-                            ExExpression.genOverloadedFunctionDefinition
-                                c
-                                name
-                                args
-                                body
-                                expressions
-
-                        Case nonVar expressions ->
-                            if ExExpression.flattenCommas nonVar == args then
+                        Case vars expressions ->
+                            if ExExpression.flattenCommas vars == args then
                                 ExExpression.genOverloadedFunctionDefinition
                                     c
                                     name
@@ -119,13 +117,14 @@ elixirS c s =
                         (ind c.indent)
                             ++ "@doc \"\"\"\n "
                             ++ (content
-                               |> String.lines
-                               |> map (maybeDoctest c)
-                               |> map (flip (++) (ind c.indent))
-                               |> map trimIndentations
-                             |> String.join ""
-                            -- Drop an unnecessary \n at the end
-                             |> String.dropRight 1)
+                                    |> String.lines
+                                    |> map (maybeDoctest c)
+                                    |> map (flip (++) (ind c.indent))
+                                    |> map trimIndentations
+                                    |> String.join ""
+                                    -- Drop an unnecessary \n at the end
+                                    |> String.dropRight 1
+                               )
                             ++ (ind c.indent)
                             ++ "\"\"\""
 
@@ -169,26 +168,34 @@ elixirS c s =
             (,) c <|
                 (ind c.indent)
                     ++ "alias "
-                    ++ String.join "." path
+                    ++ modulePath path
+
+        ImportStatement path (Just asName) Nothing ->
+            (,) c <|
+                (ind c.indent)
+                    ++ "alias "
+                    ++ modulePath path
+                    ++ ", as: "
+                    ++ asName
 
         ImportStatement path Nothing (Just (SubsetExport exports)) ->
             (,) c <|
                 (ind c.indent)
                     ++ "import "
-                    ++ String.join "." path
-                    ++ ", only: "
+                    ++ modulePath path
+                    ++ ", only: ["
                     ++ (map subsetExport exports |> foldl (++) [] |> String.join ",")
+                    ++ "]"
 
         ImportStatement path Nothing (Just AllExport) ->
             (,) c <|
                 (ind c.indent)
                     ++ "import "
-                    ++ String.join "." path
+                    ++ modulePath path
 
         s ->
             (,) c <|
                 notImplemented "statement" s
-
 
 
 getCommentType : String -> ElmchemyComment
@@ -222,7 +229,7 @@ subsetExport exp =
             []
 
         FunctionExport name ->
-            [ "{" ++ name ++ ", 0}" ]
+            [ "{:'" ++ name ++ "', 0}" ]
 
         _ ->
             crash ("You can't export " ++ toString exp)
@@ -232,19 +239,24 @@ maybeDoctest : Context -> String -> String
 maybeDoctest c line =
     if String.startsWith (ind (c.indent + 1)) ("\n" ++ line) then
         case Ast.parseExpression Ast.BinOp.operators (String.trim line) of
-            (Ok (_, _, BinOp (Variable ["=="]) l r)) ->
+            Ok ( _, _, BinOp (Variable [ "==" ]) l r ) ->
                 ind (c.indent + 2)
                     ++ "iex> import "
                     ++ c.mod
-                ++ ind (c.indent + 2)
+                    ++ ind (c.indent + 2)
                     ++ "iex> "
-                    ++ ExExpression.elixirE c l
-                ++ ind (c.indent + 2)
-                    ++ ExExpression.elixirE c r
-
+                    ++ Helpers.escape (ExExpression.elixirE c l)
+                    ++ ind (c.indent + 2)
+                    ++ Helpers.escape (ExExpression.elixirE c r)
             _ ->
-                Debug.crash "Error parsing doctests"
-
-
+                line
     else
         line
+
+
+onlyWithoutFlag : Context -> String -> String -> String -> String
+onlyWithoutFlag c key value code =
+    if ExContext.hasFlag key value c then
+        ""
+    else
+        code

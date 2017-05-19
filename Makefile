@@ -19,12 +19,22 @@ compile:
 compile-watch:
 	find . -name "*.elm" | grep -v "elm-stuff" | grep -v .# | entr make compile
 
+test:
+	elm test
+
+test-std:
+	cd elmchemy-core/elixir-stuff/elmchemy && mix test
 
 compile-std:
-	make compile && ./elmchemy compile src/ElixirStd elixir-stuff/elmchemy/lib
+	rm -rf elmchemy-core/elixir-stuff/elmchemy/lib/Elmchemy/*
+	cd elmchemy-core && ../elmchemy compile src/Elmchemy/ elixir-stuff/elmchemy/lib/Elmchemy/
 
 compile-std-watch:
-	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr make compile-std
+	find elmchemy-core -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr make compile-std
+
+compile-std-tests-watch:
+	find elmchemy-core -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c "make compile && make compile-std && make test-std"
+
 tests-watch:
 	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr elm-test
 
@@ -35,3 +45,6 @@ install-sysconf:
 	git clone "https://github.com/obmarg/libsysconfcpus.git"
 	cd libsysconfcpus && ./configure && make && make install
 	cd .. && rm -rf libsysconfcpus
+
+bump-patch:
+	npm ls | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9]*' | xargs -I '{}' sed -i  "s/[0-9][0-9]*\.[0-9][0-9]*\.[0-9]*/{}/g" src/Compiler.elm
