@@ -4,7 +4,7 @@ import Ast
 import Ast.Statement exposing (..)
 import Ast.Expression exposing (..)
 import Ast.BinOp exposing (operators)
-import ExContext exposing (Context, indent, deindent)
+import ExContext exposing (Context, Definition, indent, deindent)
 import ExExpression
 import ExType
 import Helpers exposing (..)
@@ -26,7 +26,7 @@ moduleStatement : Statement -> Context
 moduleStatement s =
     case s of
         ModuleDeclaration names exports ->
-            Context (String.join "." names) exports 0 Dict.empty []
+            ExContext.empty (String.join "." names) exports
 
         other ->
             crash "First statement must be module declaration"
@@ -46,22 +46,17 @@ elixirS c s =
         TypeAliasDeclaration _ _ ->
             ( c, "" )
 
-        --"alias?"
-        FunctionTypeDeclaration name ((TypeApplication _ _) as t) ->
-            (,) c <|
-                if isOperator name then
-                    -- TODO implement operator specs
-                    ""
-                else
-                    onlyWithoutFlag c
-                        "nospec"
-                        name
-                        ((ind c.indent)
-                            ++ "@spec "
-                            ++ toSnakeCase name
-                            ++ (ExType.typespec c t)
-                        )
-                        ++ onlyWithoutFlag c
+        (FunctionTypeDeclaration name ((TypeApplication _ _) as t)) as def ->
+            let
+                definition =
+                    getTypeDefinition def
+            in
+                (,) (addTypeDefinition c name definition) <|
+                    if isOperator name then
+                        -- TODO implement operator specs
+                        ""
+                    else
+                        onlyWithoutFlag c
                             "nospec0"
                             name
                             ((ind c.indent)
@@ -69,18 +64,29 @@ elixirS c s =
                                 ++ toSnakeCase name
                                 ++ (ExType.typespec0 c t)
                             )
+                            ++ onlyWithoutFlag c
+                                "nospec"
+                                name
+                                ((ind c.indent)
+                                    ++ "@spec "
+                                    ++ toSnakeCase name
+                                    ++ (ExType.typespec c t)
+                                )
 
-        --"alias?"
         FunctionTypeDeclaration name t ->
             (,) c <|
                 if isOperator name then
                     -- TODO implement operator specs
                     ""
                 else
-                    (ind c.indent)
-                        ++ "@spec "
-                        ++ toSnakeCase name
-                        ++ (ExType.typespec c t)
+                    onlyWithoutFlag c
+                        name
+                        "nospec"
+                        ((ind c.indent)
+                            ++ "@spec "
+                            ++ toSnakeCase name
+                            ++ (ExType.typespec c t)
+                        )
 
         (FunctionDeclaration name args body) as fd ->
             (,) c <|
@@ -88,6 +94,21 @@ elixirS c s =
                     ExExpression.generateMeta body
                 else
                     case body of
+                        (Application (Application (Variable [ "ffi" ]) _) _) as app ->
+                            ExExpression.generateFfi
+                                c
+                                name
+                                (c.definitions
+                                    |> Dict.get name
+                                    |> Maybe.map
+                                        (.def
+                                            >> typeAplicationToList
+                                        )
+                                    |> Maybe.withDefault []
+                                    |> map typeAplicationToList
+                                )
+                                app
+
                         Case vars expressions ->
                             if ExExpression.flattenCommas vars == args then
                                 ExExpression.genOverloadedFunctionDefinition
@@ -248,6 +269,7 @@ maybeDoctest c line =
                     ++ Helpers.escape (ExExpression.elixirE c l)
                     ++ ind (c.indent + 2)
                     ++ Helpers.escape (ExExpression.elixirE c r)
+
             _ ->
                 line
     else
@@ -260,3 +282,37 @@ onlyWithoutFlag c key value code =
         ""
     else
         code
+
+
+getTypeDefinition : Statement -> Definition
+getTypeDefinition a =
+    case a of
+        FunctionTypeDeclaration name t ->
+            let
+                arity =
+                    typeAplicationToList t |> length
+            in
+                Definition arity t
+
+        _ ->
+            Debug.crash "It's not a type declaration"
+
+
+addTypeDefinition : Context -> String -> Definition -> Context
+addTypeDefinition c name d =
+    { c
+        | definitions =
+            Dict.insert name
+                d
+                c.definitions
+    }
+
+
+typeAplicationToList : Type -> List Type
+typeAplicationToList application =
+    case application of
+        TypeApplication left right ->
+            (typeAplicationToList left) ++ [ right ]
+
+        other ->
+            [ other ]

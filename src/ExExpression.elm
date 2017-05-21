@@ -7,6 +7,8 @@ import ExContext exposing (Context, indent, deindent)
 import List exposing (..)
 import ExAlias
 import ExType
+import Dict
+
 
 elixirE : Context -> Expression -> String
 elixirE c e =
@@ -16,7 +18,7 @@ elixirE c e =
 
         -- Primitive types
         (Application name arg) as application ->
-                  (tupleOrFunction c application)
+            (tupleOrFunction c application)
 
         RecordUpdate name keyValuePairs ->
             "%{"
@@ -30,8 +32,8 @@ elixirE c e =
         -- Primitive operators
         Access ((Variable modules) as left) right ->
             modulePath modules
-            ++ "."
-            ++ String.join "." (map toSnakeCase right)
+                ++ "."
+                ++ String.join "." (map toSnakeCase right)
 
         Access left right ->
             elixirE c left
@@ -44,7 +46,6 @@ elixirE c e =
         -- Exception, ( "rem", "" )
         -- Exception, ( "^", "" )
         -- Tuple is an exception
-
         BinOp (Variable [ op ]) l r ->
             elixirBinop c op l r
 
@@ -81,16 +82,19 @@ elixirControlFlow c e =
             variables
                 |> map
                     (\( var, exp ) ->
-                         case applicationToList var of
-                             [ Variable [name] ] ->
-                                  toSnakeCase name
-                                  ++ " = "
-                                  ++ elixirE c exp
-                             Variable [name] :: args ->
-                                 toSnakeCase name
-                                 ++ " = "
-                                 ++ produceLambda c args exp
-                             _ -> Debug.crash "Impossible"
+                        case applicationToList var of
+                            [ Variable [ name ] ] ->
+                                toSnakeCase name
+                                    ++ " = "
+                                    ++ elixirE c exp
+
+                            (Variable [ name ]) :: args ->
+                                toSnakeCase name
+                                    ++ " = "
+                                    ++ produceLambda c args exp
+
+                            _ ->
+                                Debug.crash "Impossible"
                     )
                 |> String.join (ind c.indent)
                 |> flip (++) (ind c.indent ++ elixirE c expression)
@@ -179,13 +183,83 @@ generateMeta : Expression -> String
 generateMeta e =
     case e of
         List args ->
-            map getMetaLine args
+            (map getMetaLine args
                 |> map ((++) (ind 0))
                 |> String.join ""
                 |> flip (++) "\n"
+            )
+                ++ "\n"
 
         _ ->
             Debug.crash "Meta function has to have specific format"
+
+
+flambdify : Context -> List (List a) -> String
+flambdify c argTypes =
+    let
+        arity =
+            length argTypes
+
+        indexes =
+            range 1 arity
+    in
+        map2 (,) indexes argTypes
+            |> map
+                (\( i, arg ) ->
+                    case arg of
+                        [] ->
+                            Debug.crash "Impossible"
+
+                        [ any ] ->
+                            "x" ++ toString i
+
+                        list ->
+                            resolveFfi c (Flambda arity (Variable [ "x" ++ toString i ]))
+                )
+            |> String.join ", "
+
+
+generateFfi : Context -> String -> List (List Type) -> Expression -> String
+generateFfi c name argTypes e =
+    let
+        typeDef =
+            c.definitions |> Dict.get name
+
+        appList =
+            applicationToList e
+
+        flambdaArguments =
+            flambdify c argTypes
+    in
+        case ( typeDef, applicationToList e ) of
+            ( Nothing, _ ) ->
+                Debug.crash "Ffi requires type definition"
+
+            ( Just def, [ Variable [ "ffi" ], String mod, String fun ] ) ->
+                functionCurry c name def.arity
+                    ++ ind c.indent
+                    ++ "verify as: "
+                    ++ mod
+                    ++ "."
+                    ++ fun
+                    ++ "/"
+                    ++ toString def.arity
+                    ++ ind c.indent
+                    ++ "def "
+                    ++ name
+                    ++ "("
+                    ++ (generateArguments def.arity |> String.join ", ")
+                    ++ ")"
+                    ++ ", do: "
+                    ++ mod
+                    ++ "."
+                    ++ fun
+                    ++ "("
+                    ++ flambdaArguments
+                    ++ ")"
+
+            _ ->
+                Debug.crash "Wrong ffi definition"
 
 
 combineComas : Context -> Expression -> String
@@ -200,7 +274,10 @@ flattenCommas e =
     case e of
         Tuple kvs ->
             kvs
-        a -> [ a ]
+
+        a ->
+            [ a ]
+
 
 flattenPipes : Expression -> List Expression
 flattenPipes e =
@@ -233,6 +310,7 @@ isMacro e =
         other ->
             False
 
+
 flattenApplication : Expression -> List Expression
 flattenApplication application =
     case application of
@@ -247,43 +325,50 @@ flattenApplication application =
         other ->
             [ other ]
 
+
 applicationToList : Expression -> List Expression
 applicationToList application =
     case application of
         Application left right ->
-            (applicationToList left) ++ [right]
-        other -> [ other ]
+            (applicationToList left) ++ [ right ]
+
+        other ->
+            [ other ]
+
 
 tupleOrFunction : Context -> Expression -> String
 tupleOrFunction c a =
     case flattenApplication a of
         (Application left right) :: [] ->
-             elixirE c left ++ ".(" ++ elixirE c right ++ ")"
+            elixirE c left ++ ".(" ++ elixirE c right ++ ")"
 
         (Variable [ "ffi" ]) :: rest ->
-            case rest of
-                [ mod, fun, args ] ->
-                    resolveFfi c (Ffi mod fun args)
+            Debug.crash "Ffi inside function body is deprecated since Elmchemy 0.3"
 
-                _ ->
-                    Debug.crash "Wrong ffi"
-
+        -- case rest of
+        --     [ mod, fun, args ] ->
+        --         resolveFfi c (Ffi mod fun args)
+        --
+        --     _ ->
+        --         Debug.crash "Wrong ffi"
         (Variable [ "lffi" ]) :: rest ->
-            case rest of
-                [ fun, args ] ->
-                    resolveFfi c (Lffi fun args)
+            Debug.crash "Lffi inside function body is deprecated since Elmchemy 0.3"
 
-                _ ->
-                    Debug.crash "Wrong lffi"
-
+        -- case rest of
+        --     [ fun, args ] ->
+        --         resolveFfi c (Lffi fun args)
+        --
+        --     _ ->
+        --         Debug.crash "Wrong lffi"
         (Variable [ "flambda" ]) :: rest ->
-            case rest of
-                [ Integer arity, fun ] ->
-                    resolveFfi c (Flambda arity fun)
+            Debug.crash "Flambda is deprecated since Elmchemy 0.3"
 
-                _ ->
-                    Debug.crash "Wrong flambda"
-
+        -- case rest of
+        --     [ Integer arity, fun ] ->
+        --         resolveFfi c (Flambda arity fun)
+        --
+        --     _ ->
+        --         Debug.crash "Wrong flambda"
         [ Variable [ "Just" ], arg ] ->
             "{" ++ elixirE c arg ++ "}"
 
@@ -294,24 +379,25 @@ tupleOrFunction c a =
             case lastAndRest list of
                 ( Just last, _ ) ->
                     ExAlias.maybeAlias c.aliases last
-                    |> Maybe.map
-                       (ExType.typealiasConstructor
-                            >> elixirE c
-                            >> (++) "("
-                            >> flip (++)
-                                (rest
-                                |> map (elixirE c)
-                                |> String.join ").("
-                                |> (++) ").("
-                                |> flip (++) ")"
-                                )
-                       )
-                    |> Maybe.withDefault
-                       ("{"
-                        ++ elixirE c (Variable [ last ])
-                        ++ ", "
-                        ++ (map (elixirE c) rest |> String.join ", ")
-                        ++ "}")
+                        |> Maybe.map
+                            (ExType.typealiasConstructor
+                                >> elixirE c
+                                >> (++) "("
+                                >> flip (++)
+                                    (rest
+                                        |> map (elixirE c)
+                                        |> String.join ").("
+                                        |> (++) ").("
+                                        |> flip (++) ")"
+                                    )
+                            )
+                        |> Maybe.withDefault
+                            ("{"
+                                ++ elixirE c (Variable [ last ])
+                                ++ ", "
+                                ++ (map (elixirE c) rest |> String.join ", ")
+                                ++ "}"
+                            )
 
                 _ ->
                     Debug.crash "Won't ever happen"
@@ -330,7 +416,7 @@ resolveFfi : Context -> Ffi -> String
 resolveFfi c ffi =
     case ffi of
         -- Elmchemy hack
-        Ffi (String mod) (String fun) (Tuple _ as args) ->
+        Ffi (String mod) (String fun) ((Tuple _) as args) ->
             mod ++ "." ++ fun ++ "(" ++ combineComas c args ++ ")"
 
         -- One or many arg fun
@@ -338,7 +424,7 @@ resolveFfi c ffi =
             mod ++ "." ++ fun ++ "(" ++ elixirE c any ++ ")"
 
         -- Elmchemy hack
-        Lffi (String fun) (Tuple _ as args) ->
+        Lffi (String fun) ((Tuple _) as args) ->
             fun ++ "(" ++ combineComas c args ++ ")"
 
         -- One arg fun
@@ -474,9 +560,9 @@ privateOrPublic context name =
             Debug.crash "No such export"
 
 
-functionCurry : Context -> String -> List Expression -> String
-functionCurry c name args =
-    case ( List.length args, ExContext.hasFlag "nocurry" name c ) of
+functionCurry : Context -> String -> Int -> String
+functionCurry c name arity =
+    case ( arity, ExContext.hasFlag "nocurry" name c ) of
         ( 0, _ ) ->
             ""
 
@@ -496,9 +582,9 @@ functionCurry c name args =
 genFunctionDefinition : Context -> String -> List Expression -> Expression -> String
 genFunctionDefinition c name args body =
     if ExContext.hasFlag "nodef" name c then
-        functionCurry c name args
+        functionCurry c name (length args)
     else
-        functionCurry c name args
+        functionCurry c name (length args)
             ++ genElixirFunc c name args body
             ++ "\n"
 
@@ -512,9 +598,9 @@ genOverloadedFunctionDefinition :
     -> String
 genOverloadedFunctionDefinition c name args body expressions =
     if ExContext.hasFlag "nodef" name c then
-        functionCurry c name args
+        functionCurry c name (length args)
     else
-        functionCurry c name args
+        functionCurry c name (length args)
             ++ (expressions
                     |> List.map
                         (\( left, right ) ->
@@ -558,8 +644,9 @@ elixirVariable c var =
             if isCapitilzed name then
                 ExAlias.maybeAlias c.aliases name
                     |> Maybe.map
-                       (ExType.typealiasConstructor
-                            >> elixirE c)
+                        (ExType.typealiasConstructor
+                            >> elixirE c
+                        )
                     |> Maybe.withDefault (atomize name)
             else if isOperator name then
                 -- We need a curried version, so kernel won't work
