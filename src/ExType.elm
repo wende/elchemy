@@ -78,6 +78,9 @@ elixirT flatten c t =
         TypeConstructor [ "String" ] [] ->
             "String.t"
 
+        TypeConstructor [ "Char" ] [] ->
+            "char_list"
+
         TypeConstructor [ "Bool" ] [] ->
             "boolean"
 
@@ -196,45 +199,56 @@ typealias c t =
         other ->
             notImplemented "typealias" other
 
-typealiasConstructor : (String, Type) -> Expression
+
+typealiasConstructor : ( String, Type ) -> Expression
 typealiasConstructor modAndAlias =
     case modAndAlias of
         ( _, TypeConstructor [ name ] _ ) ->
             Variable [ name ]
+
         ( _, TypeRecord kvs ) ->
             let
-                args = List.length kvs
-                     |> List.range 1
-                     |> List.map (toString >> (++) "arg")
-                varargs = kvs
+                args =
+                    List.length kvs
+                        |> List.range 1
+                        |> List.map (toString >> (++) "arg")
+
+                varargs =
+                    kvs
                         |> List.map2 (flip (,)) args
                         |> List.map (Tuple.mapFirst Tuple.first)
                         |> List.map
-                           (Tuple.mapSecond (singleton >> Variable))
-
+                            (Tuple.mapSecond (singleton >> Variable))
             in
                 Lambda (constructApplication args) (Record varargs)
 
         ( _, TypeTuple kvs ) ->
             let
-                args = List.length kvs
-                     |> List.range 1
-                     |> List.map (toString >> (++) "arg")
+                args =
+                    List.length kvs
+                        |> List.range 1
+                        |> List.map (toString >> (++) "arg")
             in
                 Lambda (constructApplication args) (Tuple (map (singleton >> Variable) args))
 
         _ ->
             Debug.crash "Only simple type aliases. Sorry"
 
+
 constructApplication : List String -> List Expression
-constructApplication list  =
+constructApplication list =
     case list of
-        [] -> Debug.crash "Wrong application"
-        [ one ] -> [Variable [one]]
+        [] ->
+            Debug.crash "Wrong application"
+
+        [ one ] ->
+            [ Variable [ one ] ]
+
         head :: tail ->
-            [foldl (\a acc -> Application acc (Variable [a]))
-                (Variable [head])
-                tail]
+            [ foldl (\a acc -> Application acc (Variable [ a ]))
+                (Variable [ head ])
+                tail
+            ]
 
 
 aliasOr : Context -> String -> String -> String

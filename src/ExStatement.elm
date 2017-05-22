@@ -4,7 +4,7 @@ import Ast
 import Ast.Statement exposing (..)
 import Ast.Expression exposing (..)
 import Ast.BinOp exposing (operators)
-import ExContext exposing (Context, Definition, indent, deindent)
+import ExContext exposing (Context, Definition, indent, deindent, onlyWithoutFlag)
 import ExExpression
 import ExType
 import Helpers exposing (..)
@@ -276,14 +276,6 @@ maybeDoctest c line =
         line
 
 
-onlyWithoutFlag : Context -> String -> String -> String -> String
-onlyWithoutFlag c key value code =
-    if ExContext.hasFlag key value c then
-        ""
-    else
-        code
-
-
 getTypeDefinition : Statement -> Definition
 getTypeDefinition a =
     case a of
@@ -292,7 +284,7 @@ getTypeDefinition a =
                 arity =
                     typeAplicationToList t |> length
             in
-                Definition arity t
+                Definition (arity - 1) t
 
         _ ->
             Debug.crash "It's not a type declaration"
@@ -312,7 +304,7 @@ typeAplicationToList : Type -> List Type
 typeAplicationToList application =
     case application of
         TypeApplication left right ->
-            (typeAplicationToList left) ++ [ right ]
+            [ left ] ++ typeAplicationToList right
 
         other ->
             [ other ]

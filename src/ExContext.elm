@@ -46,6 +46,14 @@ addFlag flag c =
     { c | flags = flag :: c.flags }
 
 
+onlyWithoutFlag : Context -> String -> String -> String -> String
+onlyWithoutFlag c key value code =
+    if hasFlag key value c then
+        ""
+    else
+        code
+
+
 getAllFlags : String -> Context -> List String
 getAllFlags key c =
     c.flags

@@ -3,7 +3,7 @@ module ExExpression exposing (..)
 import Ast.Expression exposing (..)
 import Helpers exposing (..)
 import Ast.Statement exposing (..)
-import ExContext exposing (Context, indent, deindent)
+import ExContext exposing (Context, indent, deindent, onlyWithoutFlag)
 import List exposing (..)
 import ExAlias
 import ExType
@@ -92,6 +92,11 @@ elixirControlFlow c e =
                                 toSnakeCase name
                                     ++ " = "
                                     ++ produceLambda c args exp
+
+                            [ exp ] ->
+                                elixirE c exp
+                                    ++ " = "
+                                    ++ elixirE c exp
 
                             _ ->
                                 Debug.crash "Impossible"
@@ -198,7 +203,7 @@ flambdify : Context -> List (List a) -> String
 flambdify c argTypes =
     let
         arity =
-            length argTypes
+            length argTypes - 1
 
         indexes =
             range 1 arity
@@ -211,10 +216,10 @@ flambdify c argTypes =
                             Debug.crash "Impossible"
 
                         [ any ] ->
-                            "x" ++ toString i
+                            "a" ++ toString i
 
                         list ->
-                            resolveFfi c (Flambda arity (Variable [ "x" ++ toString i ]))
+                            resolveFfi c (Flambda (length list - 1) (Variable [ "a" ++ toString i ]))
                 )
             |> String.join ", "
 
@@ -237,18 +242,23 @@ generateFfi c name argTypes e =
 
             ( Just def, [ Variable [ "ffi" ], String mod, String fun ] ) ->
                 functionCurry c name def.arity
-                    ++ ind c.indent
-                    ++ "verify as: "
-                    ++ mod
-                    ++ "."
-                    ++ fun
-                    ++ "/"
-                    ++ toString def.arity
+                    ++ (onlyWithoutFlag c
+                            "noverify"
+                            name
+                            (ind c.indent
+                                ++ "verify as: "
+                                ++ mod
+                                ++ "."
+                                ++ fun
+                                ++ "/"
+                                ++ toString def.arity
+                            )
+                       )
                     ++ ind c.indent
                     ++ "def "
-                    ++ name
+                    ++ toSnakeCase name
                     ++ "("
-                    ++ (generateArguments def.arity |> String.join ", ")
+                    ++ (generateArguments_ "a" def.arity |> String.join ", ")
                     ++ ")"
                     ++ ", do: "
                     ++ mod
@@ -257,6 +267,25 @@ generateFfi c name argTypes e =
                     ++ "("
                     ++ flambdaArguments
                     ++ ")"
+
+            ( Just def, [ Variable [ "tryFfi" ], String mod, String fun ] ) ->
+                functionCurry c name def.arity
+                    ++ ind c.indent
+                    ++ "def "
+                    ++ toSnakeCase name
+                    ++ "("
+                    ++ (generateArguments_ "a" def.arity |> String.join ", ")
+                    ++ ")"
+                    ++ " do"
+                    ++ "try_catch fn _ -> "
+                    ++ mod
+                    ++ "."
+                    ++ fun
+                    ++ "("
+                    ++ flambdaArguments
+                    ++ ")"
+                    ++ " end"
+                    ++ " end"
 
             _ ->
                 Debug.crash "Wrong ffi definition"
@@ -297,6 +326,9 @@ isMacro e =
     case e of
         Application a _ ->
             isMacro a
+
+        Variable [ "tryFfi" ] ->
+            True
 
         Variable [ "ffi" ] ->
             True
@@ -409,12 +441,34 @@ tupleOrFunction c a =
 type Ffi
     = Lffi Expression Expression
     | Ffi Expression Expression Expression
+    | TryFfi Expression Expression Expression
     | Flambda Int Expression
 
 
 resolveFfi : Context -> Ffi -> String
 resolveFfi c ffi =
     case ffi of
+        TryFfi (String mod) (String fun) ((Tuple _) as args) ->
+            "try_catch fn _ -> "
+                ++ mod
+                ++ "."
+                ++ fun
+                ++ "("
+                ++ combineComas c args
+                ++ ")"
+                ++ " end"
+
+        -- One or many arg fun
+        TryFfi (String mod) (String fun) any ->
+            "try_catch fn _ -> "
+                ++ mod
+                ++ "."
+                ++ fun
+                ++ "("
+                ++ elixirE c any
+                ++ ")"
+                ++ " end"
+
         -- Elmchemy hack
         Ffi (String mod) (String fun) ((Tuple _) as args) ->
             mod ++ "." ++ fun ++ "(" ++ combineComas c args ++ ")"
