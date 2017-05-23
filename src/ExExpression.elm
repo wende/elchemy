@@ -369,6 +369,9 @@ isTuple a =
         Application a _ ->
             isTuple a
 
+        Variable [ "()" ] ->
+            True
+
         Variable [ name ] ->
             isUpper name
 
@@ -544,6 +547,9 @@ elixirVariable c var =
     case var of
         [] ->
             ""
+
+        [ "()" ] ->
+            "{}"
 
         [ "Nothing" ] ->
             "nil"
