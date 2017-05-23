@@ -185,7 +185,8 @@ elixirS c s =
                 Normal content ->
                     (,) c <|
                         (content
-                            |> prependAll ((ind c.indent) ++ "# ")
+                            |> prependAll ("# ")
+                            |> indAll c.indent
                         )
 
         -- That's not a real import. In elixir it's called alias
