@@ -73,20 +73,24 @@ elixirS c s =
                                     ++ (ExType.typespec c t)
                                 )
 
-        FunctionTypeDeclaration name t ->
-            (,) c <|
-                if isOperator name then
-                    -- TODO implement operator specs
-                    ""
-                else
-                    onlyWithoutFlag c
-                        name
-                        "nospec"
-                        ((ind c.indent)
-                            ++ "@spec "
-                            ++ toSnakeCase name
-                            ++ (ExType.typespec c t)
-                        )
+        (FunctionTypeDeclaration name t) as def ->
+            let
+                definition =
+                    getTypeDefinition def
+            in
+                (,) (addTypeDefinition c name definition) <|
+                    if isOperator name then
+                        -- TODO implement operator specs
+                        ""
+                    else
+                        onlyWithoutFlag c
+                            name
+                            "nospec"
+                            ((ind c.indent)
+                                ++ "@spec "
+                                ++ toSnakeCase name
+                                ++ (ExType.typespec c t)
+                            )
 
         (FunctionDeclaration name args body) as fd ->
             (,) c <|
