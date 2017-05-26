@@ -22,6 +22,9 @@
        border-right: 2px #d6d6d6 solid;
        float: left;
      }
+     #error-dialog {
+       color: red;
+     }
      #root {
        box-sizing: border-box;
        width: 50%;
@@ -33,7 +36,7 @@
     </style>
   </head>
   <body>
-    <div id="editor"></div>
+    <div id="editor"><div id="code-editor"></div><div id="error-dialog"></div></div>
     <div id="root"></div>
 	  <script src="https://esironal.github.io/cmtouch/lib/codemirror.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.25.2/mode/elm/elm.min.js"></script>
@@ -41,7 +44,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/languages/elm.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/languages/elixir.min.js"></script>
-    <script src="elm.js"></script>
+    <script src="elm.js" crossorigin="anonymous"></script>
     <script src="index.js"></script>
   </body>
 </html>
