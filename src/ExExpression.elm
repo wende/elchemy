@@ -40,12 +40,16 @@ elixirE c e =
                 ++ "."
                 ++ String.join "." right
 
+        AccessFunction name ->
+            "(fn a -> a." ++ toSnakeCase name ++ ")"
+
         -- Basic operators that are functions in Elixir
         -- Exception, ( "//", "" )
         -- Exception, ( "%", "" )
         -- Exception, ( "rem", "" )
         -- Exception, ( "^", "" )
         -- Tuple is an exception
+
         BinOp (Variable [ op ]) l r ->
             elixirBinop c op l r
 
@@ -509,6 +513,9 @@ isTuple a =
         Application a _ ->
             isTuple a
 
+        Variable [ "()" ] ->
+            True
+
         Variable [ name ] ->
             isUpper name
 
@@ -684,6 +691,9 @@ elixirVariable c var =
     case var of
         [] ->
             ""
+
+        [ "()" ] ->
+            "{}"
 
         [ "Nothing" ] ->
             "nil"

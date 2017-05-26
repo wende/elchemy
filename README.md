@@ -124,3 +124,12 @@ Ironically, no, you don't. Elmchemy is written entirely in Elm, which means the 
 But it's nice to use `elm-make` to check your type safety from time to time.
 
 
+# Progress of the project
+
+- Parser - **90%** (of Elm's syntax)
+- Compiler - **70%** (still needs some nicer solutions of code generation plus we might come out with some new nice ideas)
+- Elmchemy-core - **30%** ( We have Debug, Char, String, List, Result, Tuple and Maybe) 
+- Elmchemy-core for Erlang VM - **0%** (Everything for os related tasks like filesystem, OTP goodies etc has to be done)
+- Documentation **10%** - It's virtually nonexistent
+- Interop with Elixir - It works but it's being completely redone so it is type-safe
+- Ideology - **10%** - We only have a gist. There is so much work to do we rarely have time to sit and just think
