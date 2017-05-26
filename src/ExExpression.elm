@@ -8,6 +8,7 @@ import List exposing (..)
 import ExAlias
 import ExType
 
+
 elixirE : Context -> Expression -> String
 elixirE c e =
     case e of
@@ -16,7 +17,7 @@ elixirE c e =
 
         -- Primitive types
         (Application name arg) as application ->
-                  (tupleOrFunction c application)
+            (tupleOrFunction c application)
 
         RecordUpdate name keyValuePairs ->
             "%{"
@@ -30,13 +31,16 @@ elixirE c e =
         -- Primitive operators
         Access ((Variable modules) as left) right ->
             modulePath modules
-            ++ "."
-            ++ String.join "." (map toSnakeCase right)
+                ++ "."
+                ++ String.join "." (map toSnakeCase right)
 
         Access left right ->
             elixirE c left
                 ++ "."
                 ++ String.join "." right
+
+        AccessFunction name ->
+            "(fn a -> a." ++ toSnakeCase name ++ ")"
 
         -- Basic operators that are functions in Elixir
         -- Exception, ( "//", "" )
@@ -44,7 +48,6 @@ elixirE c e =
         -- Exception, ( "rem", "" )
         -- Exception, ( "^", "" )
         -- Tuple is an exception
-
         BinOp (Variable [ op ]) l r ->
             elixirBinop c op l r
 
@@ -81,16 +84,19 @@ elixirControlFlow c e =
             variables
                 |> map
                     (\( var, exp ) ->
-                         case applicationToList var of
-                             [ Variable [name] ] ->
-                                  toSnakeCase name
-                                  ++ " = "
-                                  ++ elixirE c exp
-                             Variable [name] :: args ->
-                                 toSnakeCase name
-                                 ++ " = "
-                                 ++ produceLambda c args exp
-                             _ -> Debug.crash "Impossible"
+                        case applicationToList var of
+                            [ Variable [ name ] ] ->
+                                toSnakeCase name
+                                    ++ " = "
+                                    ++ elixirE c exp
+
+                            (Variable [ name ]) :: args ->
+                                toSnakeCase name
+                                    ++ " = "
+                                    ++ produceLambda c args exp
+
+                            _ ->
+                                Debug.crash "Impossible"
                     )
                 |> String.join (ind c.indent)
                 |> flip (++) (ind c.indent ++ elixirE c expression)
@@ -200,7 +206,10 @@ flattenCommas e =
     case e of
         Tuple kvs ->
             kvs
-        a -> [ a ]
+
+        a ->
+            [ a ]
+
 
 flattenPipes : Expression -> List Expression
 flattenPipes e =
@@ -233,6 +242,7 @@ isMacro e =
         other ->
             False
 
+
 flattenApplication : Expression -> List Expression
 flattenApplication application =
     case application of
@@ -247,18 +257,22 @@ flattenApplication application =
         other ->
             [ other ]
 
+
 applicationToList : Expression -> List Expression
 applicationToList application =
     case application of
         Application left right ->
-            (applicationToList left) ++ [right]
-        other -> [ other ]
+            (applicationToList left) ++ [ right ]
+
+        other ->
+            [ other ]
+
 
 tupleOrFunction : Context -> Expression -> String
 tupleOrFunction c a =
     case flattenApplication a of
         (Application left right) :: [] ->
-             elixirE c left ++ ".(" ++ elixirE c right ++ ")"
+            elixirE c left ++ ".(" ++ elixirE c right ++ ")"
 
         (Variable [ "ffi" ]) :: rest ->
             case rest of
@@ -294,24 +308,25 @@ tupleOrFunction c a =
             case lastAndRest list of
                 ( Just last, _ ) ->
                     ExAlias.maybeAlias c.aliases last
-                    |> Maybe.map
-                       (ExType.typealiasConstructor
-                            >> elixirE c
-                            >> (++) "("
-                            >> flip (++)
-                                (rest
-                                |> map (elixirE c)
-                                |> String.join ").("
-                                |> (++) ").("
-                                |> flip (++) ")"
-                                )
-                       )
-                    |> Maybe.withDefault
-                       ("{"
-                        ++ elixirE c (Variable [ last ])
-                        ++ ", "
-                        ++ (map (elixirE c) rest |> String.join ", ")
-                        ++ "}")
+                        |> Maybe.map
+                            (ExType.typealiasConstructor
+                                >> elixirE c
+                                >> (++) "("
+                                >> flip (++)
+                                    (rest
+                                        |> map (elixirE c)
+                                        |> String.join ").("
+                                        |> (++) ").("
+                                        |> flip (++) ")"
+                                    )
+                            )
+                        |> Maybe.withDefault
+                            ("{"
+                                ++ elixirE c (Variable [ last ])
+                                ++ ", "
+                                ++ (map (elixirE c) rest |> String.join ", ")
+                                ++ "}"
+                            )
 
                 _ ->
                     Debug.crash "Won't ever happen"
@@ -330,7 +345,7 @@ resolveFfi : Context -> Ffi -> String
 resolveFfi c ffi =
     case ffi of
         -- Elmchemy hack
-        Ffi (String mod) (String fun) (Tuple _ as args) ->
+        Ffi (String mod) (String fun) ((Tuple _) as args) ->
             mod ++ "." ++ fun ++ "(" ++ combineComas c args ++ ")"
 
         -- One or many arg fun
@@ -338,7 +353,7 @@ resolveFfi c ffi =
             mod ++ "." ++ fun ++ "(" ++ elixirE c any ++ ")"
 
         -- Elmchemy hack
-        Lffi (String fun) (Tuple _ as args) ->
+        Lffi (String fun) ((Tuple _) as args) ->
             fun ++ "(" ++ combineComas c args ++ ")"
 
         -- One arg fun
@@ -564,8 +579,9 @@ elixirVariable c var =
             if isCapitilzed name then
                 ExAlias.maybeAlias c.aliases name
                     |> Maybe.map
-                       (ExType.typealiasConstructor
-                            >> elixirE c)
+                        (ExType.typealiasConstructor
+                            >> elixirE c
+                        )
                     |> Maybe.withDefault (atomize name)
             else if isOperator name then
                 -- We need a curried version, so kernel won't work
