@@ -113,6 +113,21 @@ elixirS c s =
                                 )
                                 app
 
+                        (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
+                            ExExpression.generateFfi
+                                c
+                                name
+                                (c.definitions
+                                    |> Dict.get name
+                                    |> Maybe.map
+                                        (.def
+                                            >> typeAplicationToList
+                                        )
+                                    |> Maybe.withDefault []
+                                    |> map typeAplicationToList
+                                )
+                                app
+
                         Case vars expressions ->
                             if ExExpression.flattenCommas vars == args then
                                 ExExpression.genOverloadedFunctionDefinition

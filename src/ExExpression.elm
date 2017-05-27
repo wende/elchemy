@@ -49,7 +49,6 @@ elixirE c e =
         -- Exception, ( "rem", "" )
         -- Exception, ( "^", "" )
         -- Tuple is an exception
-
         BinOp (Variable [ op ]) l r ->
             elixirBinop c op l r
 
@@ -97,8 +96,8 @@ elixirControlFlow c e =
                                     ++ " = "
                                     ++ produceLambda c args exp
 
-                            [ exp ] ->
-                                elixirE c exp
+                            [ assign ] ->
+                                elixirE c assign
                                     ++ " = "
                                     ++ elixirE c exp
 
@@ -280,16 +279,20 @@ generateFfi c name argTypes e =
                     ++ "("
                     ++ (generateArguments_ "a" def.arity |> String.join ", ")
                     ++ ")"
-                    ++ " do"
-                    ++ "try_catch fn _ -> "
+                    ++ " do "
+                    ++ ind (c.indent + 1)
+                    ++ "try_catch fn -> "
+                    ++ ind (c.indent + 2)
                     ++ mod
                     ++ "."
                     ++ fun
                     ++ "("
                     ++ flambdaArguments
                     ++ ")"
-                    ++ " end"
-                    ++ " end"
+                    ++ ind (c.indent + 1)
+                    ++ "end"
+                    ++ ind c.indent
+                    ++ "end"
 
             _ ->
                 Debug.crash "Wrong ffi definition"
@@ -380,6 +383,9 @@ tupleOrFunction c a =
 
         (Variable [ "ffi" ]) :: rest ->
             Debug.crash "Ffi inside function body is deprecated since Elmchemy 0.3"
+
+        (Variable [ "tryFfi" ]) :: rest ->
+            Debug.crash "tryFfi inside function body is deprecated since Elmchemy 0.3"
 
         -- case rest of
         --     [ mod, fun, args ] ->
