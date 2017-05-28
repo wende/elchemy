@@ -11,6 +11,7 @@ type MaybeUpper
     = Upper String
     | Lower String
 
+
 notImplemented : String -> a -> String
 notImplemented feature value =
     " ## ERROR: No "
@@ -183,10 +184,15 @@ trimIndentations line =
 
 
 generateArguments : Int -> List String
-generateArguments n =
+generateArguments =
+    generateArguments_ "x"
+
+
+generateArguments_ : String -> Int -> List String
+generateArguments_ str n =
     List.range 1 n
         |> map toString
-        |> map ((++) "x")
+        |> map ((++) str)
 
 
 unescape : String -> String
@@ -197,6 +203,7 @@ unescape s =
 escape : String -> String
 escape s =
     Regex.replace All (regex "\\\\n") (always "\\\\n") s
+
 
 modulePath : List String -> String
 modulePath list =
@@ -215,7 +222,10 @@ isStdModule a =
         , "Tuple"
         ]
 
+
 maybeReplaceStd : String -> String
 maybeReplaceStd s =
-    if isStdModule s then "X" ++ s
-    else s
+    if isStdModule s then
+        "X" ++ s
+    else
+        s

@@ -2,7 +2,6 @@ module Tests exposing (..)
 
 import Test exposing (..)
 import Expect
-import Fuzz exposing (list, int, tuple, string)
 import String
 import Compiler
 
@@ -117,14 +116,13 @@ all =
         , test "TypeRecord" <|
             \() ->
                 "type alias A = {a : Int, b: Int, c: Int} \n"
-                ++ "a = A 1 2 3"
-        |> has "%{a: arg1, b: arg2, c: arg3}"
+                    ++ "a = A 1 2 3"
+                    |> has "%{a: arg1, b: arg2, c: arg3}"
         , test "TypeTuple" <|
             \() ->
                 "type alias A = (Int, Int, Int) \n"
-                ++ "a = A 1 2 "
-        |> has "{arg1, arg2, arg3}"
-
+                    ++ "a = A 1 2 "
+                    |> has "{arg1, arg2, arg3}"
 
         -- Records
         , test "Records work" <|

@@ -45,8 +45,7 @@ install:
   - make compile-std
 
 script:
-  - elm-test
-  - make test-std
+  - elm-test && make test-std
 
 notifications:
   email: false

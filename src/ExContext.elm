@@ -12,13 +12,23 @@ type alias Flag =
     ( String, String )
 
 
+type alias Definition =
+    { arity : Int, def : Type }
+
+
 type alias Context =
     { mod : String
     , exports : ExportSet
     , indent : Int
     , aliases : Aliases
     , flags : List Flag
+    , definitions : Dict String Definition
     }
+
+
+empty : String -> ExportSet -> Context
+empty name exports =
+    Context name exports 0 Dict.empty [] Dict.empty
 
 
 indent : Context -> Context
@@ -34,6 +44,14 @@ deindent c =
 addFlag : Flag -> Context -> Context
 addFlag flag c =
     { c | flags = flag :: c.flags }
+
+
+onlyWithoutFlag : Context -> String -> String -> String -> String
+onlyWithoutFlag c key value code =
+    if hasFlag key value c then
+        ""
+    else
+        code
 
 
 getAllFlags : String -> Context -> List String
