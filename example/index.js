@@ -19,9 +19,11 @@ fizzbuzz from to =
 joinWords : List String -> String
 joinWords a = String.join " " a`;
 
+
+
 var app = Elm.Main.embed(document.getElementById('root'), init);
 
-var codeMirror = CodeMirror(document.getElementById('editor'), {
+var codeMirror = CodeMirror(document.getElementById('code-editor'), {
   value: init,
   lineNumbers: true,
   mode: 'elm',
@@ -32,3 +34,11 @@ codeMirror.on('change', function(cm, change) {
   var data = cm.getValue();
   app.ports.updateInput.send(data);
 });
+
+window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
+  split = errorMsg.split("The message provided by the code author is:")
+  if(split.length == 2){
+    document.getElementById("error-dialog").innerText = split[1]
+  }
+  return false;
+}
