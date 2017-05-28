@@ -61,10 +61,7 @@ all =
                 "app = a b c d" |> has "a.(b).(c).(d)"
         , test "ffi" <|
             \() ->
-                "upcase name = ffi \"String\" \"to_upper\" name " |> has "String.to_upper(name)"
-        , test "ffi" <|
-            \() ->
-                "a f = flambda 2 f " |> has "fn (x1,x2) -> f.(x1).(x2) end"
+                "upcase : String -> String\nupcase name = ffi \"String\" \"to_upper\" " |> has "String.to_upper("
         , test "function names are snakecased" <|
             \() ->
                 "camelCase = 1" |> has "camel_case()"
