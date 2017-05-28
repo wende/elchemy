@@ -3,10 +3,11 @@ module ExExpression exposing (..)
 import Ast.Expression exposing (..)
 import Helpers exposing (..)
 import Ast.Statement exposing (..)
-import ExContext exposing (Context, indent, deindent)
+import ExContext exposing (Context, indent, deindent, onlyWithoutFlag)
 import List exposing (..)
 import ExAlias
 import ExType
+import Dict
 
 
 elixirE : Context -> Expression -> String
@@ -94,6 +95,11 @@ elixirControlFlow c e =
                                 toSnakeCase name
                                     ++ " = "
                                     ++ produceLambda c args exp
+
+                            [ assign ] ->
+                                elixirE c assign
+                                    ++ " = "
+                                    ++ elixirE c exp
 
                             _ ->
                                 Debug.crash "Impossible"
@@ -185,13 +191,111 @@ generateMeta : Expression -> String
 generateMeta e =
     case e of
         List args ->
-            map getMetaLine args
+            (map getMetaLine args
                 |> map ((++) (ind 0))
                 |> String.join ""
                 |> flip (++) "\n"
+            )
+                ++ "\n"
 
         _ ->
             Debug.crash "Meta function has to have specific format"
+
+
+flambdify : Context -> List (List a) -> String
+flambdify c argTypes =
+    let
+        arity =
+            length argTypes - 1
+
+        indexes =
+            range 1 arity
+    in
+        map2 (,) indexes argTypes
+            |> map
+                (\( i, arg ) ->
+                    case arg of
+                        [] ->
+                            Debug.crash "Impossible"
+
+                        [ any ] ->
+                            "a" ++ toString i
+
+                        list ->
+                            resolveFfi c (Flambda (length list - 1) (Variable [ "a" ++ toString i ]))
+                )
+            |> String.join ", "
+
+
+generateFfi : Context -> String -> List (List Type) -> Expression -> String
+generateFfi c name argTypes e =
+    let
+        typeDef =
+            c.definitions |> Dict.get name
+
+        appList =
+            applicationToList e
+
+        flambdaArguments =
+            flambdify c argTypes
+    in
+        case ( typeDef, applicationToList e ) of
+            ( Nothing, _ ) ->
+                Debug.crash "Ffi requires type definition"
+
+            ( Just def, [ Variable [ "ffi" ], String mod, String fun ] ) ->
+                functionCurry c name def.arity
+                    ++ (onlyWithoutFlag c
+                            "noverify"
+                            name
+                            (ind c.indent
+                                ++ "verify as: "
+                                ++ mod
+                                ++ "."
+                                ++ fun
+                                ++ "/"
+                                ++ toString def.arity
+                            )
+                       )
+                    ++ ind c.indent
+                    ++ "def "
+                    ++ toSnakeCase name
+                    ++ "("
+                    ++ (generateArguments_ "a" def.arity |> String.join ", ")
+                    ++ ")"
+                    ++ ", do: "
+                    ++ mod
+                    ++ "."
+                    ++ fun
+                    ++ "("
+                    ++ flambdaArguments
+                    ++ ")"
+
+            ( Just def, [ Variable [ "tryFfi" ], String mod, String fun ] ) ->
+                functionCurry c name def.arity
+                    ++ ind c.indent
+                    ++ "def "
+                    ++ toSnakeCase name
+                    ++ "("
+                    ++ (generateArguments_ "a" def.arity |> String.join ", ")
+                    ++ ")"
+                    ++ " do "
+                    ++ ind (c.indent + 1)
+                    ++ "try_catch fn -> "
+                    ++ ind (c.indent + 2)
+                    ++ mod
+                    ++ "."
+                    ++ fun
+                    ++ "("
+                    ++ flambdaArguments
+                    ++ ")"
+                    ++ ind (c.indent + 1)
+                    ++ "end"
+                    ++ ind c.indent
+                    ++ "end"
+
+            _ ->
+                Debug.crash "Wrong ffi definition"
 
 
 combineComas : Context -> Expression -> String
@@ -229,6 +333,9 @@ isMacro e =
     case e of
         Application a _ ->
             isMacro a
+
+        Variable [ "tryFfi" ] ->
+            True
 
         Variable [ "ffi" ] ->
             True
@@ -275,29 +382,35 @@ tupleOrFunction c a =
             elixirE c left ++ ".(" ++ elixirE c right ++ ")"
 
         (Variable [ "ffi" ]) :: rest ->
-            case rest of
-                [ mod, fun, args ] ->
-                    resolveFfi c (Ffi mod fun args)
+            Debug.crash "Ffi inside function body is deprecated since Elmchemy 0.3"
 
-                _ ->
-                    Debug.crash "Wrong ffi"
+        (Variable [ "tryFfi" ]) :: rest ->
+            Debug.crash "tryFfi inside function body is deprecated since Elmchemy 0.3"
 
+        -- case rest of
+        --     [ mod, fun, args ] ->
+        --         resolveFfi c (Ffi mod fun args)
+        --
+        --     _ ->
+        --         Debug.crash "Wrong ffi"
         (Variable [ "lffi" ]) :: rest ->
-            case rest of
-                [ fun, args ] ->
-                    resolveFfi c (Lffi fun args)
+            Debug.crash "Lffi inside function body is deprecated since Elmchemy 0.3"
 
-                _ ->
-                    Debug.crash "Wrong lffi"
-
+        -- case rest of
+        --     [ fun, args ] ->
+        --         resolveFfi c (Lffi fun args)
+        --
+        --     _ ->
+        --         Debug.crash "Wrong lffi"
         (Variable [ "flambda" ]) :: rest ->
-            case rest of
-                [ Integer arity, fun ] ->
-                    resolveFfi c (Flambda arity fun)
+            Debug.crash "Flambda is deprecated since Elmchemy 0.3"
 
-                _ ->
-                    Debug.crash "Wrong flambda"
-
+        -- case rest of
+        --     [ Integer arity, fun ] ->
+        --         resolveFfi c (Flambda arity fun)
+        --
+        --     _ ->
+        --         Debug.crash "Wrong flambda"
         [ Variable [ "Just" ], arg ] ->
             "{" ++ elixirE c arg ++ "}"
 
@@ -338,12 +451,34 @@ tupleOrFunction c a =
 type Ffi
     = Lffi Expression Expression
     | Ffi Expression Expression Expression
+    | TryFfi Expression Expression Expression
     | Flambda Int Expression
 
 
 resolveFfi : Context -> Ffi -> String
 resolveFfi c ffi =
     case ffi of
+        TryFfi (String mod) (String fun) ((Tuple _) as args) ->
+            "try_catch fn _ -> "
+                ++ mod
+                ++ "."
+                ++ fun
+                ++ "("
+                ++ combineComas c args
+                ++ ")"
+                ++ " end"
+
+        -- One or many arg fun
+        TryFfi (String mod) (String fun) any ->
+            "try_catch fn _ -> "
+                ++ mod
+                ++ "."
+                ++ fun
+                ++ "("
+                ++ elixirE c any
+                ++ ")"
+                ++ " end"
+
         -- Elmchemy hack
         Ffi (String mod) (String fun) ((Tuple _) as args) ->
             mod ++ "." ++ fun ++ "(" ++ combineComas c args ++ ")"
@@ -492,9 +627,9 @@ privateOrPublic context name =
             Debug.crash "No such export"
 
 
-functionCurry : Context -> String -> List Expression -> String
-functionCurry c name args =
-    case ( List.length args, ExContext.hasFlag "nocurry" name c ) of
+functionCurry : Context -> String -> Int -> String
+functionCurry c name arity =
+    case ( arity, ExContext.hasFlag "nocurry" name c ) of
         ( 0, _ ) ->
             ""
 
@@ -514,9 +649,9 @@ functionCurry c name args =
 genFunctionDefinition : Context -> String -> List Expression -> Expression -> String
 genFunctionDefinition c name args body =
     if ExContext.hasFlag "nodef" name c then
-        functionCurry c name args
+        functionCurry c name (length args)
     else
-        functionCurry c name args
+        functionCurry c name (length args)
             ++ genElixirFunc c name args body
             ++ "\n"
 
@@ -530,9 +665,9 @@ genOverloadedFunctionDefinition :
     -> String
 genOverloadedFunctionDefinition c name args body expressions =
     if ExContext.hasFlag "nodef" name c then
-        functionCurry c name args
+        functionCurry c name (length args)
     else
-        functionCurry c name args
+        functionCurry c name (length args)
             ++ (expressions
                     |> List.map
                         (\( left, right ) ->
