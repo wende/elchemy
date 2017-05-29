@@ -35,10 +35,15 @@ codeMirror.on('change', function(cm, change) {
   app.ports.updateInput.send(data);
 });
 
-window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
-  split = errorMsg.split("The message provided by the code author is:")
-  if(split.length == 2){
-    document.getElementById("error-dialog").innerText = split[1]
-  }
+window.onerror = function (errorMsg, url, lineNumber) {
+  setTimeout(function(){
+    split = errorMsg.split("The message provided by the code author is:")
+    if(split.length == 2){
+      document.getElementById("error-dialog").innerText = split[1]
+    }
+  }, 30)
   return false;
+}
+window.onkeydown = function() {
+  document.getElementById("error-dialog").innerText = ""
 }
