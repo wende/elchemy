@@ -27,7 +27,7 @@ case "$1" in
             cp $SOURCE_DIR/templates/elm-package.json ./
             cp $SOURCE_DIR/templates/Hello.elm ./elm/
             cp $SOURCE_DIR/templates/elmchemy_test.exs ./test/
-            printf  "Elmchemy initialised. Make sure to add:\n\n\tcompilers: [:elmchemy, :yecc, :leex, :erlang, :elixir, :app],\n\telmchemy_path: \"elm\",\n\nto your mix.exs file\nThen run mix test to check if everything went fine\n"
+            printf  "Elmchemy initialised. Make sure to add:\n\n\tcompilers: [:elmchemy, :yecc, :leex, :erlang, :elixir, :app],\n\telixirc_paths: [\"lib\", \"elm-deps\"]\n\telmchemy_path: \"elm\",\n\nto your mix.exs file\nThen run mix test to check if everything went fine\n"
 
         else
             printf  "ERROR: No elixir project found. Make sure to run init in a project"
