@@ -39,7 +39,7 @@ case "$1" in
         elm-package install -y
         for f in `{ find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#." ; find $2/../elm-stuff/packages -name "*.elm" ;}`
         do
-            if [[ ${f} == *"elm-lang"* || ${f} == *"Elmchemy.elm"*]]; the
+            if [[ ${f} == *"elm-lang"* || ${f} == *"Elmchemy.elm"*]]; then
                 continue
             fi
             echo "----------"
