@@ -5,6 +5,7 @@ import Tuple exposing (..)
 import List exposing (..)
 import Regex exposing (..)
 import Dict exposing (Dict)
+import ExReserved
 
 
 type MaybeUpper
@@ -23,15 +24,22 @@ notImplemented feature value =
         |> Debug.crash
 
 
-toSnakeCase : String -> String
-toSnakeCase string =
-    if String.toUpper string == string then
-        String.toLower string
-    else
-        string
-            |> Regex.split Regex.All (Regex.regex "(?=[A-Z])")
-            |> String.join "_"
-            |> String.toLower
+toSnakeCase : Bool -> String -> String
+toSnakeCase isVar s =
+    let
+        string =
+            if isVar then
+                ExReserved.maybeReplaceReserved s
+            else
+                s
+    in
+        if String.toUpper string == string then
+            String.toLower string
+        else
+            string
+                |> Regex.split Regex.All (Regex.regex "(?=[A-Z])")
+                |> String.join "_"
+                |> String.toLower
 
 
 isUpper : String -> Bool
@@ -53,7 +61,7 @@ capitalize s =
 
 atomize : String -> String
 atomize s =
-    ":" ++ toSnakeCase s
+    ":" ++ toSnakeCase False s
 
 
 isCapitilzed : String -> Bool
@@ -152,11 +160,32 @@ operators =
         |> List.foldl (uncurry Dict.insert) Dict.empty
 
 
-isOperator : String -> Bool
+type Operator
+    = None
+    | Builtin
+    | Custom
+
+
+isOperator : String -> Operator
 isOperator name =
-    operators
-        |> Dict.keys
-        |> List.any ((==) name)
+    let
+        is_builtin =
+            operators
+                |> Dict.keys
+                |> List.any ((==) name)
+
+        is_custom =
+            Regex.contains (regex "^[+\\-\\/*=.$<>:&|^?%#@~!]+$") name
+    in
+        case ( is_builtin, is_custom ) of
+            ( True, _ ) ->
+                Builtin
+
+            ( False, True ) ->
+                Custom
+
+            _ ->
+                None
 
 
 translateOperator : String -> String
@@ -172,10 +201,7 @@ translateOperator op =
             key
 
         _ ->
-            Debug.crash
-                (op
-                    ++ " is not a valid or not implemented yet operator"
-                )
+            ExReserved.replaceOp op
 
 
 trimIndentations : String -> String

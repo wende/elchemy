@@ -17,7 +17,10 @@ registerAlias : Context -> Statement -> Aliases -> Aliases
 registerAlias c s ls =
     case s of
         TypeDeclaration (TypeConstructor [ name ] _) a ->
-            Dict.insert name ( c.mod, TypeVariable (toSnakeCase name) ) ls
+            Dict.insert
+                name
+                ( c.mod, TypeVariable (toSnakeCase True name) )
+                ls
 
         TypeAliasDeclaration (TypeConstructor [ name ] _) a ->
             Dict.insert name ( c.mod, a ) ls
