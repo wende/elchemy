@@ -2,7 +2,7 @@ dev:
 	pkill -f http-server &
 	echo "Make sure to install http-server with npm i -g http-server"
 	elm-make Main.elm --output=example/elm.js
-	(http-server ./example/ -p 8081 &) && open "http://127.0.0.1:8081"
+	(http-server ./example/ -p 8081 -c-1 &) && open "http://127.0.0.1:8081"
 
 release:
 	elm-make Main.elm --output=example/elm.js
