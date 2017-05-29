@@ -811,12 +811,21 @@ elixirBinop c op l r =
                    )
 
         op ->
-            (translateOperator op)
-                ++ ".("
-                ++ elixirE c l
-                ++ ", "
-                ++ elixirE c r
-                ++ ")"
+            case isOperator op of
+                Builtin ->
+                    [ elixirE c l, translateOperator op, elixirE c r ]
+                        |> String.join " "
+
+                Custom ->
+                    (translateOperator op)
+                        ++ ".("
+                        ++ elixirE c l
+                        ++ ", "
+                        ++ elixirE c r
+                        ++ ")"
+
+                None ->
+                    Debug.crash ("Illegal operator " ++ op)
 
 
 produceLambda : Context -> List Expression -> Expression -> String
