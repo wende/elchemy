@@ -39,7 +39,7 @@ elixirS c s =
             (,) c <|
                 (ind c.indent)
                     ++ "@type "
-                    ++ toSnakeCase name
+                    ++ toSnakeCase True name
                     ++ " :: "
                     ++ ((map (ExType.typealias c) types) |> String.join " | ")
 
@@ -52,26 +52,46 @@ elixirS c s =
                     getTypeDefinition def
             in
                 (,) (addTypeDefinition c name definition) <|
-                    if isOperator name then
-                        -- TODO implement operator specs
-                        ""
-                    else
-                        onlyWithoutFlag c
-                            "nospec0"
-                            name
-                            ((ind c.indent)
-                                ++ "@spec "
-                                ++ toSnakeCase name
-                                ++ (ExType.typespec0 c t)
-                            )
-                            ++ onlyWithoutFlag c
-                                "nospec"
+                    case isOperator name of
+                        Builtin ->
+                            -- TODO implement operator specs
+                            ""
+
+                        Custom ->
+                            onlyWithoutFlag c
+                                "nospec0"
                                 name
                                 ((ind c.indent)
                                     ++ "@spec "
-                                    ++ toSnakeCase name
-                                    ++ (ExType.typespec c t)
+                                    ++ translateOperator name
+                                    ++ (ExType.typespec0 c t)
                                 )
+                                ++ onlyWithoutFlag c
+                                    "nospec"
+                                    name
+                                    ((ind c.indent)
+                                        ++ "@spec "
+                                        ++ translateOperator name
+                                        ++ (ExType.typespec c t)
+                                    )
+
+                        None ->
+                            onlyWithoutFlag c
+                                "nospec0"
+                                name
+                                ((ind c.indent)
+                                    ++ "@spec "
+                                    ++ toSnakeCase True name
+                                    ++ (ExType.typespec0 c t)
+                                )
+                                ++ onlyWithoutFlag c
+                                    "nospec"
+                                    name
+                                    ((ind c.indent)
+                                        ++ "@spec "
+                                        ++ toSnakeCase True name
+                                        ++ (ExType.typespec c t)
+                                    )
 
         (FunctionTypeDeclaration name t) as def ->
             let
@@ -79,18 +99,30 @@ elixirS c s =
                     getTypeDefinition def
             in
                 (,) (addTypeDefinition c name definition) <|
-                    if isOperator name then
-                        -- TODO implement operator specs
-                        ""
-                    else
-                        onlyWithoutFlag c
-                            name
-                            "nospec"
-                            ((ind c.indent)
-                                ++ "@spec "
-                                ++ toSnakeCase name
-                                ++ (ExType.typespec c t)
-                            )
+                    case isOperator name of
+                        Builtin ->
+                            -- TODO implement operator specs
+                            ""
+
+                        Custom ->
+                            onlyWithoutFlag c
+                                name
+                                "nospec"
+                                ((ind c.indent)
+                                    ++ "@spec "
+                                    ++ translateOperator name
+                                    ++ (ExType.typespec c t)
+                                )
+
+                        None ->
+                            onlyWithoutFlag c
+                                name
+                                "nospec"
+                                ((ind c.indent)
+                                    ++ "@spec "
+                                    ++ toSnakeCase True name
+                                    ++ (ExType.typespec c t)
+                                )
 
         (FunctionDeclaration name args body) as fd ->
             (,) c <|

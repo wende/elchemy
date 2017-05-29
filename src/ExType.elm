@@ -75,61 +75,18 @@ elixirT flatten c t =
                                 "any"
                    )
 
-        TypeConstructor [ "String" ] [] ->
-            "String.t"
-
-        TypeConstructor [ "Char" ] [] ->
-            "char_list"
-
-        TypeConstructor [ "Bool" ] [] ->
-            "boolean"
-
-        TypeConstructor [ "Int" ] [] ->
-            "integer"
-
-        TypeConstructor [ "Pid" ] [] ->
-            "pid"
-
-        TypeConstructor [ "Float" ] [] ->
-            "float"
-
-        TypeConstructor [ "List" ] [ t ] ->
-            "list(" ++ elixirT flatten c t ++ ")"
-
-        TypeConstructor [ "Maybe" ] [ t ] ->
-            elixirT flatten c t ++ " | nil"
-
-        TypeConstructor [ "Nothing" ] [] ->
-            "nil"
-
-        TypeConstructor [ "Just" ] [ t ] ->
-            elixirT flatten c t
-
-        TypeConstructor [ "T" ] [] ->
-            "t"
-
-        TypeConstructor [ t ] [] ->
-            aliasOr c t (atomize t)
+        TypeConstructor [ t ] any ->
+            elixirTypeConstructor flatten c t any
 
         TypeConstructor t [] ->
             case lastAndRest t of
                 ( Just last, a ) ->
                     String.join "." a
                         ++ "."
-                        ++ toSnakeCase last
+                        ++ toSnakeCase True last
 
                 _ ->
                     Debug.crash "Shouldn't ever happen"
-
-        TypeConstructor [ t ] list ->
-            aliasOr c
-                t
-                ("{"
-                    ++ atomize t
-                    ++ ", "
-                    ++ (map (elixirT flatten c) list |> String.join ", ")
-                    ++ "}"
-                )
 
         TypeRecord fields ->
             "%{"
@@ -162,6 +119,65 @@ elixirT flatten c t =
 
         other ->
             notImplemented "type" other
+
+
+elixirTypeConstructor : Bool -> Context -> String -> List Type -> String
+elixirTypeConstructor flatten c name args =
+    case ( name, args ) of
+        ( "String", [] ) ->
+            "String.t"
+
+        ( "Char", [] ) ->
+            "char_list"
+
+        ( "Bool", [] ) ->
+            "boolean"
+
+        ( "Int", [] ) ->
+            "integer"
+
+        ( "Pid", [] ) ->
+            "pid"
+
+        ( "Float", [] ) ->
+            "float"
+
+        ( "List", [ t ] ) ->
+            "list(" ++ elixirT flatten c t ++ ")"
+
+        ( "Maybe", [ t ] ) ->
+            elixirT flatten c t ++ " | nil"
+
+        ( "Nothing", [] ) ->
+            "nil"
+
+        ( "Just", [ t ] ) ->
+            elixirT flatten c t
+
+        ( "Err", [ t ] ) ->
+            "{:error, " ++ elixirT flatten c t ++ "}"
+
+        ( "Ok", [ t ] ) ->
+            if t == TypeTuple [] then
+                "ok"
+            else
+                "{:ok," ++ elixirT flatten c t ++ "}"
+
+        ( "T", [] ) ->
+            "t"
+
+        ( t, [] ) ->
+            aliasOr c t (atomize t)
+
+        ( t, list ) ->
+            aliasOr c
+                t
+                ("{"
+                    ++ atomize t
+                    ++ ", "
+                    ++ (map (elixirT flatten c) list |> String.join ", ")
+                    ++ "}"
+                )
 
 
 typespec0 : Context -> Type -> String

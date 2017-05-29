@@ -22,7 +22,7 @@ elixirE c e =
 
         RecordUpdate name keyValuePairs ->
             "%{"
-                ++ toSnakeCase name
+                ++ toSnakeCase True name
                 ++ " | "
                 ++ (map (\( a, b ) -> a ++ ": " ++ elixirE c b) keyValuePairs
                         |> String.join ", "
@@ -33,7 +33,7 @@ elixirE c e =
         Access ((Variable modules) as left) right ->
             modulePath modules
                 ++ "."
-                ++ String.join "." (map toSnakeCase right)
+                ++ String.join "." (map (toSnakeCase True) right)
 
         Access left right ->
             elixirE c left
@@ -41,7 +41,7 @@ elixirE c e =
                 ++ String.join "." right
 
         AccessFunction name ->
-            "(fn a -> a." ++ toSnakeCase name ++ ")"
+            "(fn a -> a." ++ toSnakeCase True name ++ ")"
 
         -- Basic operators that are functions in Elixir
         -- Exception, ( "//", "" )
@@ -87,12 +87,12 @@ elixirControlFlow c e =
                     (\( var, exp ) ->
                         case applicationToList var of
                             [ Variable [ name ] ] ->
-                                toSnakeCase name
+                                toSnakeCase True name
                                     ++ " = "
                                     ++ elixirE c exp
 
                             (Variable [ name ]) :: args ->
-                                toSnakeCase name
+                                toSnakeCase True name
                                     ++ " = "
                                     ++ produceLambda c args exp
 
@@ -259,7 +259,7 @@ generateFfi c name argTypes e =
                        )
                     ++ ind c.indent
                     ++ "def "
-                    ++ toSnakeCase name
+                    ++ toSnakeCase True name
                     ++ "("
                     ++ (generateArguments_ "a" def.arity |> String.join ", ")
                     ++ ")"
@@ -275,7 +275,7 @@ generateFfi c name argTypes e =
                 functionCurry c name def.arity
                     ++ ind c.indent
                     ++ "def "
-                    ++ toSnakeCase name
+                    ++ toSnakeCase True name
                     ++ "("
                     ++ (generateArguments_ "a" def.arity |> String.join ", ")
                     ++ ")"
@@ -413,6 +413,12 @@ tupleOrFunction c a =
         --         Debug.crash "Wrong flambda"
         [ Variable [ "Just" ], arg ] ->
             "{" ++ elixirE c arg ++ "}"
+
+        [ Variable [ "Ok" ], arg ] ->
+            if arg == Variable [ "()" ] then
+                ":ok"
+            else
+                "{:ok, " ++ elixirE c arg ++ "}"
 
         [ Variable [ "Err" ], arg ] ->
             "{:error, " ++ elixirE c arg ++ "}"
@@ -573,7 +579,7 @@ lambda c args body =
 genElixirFunc : Context -> String -> List Expression -> Expression -> String
 genElixirFunc c name args body =
     case ( isOperator name, args ) of
-        ( True, [ l, r ] ) ->
+        ( Builtin, [ l, r ] ) ->
             (ind c.indent)
                 ++ "def"
                 ++ privateOrPublic c name
@@ -589,16 +595,37 @@ genElixirFunc c name args body =
                 ++ ind c.indent
                 ++ "end"
 
-        ( True, _ ) ->
-            Debug.crash
-                ("operator " ++ name ++ " has to have 2 arguments but has " ++ toString args)
-
-        ( False, _ ) ->
+        ( Custom, [ l, r ] ) ->
             (ind c.indent)
                 ++ "def"
                 ++ privateOrPublic c name
                 ++ " "
-                ++ toSnakeCase name
+                ++ translateOperator name
+                ++ "("
+                ++ (args
+                        |> List.map (elixirE c)
+                        |> String.join ", "
+                   )
+                ++ ") do"
+                ++ (ind <| c.indent + 1)
+                ++ elixirE (indent c) body
+                ++ ind c.indent
+                ++ "end"
+
+        ( Builtin, _ ) ->
+            Debug.crash
+                ("operator " ++ name ++ " has to have 2 arguments but has " ++ toString args)
+
+        ( Custom, _ ) ->
+            Debug.crash
+                ("operator " ++ name ++ " has to have 2 arguments but has " ++ toString args)
+
+        ( None, _ ) ->
+            (ind c.indent)
+                ++ "def"
+                ++ privateOrPublic c name
+                ++ " "
+                ++ toSnakeCase True name
                 ++ "("
                 ++ (args
                         |> List.map (elixirE c)
@@ -637,13 +664,20 @@ functionCurry c name arity =
             ""
 
         ( arity, False ) ->
-            (ind c.indent)
-                ++ "curry"
-                ++ privateOrPublic c name
-                ++ " "
-                ++ toSnakeCase name
-                ++ "/"
-                ++ toString arity
+            let
+                resolvedName =
+                    if isOperator name == Custom then
+                        translateOperator name
+                    else
+                        toSnakeCase True name
+            in
+                (ind c.indent)
+                    ++ "curry"
+                    ++ privateOrPublic c name
+                    ++ " "
+                    ++ resolvedName
+                    ++ "/"
+                    ++ toString arity
 
 
 genFunctionDefinition : Context -> String -> List Expression -> Expression -> String
@@ -718,11 +752,17 @@ elixirVariable c var =
                             >> elixirE c
                         )
                     |> Maybe.withDefault (atomize name)
-            else if isOperator name then
-                -- We need a curried version, so kernel won't work
-                "(&" ++ translateOperator name ++ "/0).()"
             else
-                toSnakeCase name
+                case isOperator name of
+                    Builtin ->
+                        -- We need a curried version, so kernel won't work
+                        "(&" ++ translateOperator name ++ "/0).()"
+
+                    Custom ->
+                        translateOperator name
+
+                    None ->
+                        toSnakeCase True name
 
         list ->
             case lastAndRest list of
@@ -771,8 +811,12 @@ elixirBinop c op l r =
                    )
 
         op ->
-            [ elixirE c l, translateOperator op, elixirE c r ]
-                |> String.join " "
+            (translateOperator op)
+                ++ ".("
+                ++ elixirE c l
+                ++ ", "
+                ++ elixirE c r
+                ++ ")"
 
 
 produceLambda : Context -> List Expression -> Expression -> String
