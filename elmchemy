@@ -22,7 +22,7 @@ case "$1" in
     init)
         if [ -a ./mix.exs ]
         then
-            mix archive.install https://github.com/wende/elmchemy/releases/download/0.3.0/elmchemy-0.3.0.ez
+            mix archive.install https://github.com/wende/elmchemy/releases/download/v0.3.0/elmchemy-0.3.0.ez
             mkdir -p elm
             cp $SOURCE_DIR/templates/elm-package.json ./
             cp $SOURCE_DIR/templates/Hello.elm ./elm/
