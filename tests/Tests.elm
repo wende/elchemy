@@ -117,7 +117,7 @@ all =
             \() ->
                 "type alias A = {a : Int, b: Int, c: Int} \n"
                     ++ "a = A 1 2 3"
-                    |> has "%{a: arg1, b: arg2, c: arg3}"
+                    |> has "fn(arg1) -> fn(arg2) -> fn(arg3) -> %{a: arg1, b: arg2, c: arg3}"
         , test "TypeTuple" <|
             \() ->
                 "type alias A = (Int, Int, Int) \n"

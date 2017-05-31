@@ -236,7 +236,7 @@ typealiasConstructor modAndAlias =
                         |> List.map
                             (Tuple.mapSecond (singleton >> Variable))
             in
-                Lambda (constructApplication args) (Record varargs)
+                Lambda (map (singleton >> Variable) args) (Record varargs)
 
         ( _, TypeTuple kvs ) ->
             let
@@ -244,8 +244,9 @@ typealiasConstructor modAndAlias =
                     List.length kvs
                         |> List.range 1
                         |> List.map (toString >> (++) "arg")
+                        |> map (singleton >> Variable)
             in
-                Lambda (constructApplication args) (Tuple (map (singleton >> Variable) args))
+                Lambda (args) (Tuple args)
 
         _ ->
             Debug.crash "Only simple type aliases. Sorry"
