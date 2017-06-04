@@ -19,7 +19,7 @@ registerAlias c s ls =
         TypeDeclaration (TypeConstructor [ name ] _) a ->
             Dict.insert
                 name
-                ( c.mod, TypeVariable (toSnakeCase True name) )
+                ( c.mod, TypeVariable name )
                 ls
 
         TypeAliasDeclaration (TypeConstructor [ name ] _) a ->

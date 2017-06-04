@@ -19,10 +19,12 @@ flattenTypeApplication application =
             [ other ]
 
 
+elixirTFlat : Context -> Type -> String
 elixirTFlat =
     elixirT True
 
 
+elixirTNoFlat : Context -> Type -> String
 elixirTNoFlat =
     elixirT False
 
@@ -61,13 +63,12 @@ elixirT flatten c t =
 
         (TypeVariable name) as var ->
             c.aliases
-                |> Dict.values
-                |> find (\( _, a ) -> a == var)
+                |> Dict.get name
                 |> (\a ->
                         case a of
                             Just ( mod, _ ) ->
                                 if mod == c.mod then
-                                    name
+                                    toSnakeCase True name
                                 else
                                     mod ++ "." ++ name
 
@@ -90,6 +91,18 @@ elixirT flatten c t =
 
         TypeRecord fields ->
             "%{"
+                ++ (map
+                        (\( k, v ) ->
+                            k ++ ": " ++ elixirT flatten c v
+                        )
+                        fields
+                        |> String.join ", "
+                   )
+                ++ "}"
+
+        TypeRecordConstructor record fields ->
+            elixirT flatten c record
+                ++ " %{"
                 ++ (map
                         (\( k, v ) ->
                             k ++ ": " ++ elixirT flatten c v
@@ -146,7 +159,7 @@ elixirTypeConstructor flatten c name args =
             "list(" ++ elixirT flatten c t ++ ")"
 
         ( "Maybe", [ t ] ) ->
-            elixirT flatten c t ++ " | nil"
+            "{" ++ elixirT flatten c t ++ "} | nil"
 
         ( "Nothing", [] ) ->
             "nil"
@@ -248,8 +261,15 @@ typealiasConstructor modAndAlias =
             in
                 Lambda (args) (Tuple args)
 
-        _ ->
-            Debug.crash "Only simple type aliases. Sorry"
+        ( mod, TypeRecordConstructor _ kvs ) ->
+            typealiasConstructor ( mod, TypeRecord kvs )
+
+        other ->
+            Debug.crash
+                ("Only simple type aliases.\n"
+                    ++ toString other
+                    ++ " is to complex. Sorry"
+                )
 
 
 constructApplication : List String -> List Expression
