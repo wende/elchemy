@@ -4,7 +4,6 @@ import List exposing (..)
 import Ast.Statement exposing (..)
 import Dict exposing (Dict)
 import ExContext exposing (Context, Aliases)
-import Helpers exposing (..)
 
 
 getAliases : Context -> List Statement -> Aliases
