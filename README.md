@@ -4,6 +4,8 @@
 ## What is it?
 Elmchemy is a project with one idea in mind: Seamless acommodation of Elm-like language on Erlang VM.
 
+## UPDATE: [You can read a tutorial on using Elmchemy here](https://medium.com/@krzysztof.wende/elmchemy-write-type-safe-elixir-code-with-elms-syntax-part-1-introduction-8968b76d721d)
+
 ## Web demo
 You can test `elmchemy` online at:
 https://wende.github.io/elmchemy/stable/
