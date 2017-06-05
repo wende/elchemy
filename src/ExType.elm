@@ -4,7 +4,7 @@ import Ast.Statement exposing (..)
 import Ast.Expression exposing (..)
 import Helpers exposing (..)
 import List exposing (..)
-import ExContext exposing (Context)
+import ExContext exposing (Context, AliasFunctor(..))
 import ExAlias
 import Dict
 
@@ -66,13 +66,19 @@ elixirT flatten c t =
                 |> Dict.get name
                 |> (\a ->
                         case a of
-                            Just ( mod, _ ) ->
+                            Just ( mod, TypeVariable name, _ ) ->
                                 if mod == c.mod then
                                     toSnakeCase True name
                                 else
                                     mod ++ "." ++ name
 
-                            Nothing ->
+                            Just ( mod, (TypeConstructor _ _) as t, _ ) ->
+                                if mod == c.mod then
+                                    elixirTNoFlat c t
+                                else
+                                    mod ++ "." ++ name
+
+                            _ ->
                                 "any"
                    )
 
@@ -176,15 +182,14 @@ elixirTypeConstructor flatten c name args =
             else
                 "{:ok," ++ elixirT flatten c t ++ "}"
 
-        ( "T", [] ) ->
-            "t"
-
         ( t, [] ) ->
-            aliasOr c t (atomize t)
+            aliasOr c t [] (atomize t)
 
         ( t, list ) ->
-            aliasOr c
+            aliasOr
+                c
                 t
+                list
                 ("{"
                     ++ atomize t
                     ++ ", "
@@ -222,20 +227,20 @@ typealias c t =
         (TypeConstructor _ _) as t ->
             elixirTNoFlat c t
 
-        TypeVariable name ->
-            name
+        (TypeVariable _) as t ->
+            elixirTNoFlat c t
 
         other ->
             notImplemented "typealias" other
 
 
-typealiasConstructor : ( String, Type ) -> Expression
-typealiasConstructor modAndAlias =
-    case modAndAlias of
-        ( _, TypeConstructor [ name ] _ ) ->
+typealiasConstructor : List Expression -> ExContext.Alias -> Expression
+typealiasConstructor args modAndAlias =
+    case (modAndAlias |> \( _, a, _ ) -> a) of
+        TypeConstructor [ name ] _ ->
             Variable [ name ]
 
-        ( _, TypeRecord kvs ) ->
+        TypeRecord kvs ->
             let
                 args =
                     List.length kvs
@@ -251,7 +256,7 @@ typealiasConstructor modAndAlias =
             in
                 Lambda (map (singleton >> Variable) args) (Record varargs)
 
-        ( _, TypeTuple kvs ) ->
+        TypeTuple kvs ->
             let
                 args =
                     List.length kvs
@@ -260,9 +265,6 @@ typealiasConstructor modAndAlias =
                         |> map (singleton >> Variable)
             in
                 Lambda (args) (Tuple args)
-
-        ( mod, TypeRecordConstructor _ kvs ) ->
-            typealiasConstructor ( mod, TypeRecord kvs )
 
         other ->
             Debug.crash
@@ -288,8 +290,13 @@ constructApplication list =
             ]
 
 
-aliasOr : Context -> String -> String -> String
-aliasOr c name default =
+aliasOr : Context -> String -> List Type -> String -> String
+aliasOr c name args default =
     ExAlias.maybeAlias c.aliases name
-        |> Maybe.map (Tuple.second >> elixirTNoFlat c)
-        |> Maybe.withDefault (default)
+        |> Maybe.map
+            (\( _, ali, aliasF ) ->
+                case aliasF of
+                    AliasFunctor f ->
+                        f c args |> flip elixirTNoFlat ali
+            )
+        |> Maybe.withDefault default

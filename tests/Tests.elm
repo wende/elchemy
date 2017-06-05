@@ -6,6 +6,10 @@ import String
 import Compiler
 
 
+(|++) l r =
+    l ++ "\n" ++ r
+
+
 has : String -> String -> Expect.Expectation
 has expected s =
     let
@@ -115,14 +119,29 @@ all =
                 "type AType = BType | CType" |> has "@type a_type :: :b_type | :c_type"
         , test "TypeRecord" <|
             \() ->
-                "type alias A = {a : Int, b: Int, c: Int} \n"
-                    ++ "a = A 1 2 3"
+                "type alias A = {a : Int, b: Int, c: Int}"
+                    |++ "a = A 1 2 3"
                     |> has "fn(arg1) -> fn(arg2) -> fn(arg3) -> %{a: arg1, b: arg2, c: arg3}"
         , test "TypeTuple" <|
             \() ->
-                "type alias A = (Int, Int, Int) \n"
-                    ++ "a = A 1 2 "
+                "type alias A = (Int, Int, Int)"
+                    |++ "a = A 1 2 "
                     |> has "{arg1, arg2, arg3}"
+        , test "TypeAlias substitution" <|
+            \() ->
+                "type alias MyType a = List a"
+                    |++ "test : MyType Int"
+                    |> has "@spec test() :: list("
+        , test "Type substitution" <|
+            \() ->
+                "type MyType = Wende | NieWende"
+                    |++ "test : MyType"
+                    |> has "@spec test() :: my_type"
+        , test "TypeAlias argument substitution" <|
+            \() ->
+                "type alias MyType a = List a"
+                    |++ "test : MyType Int"
+                    |> has "@spec test() :: list(integer)"
 
         -- Records
         , test "Records work" <|

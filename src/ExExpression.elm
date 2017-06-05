@@ -428,7 +428,7 @@ tupleOrFunction c a =
                 ( Just last, _ ) ->
                     ExAlias.maybeAlias c.aliases last
                         |> Maybe.map
-                            (ExType.typealiasConstructor
+                            (ExType.typealiasConstructor []
                                 >> elixirE c
                                 >> (++) "("
                                 >> flip (++)
@@ -748,7 +748,7 @@ elixirVariable c var =
             if isCapitilzed name then
                 ExAlias.maybeAlias c.aliases name
                     |> Maybe.map
-                        (ExType.typealiasConstructor
+                        (ExType.typealiasConstructor []
                             >> elixirE c
                         )
                     |> Maybe.withDefault (atomize name)

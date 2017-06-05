@@ -5,7 +5,39 @@ import Dict exposing (Dict)
 
 
 type alias Aliases =
-    Dict String ( String, Type )
+    Dict String Alias
+
+
+type alias Alias =
+    ( String, Type, AliasFunctor )
+
+
+type AliasFunctor
+    = AliasFunctor (Context -> List Type -> Context)
+
+
+noParamAlias : Type -> (List Type -> Type)
+noParamAlias return params =
+    case ( return, params ) of
+        ( _, [] ) ->
+            return
+
+        ( Ast.Statement.TypeVariable name, other ) ->
+            wrongArityAlias 0 other name
+
+        other ->
+            Debug.crash ("Wrong alias defintion " ++ toString other)
+
+
+wrongArityAlias : Int -> List Type -> String -> a
+wrongArityAlias arity list name =
+    "Expected "
+        ++ toString arity
+        ++ " arguments for "
+        ++ name
+        ++ ". But got "
+        ++ (toString <| List.length list)
+        |> Debug.crash
 
 
 type alias Flag =
