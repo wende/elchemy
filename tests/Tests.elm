@@ -186,6 +186,11 @@ all =
                     |++ "type alias Man = Namable (Agable { gender : String })"
                     |++ "a : Man -> String "
                     |> has "@spec a(%{name: String.t, age: integer, gender: String.t}) :: String.t"
+        , test "Interface as type" <|
+            \() ->
+                "type alias Namable a = { a | name : String }"
+                    |++ "getName : Namable a -> String "
+                    |> has "@spec get_name(%{name: String.t}) :: String.t"
 
         -- Records
         , test "Records work" <|

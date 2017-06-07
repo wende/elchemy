@@ -171,6 +171,14 @@ typeRecordFields c flatten t =
                 (fields ++ inherited)
             )
 
+        TypeRecordConstructor (TypeVariable _) fields ->
+            (map
+                (\( k, v ) ->
+                    k ++ ": " ++ elixirT flatten c v
+                )
+                (fields)
+            )
+
         TypeRecordConstructor ((TypeRecordConstructor _ _) as tr) fields ->
             (map
                 (\( k, v ) ->
@@ -346,10 +354,5 @@ aliasOr : Context -> String -> List Type -> String -> String
 aliasOr c name args default =
     ExAlias.maybeAlias c.aliases name
         |> Maybe.map
-            (\{ mod, getTypeBody } ->
-                if mod == c.mod then
-                    elixirTNoFlat c (getTypeBody args)
-                else
-                    mod ++ "." ++ elixirTNoFlat c (getTypeBody args)
-            )
+            (\{ getTypeBody } -> elixirTNoFlat c (getTypeBody args))
         |> Maybe.withDefault default
