@@ -41,7 +41,7 @@ elixirS c s =
                     ++ "@type "
                     ++ toSnakeCase True name
                     ++ " :: "
-                    ++ ((map (ExType.typealias c) types) |> String.join " | ")
+                    ++ ((map (ExType.uniontype c) types) |> String.join " | ")
 
         TypeAliasDeclaration _ _ ->
             ( c, "" )

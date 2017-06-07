@@ -25,10 +25,10 @@ notImplemented feature value =
 
 
 toSnakeCase : Bool -> String -> String
-toSnakeCase isVar s =
+toSnakeCase isntAtom s =
     let
         string =
-            if isVar then
+            if isntAtom then
                 ExReserved.maybeReplaceReserved s
             else
                 s
@@ -233,7 +233,16 @@ escape s =
 
 modulePath : List String -> String
 modulePath list =
-    map maybeReplaceStd list |> String.join "."
+    list
+        |> map
+            (\a ->
+                if isUpper a then
+                    a
+                else
+                    toSnakeCase True a
+            )
+        |> map maybeReplaceStd
+        |> String.join "."
 
 
 isStdModule : String -> Bool

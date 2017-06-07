@@ -1,11 +1,49 @@
 module ExContext exposing (..)
 
-import Ast.Statement exposing (ExportSet, Type)
+import Ast.Statement exposing (ExportSet, Type(..))
 import Dict exposing (Dict)
 
 
 type alias Aliases =
-    Dict String ( String, Type )
+    Dict String Alias
+
+
+type AliasType
+    = Type
+    | TypeAlias
+
+
+type alias Alias =
+    { mod : String
+    , arity : Int
+    , aliasType : AliasType
+    , body : Type
+    , getTypeBody : List Type -> Type
+    }
+
+
+noParamAlias : Type -> (List Type -> Type)
+noParamAlias return params =
+    case ( return, params ) of
+        ( _, [] ) ->
+            return
+
+        ( TypeVariable name, other ) ->
+            wrongArityAlias 0 other name
+
+        other ->
+            Debug.crash ("Wrong alias defintion " ++ toString other)
+
+
+wrongArityAlias : Int -> List Type -> String -> a
+wrongArityAlias arity list name =
+    "Expected "
+        ++ toString arity
+        ++ " arguments for "
+        ++ name
+        ++ ". But got "
+        ++ (toString <| List.length list)
+        |> Debug.crash
 
 
 type alias Flag =
