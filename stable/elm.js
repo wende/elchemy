@@ -13343,8 +13343,8 @@ var _user$project$ExType$constructApplication = function (list) {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExType',
 			{
-				start: {line: 331, column: 5},
-				end: {line: 342, column: 14}
+				start: {line: 339, column: 5},
+				end: {line: 350, column: 14}
 			},
 			_p0)('Wrong application');
 	} else {
@@ -13508,8 +13508,8 @@ var _user$project$ExType$typealiasConstructor = F2(
 			return _elm_lang$core$Native_Utils.crashCase(
 				'ExType',
 				{
-					start: {line: 284, column: 5},
-					end: {line: 326, column: 18}
+					start: {line: 292, column: 5},
+					end: {line: 334, column: 18}
 				},
 				_p4)(
 				A2(
@@ -13817,59 +13817,48 @@ var _user$project$ExType$aliasOr = F4(
 				_elm_lang$core$Maybe$map,
 				function (_p29) {
 					var _p30 = _p29;
-					var _p32 = _p30.mod;
-					var _p31 = _p30.getTypeBody;
-					return _elm_lang$core$Native_Utils.eq(_p32, c.mod) ? A2(
+					return A2(
 						_user$project$ExType$elixirTNoFlat,
 						c,
-						_p31(args)) : A2(
-						_elm_lang$core$Basics_ops['++'],
-						_p32,
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							'.',
-							A2(
-								_user$project$ExType$elixirTNoFlat,
-								c,
-								_p31(args))));
+						_p30.getTypeBody(args));
 				},
 				A2(_user$project$ExAlias$maybeAlias, c.aliases, name)));
 	});
 var _user$project$ExType$elixirTNoFlat = _user$project$ExType$elixirT(false);
 var _user$project$ExType$typeRecordFields = F3(
 	function (c, flatten, t) {
-		var _p33 = t;
-		_v16_3:
+		var _p31 = t;
+		_v16_4:
 		do {
-			if (_p33.ctor === 'TypeRecordConstructor') {
-				switch (_p33._0.ctor) {
+			if (_p31.ctor === 'TypeRecordConstructor') {
+				switch (_p31._0.ctor) {
 					case 'TypeConstructor':
-						if ((_p33._0._0.ctor === '::') && (_p33._0._0._1.ctor === '[]')) {
+						if ((_p31._0._0.ctor === '::') && (_p31._0._0._1.ctor === '[]')) {
 							var inherited = A2(
 								_elm_lang$core$Maybe$map,
 								A2(_user$project$ExType$typeRecordFields, c, flatten),
 								A2(
 									_elm_lang$core$Maybe$map,
-									function (_p34) {
-										var _p35 = _p34;
-										return _p35.getTypeBody(_p33._0._1);
+									function (_p32) {
+										var _p33 = _p32;
+										return _p33.getTypeBody(_p31._0._1);
 									},
-									A2(_user$project$ExAlias$maybeAlias, c.aliases, _p33._0._0._0)));
+									A2(_user$project$ExAlias$maybeAlias, c.aliases, _p31._0._0._0)));
 							return A2(
 								_elm_lang$core$Basics_ops['++'],
 								A2(
 									_elm_lang$core$List$map,
-									function (_p36) {
-										var _p37 = _p36;
+									function (_p34) {
+										var _p35 = _p34;
 										return A2(
 											_elm_lang$core$Basics_ops['++'],
-											_p37._0,
+											_p35._0,
 											A2(
 												_elm_lang$core$Basics_ops['++'],
 												': ',
-												A3(_user$project$ExType$elixirT, flatten, c, _p37._1)));
+												A3(_user$project$ExType$elixirT, flatten, c, _p35._1)));
 									},
-									_p33._1),
+									_p31._1),
 								A2(
 									_elm_lang$core$Maybe$withDefault,
 									{
@@ -13879,9 +13868,23 @@ var _user$project$ExType$typeRecordFields = F3(
 									},
 									inherited));
 						} else {
-							break _v16_3;
+							break _v16_4;
 						}
 					case 'TypeRecord':
+						return A2(
+							_elm_lang$core$List$map,
+							function (_p36) {
+								var _p37 = _p36;
+								return A2(
+									_elm_lang$core$Basics_ops['++'],
+									_p37._0,
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										': ',
+										A3(_user$project$ExType$elixirT, flatten, c, _p37._1)));
+							},
+							A2(_elm_lang$core$Basics_ops['++'], _p31._1, _p31._0._0));
+					case 'TypeVariable':
 						return A2(
 							_elm_lang$core$List$map,
 							function (_p38) {
@@ -13894,7 +13897,7 @@ var _user$project$ExType$typeRecordFields = F3(
 										': ',
 										A3(_user$project$ExType$elixirT, flatten, c, _p39._1)));
 							},
-							A2(_elm_lang$core$Basics_ops['++'], _p33._1, _p33._0._0));
+							_p31._1);
 					case 'TypeRecordConstructor':
 						return A2(
 							_elm_lang$core$Basics_ops['++'],
@@ -13910,26 +13913,26 @@ var _user$project$ExType$typeRecordFields = F3(
 											': ',
 											A3(_user$project$ExType$elixirT, flatten, c, _p41._1)));
 								},
-								_p33._1),
-							A3(_user$project$ExType$typeRecordFields, c, flatten, _p33._0));
+								_p31._1),
+							A3(_user$project$ExType$typeRecordFields, c, flatten, _p31._0));
 					default:
-						break _v16_3;
+						break _v16_4;
 				}
 			} else {
-				break _v16_3;
+				break _v16_4;
 			}
 		} while(false);
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExType',
 			{
 				start: {line: 150, column: 5},
-				end: {line: 184, column: 75}
+				end: {line: 192, column: 75}
 			},
-			_p33)(
+			_p31)(
 			A2(
 				_elm_lang$core$Basics_ops['++'],
 				'Wrong type record constructor ',
-				_elm_lang$core$Basics$toString(_p33)));
+				_elm_lang$core$Basics$toString(_p31)));
 	});
 var _user$project$ExType$elixirTFlat = _user$project$ExType$elixirT(true);
 var _user$project$ExType$typespec0 = F2(
@@ -13970,8 +13973,8 @@ var _user$project$ExType$uniontype = F2(
 			return _elm_lang$core$Native_Utils.crashCase(
 				'ExType',
 				{
-					start: {line: 267, column: 5},
-					end: {line: 279, column: 96}
+					start: {line: 275, column: 5},
+					end: {line: 287, column: 96}
 				},
 				_p43)(
 				A2(
@@ -14005,8 +14008,8 @@ var _user$project$ExType$typespec = F2(
 			return _elm_lang$core$Native_Utils.crashCase(
 				'ExType',
 				{
-					start: {line: 252, column: 5},
-					end: {line: 262, column: 37}
+					start: {line: 260, column: 5},
+					end: {line: 270, column: 37}
 				},
 				_p45)('impossible');
 		}
@@ -16713,7 +16716,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elmchemy', '\n'));
-var _user$project$Compiler$version = '0.3.11';
+var _user$project$Compiler$version = '0.3.12';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		return A2(
