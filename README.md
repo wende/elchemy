@@ -132,7 +132,7 @@ But it's nice to use `elm-make` to check your type safety from time to time.
 - Compiler - **70%** (still needs some nicer solutions of code generation plus we might come out with some new nice ideas)
 - Elmchemy-core - **35%** ( We have Basics, Debug, Char, String, List, Result, Tuple and Maybe) 
 - Elmchemy-core for Erlang VM - **0%** (Everything for os related tasks like filesystem, OTP goodies etc has to be done)
-- Elmchemy-effects - **0%** - You can't and shpuldn't write anything with side-effects in Elmchemy yet
+- Elmchemy-effects - **0%** - You can't and shouldn't write anything with side-effects in Elmchemy yet
 - Documentation - **10%** - It's virtually nonexistent
-- Interop with Elixir - **50%** - It works and it's semi-typesafe. But reliability of its type safetyness is questinable.
+- Interop with Elixir - **50%** - It works and it's semi-typesafe. But reliability of its type safetyness is questionable.
 - Ideology - **10%** - We only have a gist. There is so much work to do we rarely have time to sit and just think
