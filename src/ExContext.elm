@@ -1,6 +1,6 @@
 module ExContext exposing (..)
 
-import Ast.Statement exposing (ExportSet, Type)
+import Ast.Statement exposing (ExportSet, Type(..))
 import Dict exposing (Dict)
 
 
@@ -8,12 +8,18 @@ type alias Aliases =
     Dict String Alias
 
 
+type AliasType
+    = Type
+    | TypeAlias
+
+
 type alias Alias =
-    ( String, Type, AliasFunctor )
-
-
-type AliasFunctor
-    = AliasFunctor (Context -> List Type -> Context)
+    { mod : String
+    , arity : Int
+    , aliasType : AliasType
+    , body : Type
+    , getTypeBody : List Type -> Type
+    }
 
 
 noParamAlias : Type -> (List Type -> Type)
@@ -22,7 +28,7 @@ noParamAlias return params =
         ( _, [] ) ->
             return
 
-        ( Ast.Statement.TypeVariable name, other ) ->
+        ( TypeVariable name, other ) ->
             wrongArityAlias 0 other name
 
         other ->

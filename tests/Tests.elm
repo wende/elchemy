@@ -6,6 +6,7 @@ import String
 import Compiler
 
 
+(|++) : String -> String -> String
 (|++) l r =
     l ++ "\n" ++ r
 
@@ -142,6 +143,49 @@ all =
                 "type alias MyType a = List a"
                     |++ "test : MyType Int"
                     |> has "@spec test() :: list(integer)"
+        , test "TypeAlias argument substitution between types" <|
+            \() ->
+                "type alias AnyKey val = (a, val)"
+                    |++ "type alias Val a = AnyKey a"
+                    |++ "test : Val Int"
+                    |> has "@spec test() :: {any, integer}"
+        , test "TypeAlias no argument substitution in Type" <|
+            \() ->
+                "type alias MyList a = List a"
+                    |++ "type Val a = AnyKey (MyList a)"
+                    |++ "test : Val Int"
+                    |> has "@spec test() :: val"
+        , test "Types ignore typealiases" <|
+            \() ->
+                "type alias AnyAlias = Lol"
+                    |++ "type AnyType = AnyAlias | AnyType"
+                    |> has "@type any_type :: :any_alias | :any_type"
+        , test "Types can wrap records" <|
+            \() ->
+                "type Lens big small = Lens { get : big -> small }"
+                    |> has "@type lens :: {:lens, %{get: (any -> any)}}"
+        , test "Types args don't polute type application" <|
+            \() ->
+                "type Focus big small = Focus { get : big -> small }"
+                    |++ "a = Focus { get = get, update = update }"
+                    |> has "{:focus, %{get: get, update: update}}"
+
+        -- Polymorhpism
+        , test "Polymorhpic record alias" <|
+            \() ->
+                "type Wende = Wende"
+                    |++ "type alias Wendable a = { a | wendify : (a -> Wende)}"
+                    |++ "type alias Man = Wendable { gender: Bool }"
+                    |++ "a : Man -> String "
+                    |> has "@spec a(%{wendify: (%{gender: boolean} -> wende), gender: boolean}) :: String.t"
+        , test "Multi polymorhpic record alias" <|
+            \() ->
+                "type Wende = Wende"
+                    |++ "type alias Namable a = { a | name : String }"
+                    |++ "type alias Agable a =  { a | age: Int }"
+                    |++ "type alias Man = Namable (Agable { gender : String })"
+                    |++ "a : Man -> String "
+                    |> has "@spec a(%{name: String.t, age: integer, gender: String.t}) :: String.t"
 
         -- Records
         , test "Records work" <|

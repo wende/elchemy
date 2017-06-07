@@ -4,9 +4,8 @@ import Ast.Statement exposing (..)
 import Ast.Expression exposing (..)
 import Helpers exposing (..)
 import List exposing (..)
-import ExContext exposing (Context, AliasFunctor(..))
+import ExContext exposing (Context)
 import ExAlias
-import Dict
 
 
 flattenTypeApplication : Type -> List Type
@@ -62,26 +61,37 @@ elixirT flatten c t =
             "number"
 
         (TypeVariable name) as var ->
-            c.aliases
-                |> Dict.get name
-                |> (\a ->
-                        case a of
-                            Just ( mod, TypeVariable name, _ ) ->
-                                if mod == c.mod then
-                                    toSnakeCase True name
-                                else
-                                    mod ++ "." ++ name
+            case String.uncons name of
+                Just ( '@', name ) ->
+                    toSnakeCase True name
 
-                            Just ( mod, (TypeConstructor _ _) as t, _ ) ->
-                                if mod == c.mod then
-                                    elixirTNoFlat c t
-                                else
-                                    mod ++ "." ++ name
+                any ->
+                    "any"
 
-                            _ ->
-                                "any"
-                   )
-
+        -- |> Dict.get name
+        -- |> (\a ->
+        --         case a of
+        --             Just ( mod, (TypeVariable name) as t ) ->
+        --                 if mod == c.mod then
+        --                     toSnakeCase True name
+        --                 else
+        --                     mod ++ "." ++ name
+        --
+        --             Just ( mod, (TypeConstructor _ _) as t ) ->
+        --                 if mod == c.mod then
+        --                     elixirTNoFlat c t
+        --                 else
+        --                     mod ++ "." ++ name
+        --
+        --             Just ( mod, t ) ->
+        --                 Debug.crash (toString t ++ " in module " ++ mod ++ " is too complex for current compiler")
+        --
+        --             Nothing ->
+        --                 if isCapitilzed name then
+        --                     name
+        --                 else
+        --                     "any"
+        --    )
         TypeConstructor [ t ] any ->
             elixirTypeConstructor flatten c t any
 
@@ -106,14 +116,9 @@ elixirT flatten c t =
                    )
                 ++ "}"
 
-        TypeRecordConstructor record fields ->
-            elixirT flatten c record
-                ++ " %{"
-                ++ (map
-                        (\( k, v ) ->
-                            k ++ ": " ++ elixirT flatten c v
-                        )
-                        fields
+        (TypeRecordConstructor _ _) as tr ->
+            "%{"
+                ++ ((typeRecordFields c flatten tr)
                         |> String.join ", "
                    )
                 ++ "}"
@@ -138,6 +143,45 @@ elixirT flatten c t =
 
         other ->
             notImplemented "type" other
+
+
+typeRecordFields : Context -> Bool -> Type -> List String
+typeRecordFields c flatten t =
+    case t of
+        TypeRecordConstructor (TypeConstructor [ name ] args) fields ->
+            let
+                inherited =
+                    ExAlias.maybeAlias c.aliases name
+                        |> Maybe.map (\{ getTypeBody } -> getTypeBody args)
+                        |> Maybe.map (typeRecordFields c flatten)
+            in
+                (map
+                    (\( k, v ) ->
+                        k ++ ": " ++ elixirT flatten c v
+                    )
+                    (fields)
+                )
+                    ++ (Maybe.withDefault [ "KURWA" ] inherited)
+
+        TypeRecordConstructor (TypeRecord inherited) fields ->
+            (map
+                (\( k, v ) ->
+                    k ++ ": " ++ elixirT flatten c v
+                )
+                (fields ++ inherited)
+            )
+
+        TypeRecordConstructor ((TypeRecordConstructor _ _) as tr) fields ->
+            (map
+                (\( k, v ) ->
+                    k ++ ": " ++ elixirT flatten c v
+                )
+                (fields)
+            )
+                ++ typeRecordFields c flatten tr
+
+        any ->
+            Debug.crash ("Wrong type record constructor " ++ toString any)
 
 
 elixirTypeConstructor : Bool -> Context -> String -> List Type -> String
@@ -218,25 +262,26 @@ typespec c t =
             Debug.crash "impossible"
 
 
-typealias : Context -> Type -> String
-typealias c t =
+uniontype : Context -> Type -> String
+uniontype c t =
     case t of
-        TypeApplication tc t ->
-            typealias c tc ++ typealias c t
+        TypeConstructor [ name ] [] ->
+            atomize name
 
-        (TypeConstructor _ _) as t ->
-            elixirTNoFlat c t
-
-        (TypeVariable _) as t ->
-            elixirTNoFlat c t
+        TypeConstructor [ name ] list ->
+            "{"
+                ++ atomize name
+                ++ ", "
+                ++ (map (elixirTNoFlat c) list |> String.join ", ")
+                ++ "}"
 
         other ->
-            notImplemented "typealias" other
+            Debug.crash ("I am looking for union type constructor. But got " ++ toString other)
 
 
-typealiasConstructor : List Expression -> ExContext.Alias -> Expression
-typealiasConstructor args modAndAlias =
-    case (modAndAlias |> \( _, a, _ ) -> a) of
+typealiasConstructor : List a -> ExContext.Alias -> Expression
+typealiasConstructor args ({ mod, arity, body, getTypeBody } as ali) =
+    case body of
         TypeConstructor [ name ] _ ->
             Variable [ name ]
 
@@ -256,6 +301,10 @@ typealiasConstructor args modAndAlias =
             in
                 Lambda (map (singleton >> Variable) args) (Record varargs)
 
+        -- Error in AST. Single TypeTuple are just paren app
+        TypeTuple [ app ] ->
+            typealiasConstructor args { ali | getTypeBody = (\_ -> app) }
+
         TypeTuple kvs ->
             let
                 args =
@@ -265,6 +314,9 @@ typealiasConstructor args modAndAlias =
                         |> map (singleton >> Variable)
             in
                 Lambda (args) (Tuple args)
+
+        TypeVariable name ->
+            Variable [ name ]
 
         other ->
             Debug.crash
@@ -294,9 +346,5 @@ aliasOr : Context -> String -> List Type -> String -> String
 aliasOr c name args default =
     ExAlias.maybeAlias c.aliases name
         |> Maybe.map
-            (\( _, ali, aliasF ) ->
-                case aliasF of
-                    AliasFunctor f ->
-                        f c args |> flip elixirTNoFlat ali
-            )
+            (\{ getTypeBody } -> elixirTNoFlat c (getTypeBody args))
         |> Maybe.withDefault default

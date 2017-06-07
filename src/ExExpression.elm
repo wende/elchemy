@@ -427,6 +427,15 @@ tupleOrFunction c a =
             case lastAndRest list of
                 ( Just last, _ ) ->
                     ExAlias.maybeAlias c.aliases last
+                        |> Maybe.andThen
+                            (\({ aliasType } as ali) ->
+                                case aliasType of
+                                    ExContext.TypeAlias ->
+                                        Just ali
+
+                                    ExContext.Type ->
+                                        Nothing
+                            )
                         |> Maybe.map
                             (ExType.typealiasConstructor []
                                 >> elixirE c
@@ -752,6 +761,9 @@ elixirVariable c var =
                             >> elixirE c
                         )
                     |> Maybe.withDefault (atomize name)
+            else if String.startsWith "@" name then
+                String.dropLeft 1 name
+                    |> atomize
             else
                 case isOperator name of
                     Builtin ->

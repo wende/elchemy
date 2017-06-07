@@ -6,6 +6,32 @@ ops =
     [ '+', '-', '/', '*', '=', '.', '$', '<', '>', ':', '&', '|', '^', '?', '%', '#', '@', '~', '!' ] |> List.indexedMap (,)
 
 
+maybeReplaceStd : String -> String
+maybeReplaceStd s =
+    if isStdModule s then
+        "X" ++ s
+    else if s == "Native" then
+        Debug.crash
+            ("Compile found out you're using Native modules in the codebase."
+                ++ "Elmchemy doesn't support Elm Native Modules since they're JavaScript"
+            )
+    else
+        s
+
+
+isStdModule : String -> Bool
+isStdModule a =
+    List.member a
+        [ "Basics"
+        , "List"
+        , "String"
+        , "Maybe"
+        , "Char"
+        , "Result"
+        , "Tuple"
+        ]
+
+
 reservedWords : List String
 reservedWords =
     [ "fn", "do", "end" ]

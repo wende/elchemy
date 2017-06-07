@@ -3,7 +3,15 @@ module ExAlias exposing (..)
 import List exposing (..)
 import Ast.Statement exposing (..)
 import Dict exposing (Dict)
-import ExContext exposing (Context, Alias, Aliases, AliasFunctor(..), noParamAlias, wrongArityAlias)
+import ExContext
+    exposing
+        ( Context
+        , Alias
+        , AliasType
+        , Aliases
+        , noParamAlias
+        , wrongArityAlias
+        )
 
 
 getAliases : Context -> List Statement -> Aliases
@@ -18,9 +26,11 @@ registerAlias c s ls =
         TypeDeclaration (TypeConstructor [ name ] arguments) a ->
             Dict.insert
                 name
-                ( c.mod
-                , TypeVariable name
-                , replaceAliasArgs name arguments (TypeVariable name)
+                (Alias c.mod
+                    (length arguments)
+                    ExContext.Type
+                    (TypeVariable ("@" ++ name))
+                    (\_ -> (TypeVariable ("@" ++ name)))
                 )
                 ls
 
@@ -30,19 +40,11 @@ registerAlias c s ls =
         TypeAliasDeclaration (TypeConstructor [ name ] arguments) a ->
             -- We need to register every type argument as an alias in the context
             Dict.insert name
-                ( c.mod
-                , a
-                , replaceAliasArgs name arguments a
-                )
-                ls
-
-        -- Hapens when replacing arguments
-        TypeAliasDeclaration (TypeVariable name) a ->
-            -- We need to register every type argument as an alias in the context
-            Dict.insert name
-                ( c.mod
-                , a
-                , replaceAliasArgs name [] a
+                (Alias c.mod
+                    (length arguments)
+                    ExContext.TypeAlias
+                    a
+                    (replaceAliasArgs name arguments a)
                 )
                 ls
 
@@ -53,42 +55,68 @@ registerAlias c s ls =
             ls
 
 
-replaceAliasArgs : String -> List Type -> Type -> AliasFunctor
+replaceAliasArgs : String -> List Type -> Type -> (List Type -> Type)
 replaceAliasArgs name expectedArgs return =
-    AliasFunctor
-        (\c givenArgs ->
-            let
-                arity =
-                    length givenArgs
+    (\givenArgs ->
+        let
+            arity =
+                length givenArgs
 
-                expected =
-                    length expectedArgs
-            in
-                if arity == expected then
-                    resolveTypes c expectedArgs givenArgs
-                else
-                    wrongArityAlias expected givenArgs name
-        )
+            expected =
+                length expectedArgs
+        in
+            if arity == expected then
+                resolveTypes expectedArgs givenArgs return
+            else
+                wrongArityAlias expected givenArgs name
+    )
 
 
-resolveTypes : Context -> List Type -> List Type -> Context
-resolveTypes context expected given =
-    map2 (,) expected given
-        |> foldl
-            (\( exp, giv ) c ->
-                case exp of
-                    TypeVariable name ->
-                        { c
-                            | aliases =
-                                registerAlias c
-                                    (TypeAliasDeclaration (TypeConstructor [ name ] []) giv)
-                                    c.aliases
-                        }
+resolveTypes : List Type -> List Type -> Type -> Type
+resolveTypes expected given return =
+    let
+        expectedName n =
+            case n of
+                TypeVariable name ->
+                    name
 
-                    _ ->
-                        Debug.crash "Impossible"
-            )
-            context
+                other ->
+                    Debug.crash
+                        ("type can only take variables. "
+                            ++ toString other
+                            ++ "is incorrect"
+                        )
+
+        paramsWithResolution =
+            map2 (,) (map expectedName expected) given
+                |> foldl (uncurry Dict.insert) Dict.empty
+
+        replace t =
+            case t of
+                (TypeVariable name) as default ->
+                    Dict.get name paramsWithResolution
+                        |> Maybe.withDefault default
+
+                TypeConstructor names args ->
+                    TypeConstructor names (map replace args)
+
+                TypeRecordConstructor name args ->
+                    TypeRecordConstructor (replace name) (map (Tuple.mapSecond replace) args)
+
+                -- AST eror workaround
+                TypeTuple [ arg ] ->
+                    replace arg
+
+                TypeTuple args ->
+                    TypeTuple (map replace args)
+
+                TypeRecord args ->
+                    TypeRecord (map (Tuple.mapSecond replace) args)
+
+                TypeApplication l r ->
+                    TypeApplication (replace l) (replace r)
+    in
+        replace return
 
 
 maybeAlias : Aliases -> String -> Maybe Alias
