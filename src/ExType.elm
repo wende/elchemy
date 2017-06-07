@@ -354,5 +354,10 @@ aliasOr : Context -> String -> List Type -> String -> String
 aliasOr c name args default =
     ExAlias.maybeAlias c.aliases name
         |> Maybe.map
-            (\{ getTypeBody } -> elixirTNoFlat c (getTypeBody args))
+            (\{ mod, getTypeBody } ->
+                if mod == c.mod then
+                    elixirTNoFlat c (getTypeBody args)
+                else
+                    mod ++ "." ++ elixirTNoFlat c (getTypeBody args)
+            )
         |> Maybe.withDefault default
