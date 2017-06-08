@@ -5404,7 +5404,7 @@ var _Bogdanp$elm_ast$Ast_Helpers$operator = A2(
 				'operator \'',
 				A2(_elm_lang$core$Basics_ops['++'], n, '\' is reserved'))) : _elm_community$parser_combinators$Combine$succeed(n);
 	},
-	_elm_community$parser_combinators$Combine$regex('[+\\-\\/*=.$<>:&|^?%#@~!]+'));
+	_elm_community$parser_combinators$Combine$regex('[+\\-\\/*=.$<>:&|^?%#@~!]+|s\b'));
 var _Bogdanp$elm_ast$Ast_Helpers$reserved = {
 	ctor: '::',
 	_0: 'module',
@@ -12787,7 +12787,11 @@ var _user$project$Helpers$operators = A3(
 																											_1: {
 																												ctor: '::',
 																												_0: {ctor: '_Tuple2', _0: ',,,,', _1: 'tuple5'},
-																												_1: {ctor: '[]'}
+																												_1: {
+																													ctor: '::',
+																													_0: {ctor: '_Tuple2', _0: 'as', _1: '='},
+																													_1: {ctor: '[]'}
+																												}
 																											}
 																										}
 																									}
@@ -12822,8 +12826,8 @@ var _user$project$Helpers$translateOperator = function (op) {
 			return _elm_lang$core$Native_Utils.crashCase(
 				'Helpers',
 				{
-					start: {line: 193, column: 5},
-					end: {line: 204, column: 36}
+					start: {line: 194, column: 5},
+					end: {line: 205, column: 36}
 				},
 				_p0)(
 				A2(_elm_lang$core$Basics_ops['++'], op, ' is not a valid or not implemented yet operator'));
@@ -16727,7 +16731,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elmchemy', '\n'));
-var _user$project$Compiler$version = '0.3.13';
+var _user$project$Compiler$version = '0.3.14';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		return A2(
