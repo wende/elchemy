@@ -12668,8 +12668,8 @@ var _user$project$Helpers$escape = function (s) {
 	return A4(
 		_elm_lang$core$Regex$replace,
 		_elm_lang$core$Regex$All,
-		_elm_lang$core$Regex$regex('\\\\n'),
-		_elm_lang$core$Basics$always('\\\\n'),
+		_elm_lang$core$Regex$regex('\\\\'),
+		_elm_lang$core$Basics$always('\\\\'),
 		s);
 };
 var _user$project$Helpers$unescape = function (s) {
@@ -16738,7 +16738,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elmchemy', '\n'));
-var _user$project$Compiler$version = '0.3.21';
+var _user$project$Compiler$version = '0.3.22';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		return A2(
