@@ -436,9 +436,10 @@ tupleOrFunction c a =
                                     ExContext.Type ->
                                         Nothing
                             )
+                        |> Maybe.andThen
+                            (ExType.typealiasConstructor [])
                         |> Maybe.map
-                            (ExType.typealiasConstructor []
-                                >> elixirE c
+                            (elixirE c
                                 >> (++) "("
                                 >> flip (++)
                                     (rest
@@ -757,10 +758,9 @@ elixirVariable c var =
         [ name ] ->
             if isCapitilzed name then
                 ExAlias.maybeAlias c.aliases name
-                    |> Maybe.map
-                        (ExType.typealiasConstructor []
-                            >> elixirE c
-                        )
+                    |> Maybe.andThen
+                        (ExType.typealiasConstructor [])
+                    |> Maybe.map (elixirE c)
                     |> Maybe.withDefault (atomize name)
             else if String.startsWith "@" name then
                 String.dropLeft 1 name

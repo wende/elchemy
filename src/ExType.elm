@@ -4,7 +4,7 @@ import Ast.Statement exposing (..)
 import Ast.Expression exposing (..)
 import Helpers exposing (..)
 import List exposing (..)
-import ExContext exposing (Context)
+import ExContext exposing (Context, indent)
 import ExAlias
 
 
@@ -106,21 +106,23 @@ elixirT flatten c t =
                     Debug.crash "Shouldn't ever happen"
 
         TypeRecord fields ->
-            "%{"
+            "%{\n"
                 ++ (map
                         (\( k, v ) ->
                             k ++ ": " ++ elixirT flatten c v
                         )
                         fields
-                        |> String.join ", "
+                        |> String.join ("," ++ ind (c.indent + 1))
                    )
                 ++ "}"
 
         (TypeRecordConstructor _ _) as tr ->
             "%{"
-                ++ ((typeRecordFields c flatten tr)
-                        |> String.join ", "
+                ++ ind (c.indent + 1)
+                ++ ((typeRecordFields (indent c) flatten tr)
+                        |> String.join (", " ++ ind (c.indent + 1))
                    )
+                ++ ind (c.indent)
                 ++ "}"
 
         TypeApplication l r ->
@@ -129,7 +131,7 @@ elixirT flatten c t =
                     ++ (flattenTypeApplication r
                             |> lastAndRest
                             |> \( last, rest ) ->
-                                (map (elixirT flatten c) (l :: rest) |> String.join ", ")
+                                (map (elixirT flatten (indent c)) (l :: rest) |> String.join ", ")
                                     ++ " -> "
                                     ++ (Maybe.map (elixirT flatten c) last |> Maybe.withDefault "")
                        )
@@ -287,13 +289,16 @@ uniontype c t =
             Debug.crash ("I am looking for union type constructor. But got " ++ toString other)
 
 
-typealiasConstructor : List a -> ExContext.Alias -> Expression
-typealiasConstructor args ({ mod, arity, body, getTypeBody } as ali) =
-    case body of
-        TypeConstructor [ name ] _ ->
-            Variable [ name ]
+typealiasConstructor : List a -> ExContext.Alias -> Maybe Expression
+typealiasConstructor args ({ mod, aliasType, arity, body, getTypeBody } as ali) =
+    case ( aliasType, body ) of
+        ( ExContext.Type, _ ) ->
+            Nothing
 
-        TypeRecord kvs ->
+        ( _, TypeConstructor [ name ] _ ) ->
+            Nothing
+
+        ( _, TypeRecord kvs ) ->
             let
                 args =
                     List.length kvs
@@ -307,13 +312,13 @@ typealiasConstructor args ({ mod, arity, body, getTypeBody } as ali) =
                         |> List.map
                             (Tuple.mapSecond (singleton >> Variable))
             in
-                Lambda (map (singleton >> Variable) args) (Record varargs)
+                Just (Lambda (map (singleton >> Variable) args) (Record varargs))
 
         -- Error in AST. Single TypeTuple are just paren app
-        TypeTuple [ app ] ->
+        ( _, TypeTuple [ app ] ) ->
             typealiasConstructor args { ali | getTypeBody = (\_ -> app) }
 
-        TypeTuple kvs ->
+        ( _, TypeTuple kvs ) ->
             let
                 args =
                     List.length kvs
@@ -321,17 +326,21 @@ typealiasConstructor args ({ mod, arity, body, getTypeBody } as ali) =
                         |> List.map (toString >> (++) "arg")
                         |> map (singleton >> Variable)
             in
-                Lambda (args) (Tuple args)
+                Just (Lambda (args) (Tuple args))
 
-        TypeVariable name ->
-            Variable [ name ]
+        ( _, TypeVariable name ) ->
+            Just (Variable [ name ])
 
         other ->
-            Debug.crash
-                ("Only simple type aliases.\n"
-                    ++ toString other
-                    ++ " is to complex. Sorry"
-                )
+            Nothing
+
+
+
+-- Debug.crash
+--     ("Only simple type aliases.\n"
+--         ++ toString other
+--         ++ " is to complex. Sorry"
+--     )
 
 
 constructApplication : List String -> List Expression
