@@ -156,6 +156,7 @@ operators =
     , ( ",,", "tuple3" )
     , ( ",,,", "tuple4" )
     , ( ",,,,", "tuple5" )
+    , ( "as", "=" )
     ]
         |> List.foldl (uncurry Dict.insert) Dict.empty
 
