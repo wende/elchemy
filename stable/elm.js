@@ -14038,8 +14038,8 @@ var _user$project$ExExpression$getVariableName = function (e) {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExExpression',
 			{
-				start: {line: 730, column: 5},
-				end: {line: 735, column: 46}
+				start: {line: 731, column: 5},
+				end: {line: 736, column: 46}
 			},
 			_p0)('It\'s not a variable');
 	}
@@ -14063,8 +14063,8 @@ var _user$project$ExExpression$privateOrPublic = F2(
 				return _elm_lang$core$Native_Utils.crashCase(
 					'ExExpression',
 					{
-						start: {line: 652, column: 5},
-						end: {line: 663, column: 41}
+						start: {line: 653, column: 5},
+						end: {line: 664, column: 41}
 					},
 					_p2)('No such export');
 		}
@@ -14574,8 +14574,8 @@ var _user$project$ExExpression$elixirBinop = F4(
 							return _elm_lang$core$Native_Utils.crashCase(
 								'ExExpression',
 								{
-									start: {line: 826, column: 13},
-									end: {line: 840, column: 60}
+									start: {line: 827, column: 13},
+									end: {line: 841, column: 60}
 								},
 								_p23)(
 								A2(_elm_lang$core$Basics_ops['++'], 'Illegal operator ', _p25));
@@ -14745,11 +14745,14 @@ var _user$project$ExExpression$caseInstance = F2(
 					_elm_lang$core$Tuple$first(a))),
 			A2(
 				_elm_lang$core$Basics_ops['++'],
-				' -> ',
+				' ->',
 				A2(
-					_user$project$ExExpression$elixirE,
-					c,
-					_elm_lang$core$Tuple$second(a))));
+					_elm_lang$core$Basics_ops['++'],
+					_user$project$Helpers$ind(c.indent + 2),
+					A2(
+						_user$project$ExExpression$elixirE,
+						c,
+						_elm_lang$core$Tuple$second(a)))));
 	});
 var _user$project$ExExpression$elixirTypeInstances = F2(
 	function (c, e) {
@@ -14989,8 +14992,8 @@ var _user$project$ExExpression$elixirVariable = F2(
 						_elm_lang$core$Native_Utils.crash(
 							'ExExpression',
 							{
-								start: {line: 785, column: 21},
-								end: {line: 785, column: 32}
+								start: {line: 786, column: 21},
+								end: {line: 786, column: 32}
 							}),
 						'Shouldn\'t ever happen',
 						_elm_lang$core$String$join,
@@ -15452,8 +15455,8 @@ var _user$project$ExExpression$genElixirFunc = F4(
 					return _elm_lang$core$Native_Utils.crashCase(
 						'ExExpression',
 						{
-							start: {line: 590, column: 5},
-							end: {line: 647, column: 25}
+							start: {line: 591, column: 5},
+							end: {line: 648, column: 25}
 						},
 						_p61)(
 						A2(
@@ -15516,8 +15519,8 @@ var _user$project$ExExpression$genElixirFunc = F4(
 					return _elm_lang$core$Native_Utils.crashCase(
 						'ExExpression',
 						{
-							start: {line: 590, column: 5},
-							end: {line: 647, column: 25}
+							start: {line: 591, column: 5},
+							end: {line: 648, column: 25}
 						},
 						_p61)(
 						A2(
@@ -16731,7 +16734,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elmchemy', '\n'));
-var _user$project$Compiler$version = '0.3.14';
+var _user$project$Compiler$version = '0.3.15';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		return A2(
