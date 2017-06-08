@@ -229,7 +229,7 @@ unescape s =
 
 escape : String -> String
 escape s =
-    Regex.replace All (regex "\\\\n") (always "\\\\n") s
+    Regex.replace All (regex "\\\\") (always "\\\\") s
 
 
 modulePath : List String -> String
