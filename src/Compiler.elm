@@ -184,8 +184,9 @@ prepare codebase =
 
 removeComments : String -> String
 removeComments =
+    -- Need to remove the second one
     Regex.replace All (regex "--.$") (always "")
-        >> Regex.replace All (regex "\\s+\\w+\\s+:.*") (always "")
+        >> Regex.replace All (regex "\n +\\w+ : .*") (always "")
 
 
 crunchSplitLines : String -> String
