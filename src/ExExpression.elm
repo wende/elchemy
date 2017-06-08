@@ -567,7 +567,8 @@ caseE c var body =
 caseInstance : Context -> ( Expression, Expression ) -> String
 caseInstance c a =
     (ind (c.indent + 1) ++ elixirE c (Tuple.first a))
-        ++ " -> "
+        ++ " ->"
+        ++ (ind (c.indent + 2))
         ++ (elixirE c (Tuple.second a))
 
 
