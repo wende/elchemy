@@ -606,7 +606,7 @@ genElixirFunc c name args body =
                 ++ ind c.indent
                 ++ "end"
 
-        ( Custom, [ l, r ] ) ->
+        ( Custom, _ ) ->
             (ind c.indent)
                 ++ "def"
                 ++ privateOrPublic c name
@@ -624,10 +624,6 @@ genElixirFunc c name args body =
                 ++ "end"
 
         ( Builtin, _ ) ->
-            Debug.crash
-                ("operator " ++ name ++ " has to have 2 arguments but has " ++ toString args)
-
-        ( Custom, _ ) ->
             Debug.crash
                 ("operator " ++ name ++ " has to have 2 arguments but has " ++ toString args)
 
@@ -769,7 +765,10 @@ elixirVariable c var =
                 case isOperator name of
                     Builtin ->
                         -- We need a curried version, so kernel won't work
-                        "(&" ++ translateOperator name ++ "/0).()"
+                        if name == "<|" then
+                            "flip.((&|>/0).())"
+                        else
+                            "(&" ++ translateOperator name ++ "/0).()"
 
                     Custom ->
                         translateOperator name

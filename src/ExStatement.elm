@@ -70,12 +70,14 @@ elixirS c s =
                                 ++ onlyWithoutFlag c
                                     "nospec"
                                     name
-                                    ((ind c.indent)
-                                        ++ "@spec "
-                                        ++ translateOperator name
-                                        ++ (ExType.typespec c t)
-                                    )
+                                    ""
 
+                        -- Disabled until partial functions fixed
+                        -- ((ind c.indent)
+                        --     ++ "@spec "
+                        --     ++ translateOperator name
+                        --     ++ (ExType.typespec c t)
+                        -- )
                         None ->
                             onlyWithoutFlag c
                                 "nospec0"
