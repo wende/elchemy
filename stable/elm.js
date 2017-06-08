@@ -16623,35 +16623,43 @@ var _user$project$Compiler$crunchSplitLines = A3(
 							' ')),
 					m.submatches)));
 	});
-var _user$project$Compiler$removeComments = A3(
-	_elm_lang$core$Regex$replace,
-	_elm_lang$core$Regex$All,
-	_elm_lang$core$Regex$regex('--.$'),
-	_elm_lang$core$Basics$always(''));
+var _user$project$Compiler$removeComments = function (_p0) {
+	return A4(
+		_elm_lang$core$Regex$replace,
+		_elm_lang$core$Regex$All,
+		_elm_lang$core$Regex$regex('^\\s+\\w+\\s+:.*$'),
+		_elm_lang$core$Basics$always(''),
+		A4(
+			_elm_lang$core$Regex$replace,
+			_elm_lang$core$Regex$All,
+			_elm_lang$core$Regex$regex('--.$'),
+			_elm_lang$core$Basics$always(''),
+			_p0));
+};
 var _user$project$Compiler$prepare = function (codebase) {
 	return _user$project$Compiler$removeComments(codebase);
 };
 var _user$project$Compiler$parse = F2(
 	function (fileName, m) {
-		var _p0 = _Bogdanp$elm_ast$Ast$parse(
+		var _p1 = _Bogdanp$elm_ast$Ast$parse(
 			_user$project$Compiler$prepare(m));
 		_v0_2:
 		do {
-			if (_p0.ctor === 'Ok') {
-				if (_p0._0.ctor === '_Tuple3') {
-					return _p0._0._2;
+			if (_p1.ctor === 'Ok') {
+				if (_p1._0.ctor === '_Tuple3') {
+					return _p1._0._2;
 				} else {
 					break _v0_2;
 				}
 			} else {
-				if ((((_p0._0.ctor === '_Tuple3') && (_p0._0._0.ctor === '_Tuple0')) && (_p0._0._2.ctor === '::')) && (_p0._0._2._1.ctor === '[]')) {
+				if ((((_p1._0.ctor === '_Tuple3') && (_p1._0._0.ctor === '_Tuple0')) && (_p1._0._2.ctor === '::')) && (_p1._0._2._1.ctor === '[]')) {
 					return _elm_lang$core$Native_Utils.crashCase(
 						'Compiler',
 						{
 							start: {line: 159, column: 5},
 							end: {line: 177, column: 39}
 						},
-						_p0)(
+						_p1)(
 						A2(
 							_elm_lang$core$Basics_ops['++'],
 							']ERR> Compilation error in:\n ',
@@ -16669,7 +16677,7 @@ var _user$project$Compiler$parse = F2(
 											A2(
 												_elm_lang$core$List$take,
 												10,
-												_elm_lang$core$String$lines(_p0._0._1.input))),
+												_elm_lang$core$String$lines(_p1._0._1.input))),
 										'\n')))));
 				} else {
 					break _v0_2;
@@ -16682,41 +16690,41 @@ var _user$project$Compiler$parse = F2(
 				start: {line: 159, column: 5},
 				end: {line: 177, column: 39}
 			},
-			_p0)(
-			_elm_lang$core$Basics$toString(_p0));
+			_p1)(
+			_elm_lang$core$Basics$toString(_p1));
 	});
 var _user$project$Compiler$aggregateStatements = F2(
-	function (s, _p3) {
-		var _p4 = _p3;
-		var _p5 = A2(_user$project$ExStatement$elixirS, _p4._0, s);
-		var newC = _p5._0;
-		var newCode = _p5._1;
+	function (s, _p4) {
+		var _p5 = _p4;
+		var _p6 = A2(_user$project$ExStatement$elixirS, _p5._0, s);
+		var newC = _p6._0;
+		var newCode = _p6._1;
 		return {
 			ctor: '_Tuple2',
 			_0: newC,
-			_1: A2(_elm_lang$core$Basics_ops['++'], _p4._1, newCode)
+			_1: A2(_elm_lang$core$Basics_ops['++'], _p5._1, newCode)
 		};
 	});
 var _user$project$Compiler$getContext = function (statements) {
-	var _p6 = statements;
-	if (_p6.ctor === '[]') {
+	var _p7 = statements;
+	if (_p7.ctor === '[]') {
 		return {
 			ctor: '_Tuple2',
 			_0: _elm_lang$core$Maybe$Nothing,
 			_1: {ctor: '[]'}
 		};
 	} else {
-		var _p7 = _p6._1;
-		var base = _user$project$ExStatement$moduleStatement(_p6._0);
+		var _p8 = _p7._1;
+		var base = _user$project$ExStatement$moduleStatement(_p7._0);
 		return {
 			ctor: '_Tuple2',
 			_0: _elm_lang$core$Maybe$Just(
 				_elm_lang$core$Native_Utils.update(
 					base,
 					{
-						aliases: A2(_user$project$ExAlias$getAliases, base, _p7)
+						aliases: A2(_user$project$ExAlias$getAliases, base, _p8)
 					})),
-			_1: _p7
+			_1: _p8
 		};
 	}
 };
@@ -16744,12 +16752,12 @@ var _user$project$Compiler$getCommonAliases = function (a) {
 		a);
 };
 var _user$project$Compiler$getName = function (file) {
-	var _p8 = A2(_elm_lang$core$String$split, '\n', file);
-	if (_p8.ctor === '::') {
+	var _p9 = A2(_elm_lang$core$String$split, '\n', file);
+	if (_p9.ctor === '::') {
 		return {
 			ctor: '_Tuple2',
-			_0: _p8._0,
-			_1: A2(_elm_lang$core$String$join, '\n', _p8._1)
+			_0: _p9._0,
+			_1: A2(_elm_lang$core$String$join, '\n', _p9._1)
 		};
 	} else {
 		return {ctor: '_Tuple2', _0: '', _1: ''};
@@ -16763,7 +16771,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elmchemy', '\n'));
-var _user$project$Compiler$version = '0.3.16';
+var _user$project$Compiler$version = '0.3.17';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		return A2(
@@ -16792,79 +16800,79 @@ var _user$project$Compiler$getCode = F2(
 							_user$project$Compiler$glueEnd)))));
 	});
 var _user$project$Compiler$tree = function (m) {
-	var _p9 = A2(_elm_lang$core$String$split, '>>>>', m);
-	if ((_p9.ctor === '::') && (_p9._1.ctor === '[]')) {
-		return function (_p10) {
-			var _p11 = _p10;
-			var _p12 = _p11._0;
-			if (_p12.ctor === 'Nothing') {
+	var _p10 = A2(_elm_lang$core$String$split, '>>>>', m);
+	if ((_p10.ctor === '::') && (_p10._1.ctor === '[]')) {
+		return function (_p11) {
+			var _p12 = _p11;
+			var _p13 = _p12._0;
+			if (_p13.ctor === 'Nothing') {
 				return _elm_lang$core$Native_Utils.crashCase(
 					'Compiler',
 					{
 						start: {line: 53, column: 25},
 						end: {line: 58, column: 44}
 					},
-					_p12)('Failed getting context');
+					_p13)('Failed getting context');
 			} else {
-				return A2(_user$project$Compiler$getCode, _p12._0, _p11._1);
+				return A2(_user$project$Compiler$getCode, _p13._0, _p12._1);
 			}
 		}(
 			_user$project$Compiler$getContext(
-				A2(_user$project$Compiler$parse, 'NoName.elm', _p9._0)));
+				A2(_user$project$Compiler$parse, 'NoName.elm', _p10._0)));
 	} else {
 		var files = A2(
 			_elm_lang$core$List$map,
-			function (_p14) {
-				var _p15 = _p14;
-				var _p16 = _p15._0;
+			function (_p15) {
+				var _p16 = _p15;
+				var _p17 = _p16._0;
 				return {
 					ctor: '_Tuple2',
-					_0: _p16,
-					_1: A2(_user$project$Compiler$parse, _p16, _p15._1)
+					_0: _p17,
+					_1: A2(_user$project$Compiler$parse, _p17, _p16._1)
 				};
 			},
-			A2(_elm_lang$core$List$map, _user$project$Compiler$getName, _p9));
+			A2(_elm_lang$core$List$map, _user$project$Compiler$getName, _p10));
 		var wContexts = A2(
 			_elm_lang$core$List$filterMap,
 			function (a) {
-				var _p17 = a;
-				if (_p17._1._0.ctor === 'Nothing') {
+				var _p18 = a;
+				if (_p18._1._0.ctor === 'Nothing') {
 					return _elm_lang$core$Maybe$Nothing;
 				} else {
 					return _elm_lang$core$Maybe$Just(
-						{ctor: '_Tuple3', _0: _p17._0, _1: _p17._1._0._0, _2: _p17._1._1});
+						{ctor: '_Tuple3', _0: _p18._0, _1: _p18._1._0._0, _2: _p18._1._1});
 				}
 			},
 			A2(
 				_elm_lang$core$List$map,
-				function (_p18) {
-					var _p19 = _p18;
+				function (_p19) {
+					var _p20 = _p19;
 					return {
 						ctor: '_Tuple2',
-						_0: _p19._0,
-						_1: _user$project$Compiler$getContext(_p19._1)
+						_0: _p20._0,
+						_1: _user$project$Compiler$getContext(_p20._1)
 					};
 				},
 				files));
 		var commonAliases = _user$project$Compiler$getCommonAliases(
 			A2(
 				_elm_lang$core$List$map,
-				function (_p20) {
-					var _p21 = _p20;
-					return _p21._1.aliases;
+				function (_p21) {
+					var _p22 = _p21;
+					return _p22._1.aliases;
 				},
 				wContexts));
 		var wTrueContexts = A2(
 			_elm_lang$core$List$map,
-			function (_p22) {
-				var _p23 = _p22;
+			function (_p23) {
+				var _p24 = _p23;
 				return {
 					ctor: '_Tuple3',
-					_0: _p23._0,
+					_0: _p24._0,
 					_1: _elm_lang$core$Native_Utils.update(
-						_p23._1,
+						_p24._1,
 						{aliases: commonAliases}),
-					_2: _p23._2
+					_2: _p24._2
 				};
 			},
 			wContexts);
@@ -16873,18 +16881,18 @@ var _user$project$Compiler$tree = function (m) {
 			'\n',
 			A2(
 				_elm_lang$core$List$map,
-				function (_p24) {
-					var _p25 = _p24;
+				function (_p25) {
+					var _p26 = _p25;
 					return A2(
 						_elm_lang$core$Basics_ops['++'],
 						'>>>>',
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							_p25._0,
+							_p26._0,
 							A2(
 								_elm_lang$core$Basics_ops['++'],
 								'\n',
-								A2(_user$project$Compiler$getCode, _p25._1, _p25._2))));
+								A2(_user$project$Compiler$getCode, _p26._1, _p26._2))));
 				},
 				wTrueContexts));
 	}
