@@ -185,7 +185,7 @@ prepare codebase =
 removeComments : String -> String
 removeComments =
     Regex.replace All (regex "--.$") (always "")
-        >> Regex.replace All (regex "^\\s+\\w+\\s+:.*$") (always "")
+        >> Regex.replace All (regex "\\s+\\w+\\s+:.*") (always "")
 
 
 crunchSplitLines : String -> String
