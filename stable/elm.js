@@ -15937,8 +15937,8 @@ var _user$project$ExStatement$getTypeDefinition = function (a) {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExStatement',
 			{
-				start: {line: 336, column: 5},
-				end: {line: 345, column: 54}
+				start: {line: 337, column: 5},
+				end: {line: 346, column: 54}
 			},
 			_p1)('It\'s not a type declaration');
 	}
@@ -15971,13 +15971,11 @@ var _user$project$ExStatement$maybeDoctest = F2(
 									'iex> ',
 									A2(
 										_elm_lang$core$Basics_ops['++'],
-										_user$project$Helpers$escape(
-											A2(_user$project$ExExpression$elixirE, c, _p4._0._2._1)),
+										A2(_user$project$ExExpression$elixirE, c, _p4._0._2._1),
 										A2(
 											_elm_lang$core$Basics_ops['++'],
 											_user$project$Helpers$ind(c.indent + 2),
-											_user$project$Helpers$escape(
-												A2(_user$project$ExExpression$elixirE, c, _p4._0._2._2)))))))));
+											A2(_user$project$ExExpression$elixirE, c, _p4._0._2._2))))))));
 			} else {
 				return line;
 			}
@@ -16003,8 +16001,8 @@ var _user$project$ExStatement$subsetExport = function (exp) {
 			return _elm_lang$core$Native_Utils.crashCase(
 				'ExStatement',
 				{
-					start: {line: 303, column: 5},
-					end: {line: 311, column: 56}
+					start: {line: 304, column: 5},
+					end: {line: 312, column: 56}
 				},
 				_p5)(
 				A2(
@@ -16370,8 +16368,11 @@ var _user$project$ExStatement$elixirS = F2(
 																_user$project$Helpers$ind(c.indent)),
 															A2(
 																_elm_lang$core$List$map,
-																_user$project$ExStatement$maybeDoctest(c),
-																_elm_lang$core$String$lines(_p29._0)))))),
+																_user$project$Helpers$escape,
+																A2(
+																	_elm_lang$core$List$map,
+																	_user$project$ExStatement$maybeDoctest(c),
+																	_elm_lang$core$String$lines(_p29._0))))))),
 											A2(
 												_elm_lang$core$Basics_ops['++'],
 												_user$project$Helpers$ind(c.indent),
@@ -16433,8 +16434,8 @@ var _user$project$ExStatement$elixirS = F2(
 											return _elm_lang$core$Native_Utils.crashCase(
 												'ExStatement',
 												{
-													start: {line: 222, column: 37},
-													end: {line: 230, column: 87}
+													start: {line: 223, column: 37},
+													end: {line: 231, column: 87}
 												},
 												_p30)(
 												A2(
@@ -16737,7 +16738,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elmchemy', '\n'));
-var _user$project$Compiler$version = '0.3.20';
+var _user$project$Compiler$version = '0.3.21';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		return A2(
