@@ -24,11 +24,11 @@ test:
 	elm test
 
 test-std:
-	cd elmchemy-core/elixir-stuff/elmchemy && mix test
+	cd elmchemy-core/ && mix test
 
 compile-std:
-	rm -rf elmchemy-core/elixir-stuff/elmchemy/lib/Elmchemy/*
-	cd elmchemy-core && ../elmchemy compile src/Elmchemy/ elixir-stuff/elmchemy/lib/Elmchemy/
+	rm -rf elmchemy-core/lib/Elmchemy/*
+	cd elmchemy-core && ../elmchemy compile elm/ lib/
 
 compile-std-watch:
 	find elmchemy-core -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr make compile-std
