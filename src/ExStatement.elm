@@ -194,6 +194,7 @@ elixirS c s =
                             ++ (content
                                     |> String.lines
                                     |> map (maybeDoctest c)
+                                    |> map (Helpers.escape)
                                     |> map (flip (++) (ind c.indent))
                                     |> map trimIndentations
                                     |> String.join ""
@@ -321,9 +322,9 @@ maybeDoctest c line =
                     ++ c.mod
                     ++ ind (c.indent + 2)
                     ++ "iex> "
-                    ++ Helpers.escape (ExExpression.elixirE c l)
+                    ++ ExExpression.elixirE c l
                     ++ ind (c.indent + 2)
-                    ++ Helpers.escape (ExExpression.elixirE c r)
+                    ++ ExExpression.elixirE c r
 
             _ ->
                 line
