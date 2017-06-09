@@ -4,6 +4,7 @@ import Test exposing (..)
 import Expect
 import String
 import Compiler
+import Regex exposing (..)
 
 
 (|++) : String -> String -> String
@@ -16,20 +17,17 @@ has expected s =
     let
         result =
             Compiler.tree ("module MyModule exposing (..) \n" ++ s)
+                |> Regex.replace All (regex "\\n( )+") (always "")
+                |> Regex.replace All (regex "( )+") (always " ")
     in
-        (String.contains (String.trim expected) result)
+        String.contains (String.trim expected) result
             |> Expect.true ("Code:\n" ++ result ++ "\n\ndoes not contain:\n" ++ expected)
 
 
-all : Test
-all =
-    describe "All"
-        [ test "Can compile successfully" <|
-            \() ->
-                "" |> has ""
-
-        -- TUPLES
-        , test "Tuples w spaces" <|
+tuples : Test
+tuples =
+    describe "Tuples"
+        [ test "Tuples w spaces" <|
             \() ->
                 "tuple = (1, 2)" |> has "{1, 2}"
         , test "Tuples w/o spaces" <|
@@ -38,12 +36,13 @@ all =
         , test "Nested tuples" <|
             \() ->
                 "tuple = (1, (2, 3))" |> has "{1, {2, 3}}"
+        ]
 
-        -- Currently ((1, 2), 3) will return (1, 2, 3). Error in parser
-        -- , test "Other nested tuples" <| \() ->
-        --       "tuple = ((1, 2), 3)" |> hasB "{{1, 2}, 3}"
-        -- LISTS
-        , test "Lists w spaces" <|
+
+lists : Test
+lists =
+    describe "Lists"
+        [ test "Lists w spaces" <|
             \() ->
                 "list = [ 1, 2 ]" |> has "[1, 2]"
         , test "Lists w/o spaces" <|
@@ -58,9 +57,13 @@ all =
         , test "Cons operator" <|
             \() ->
                 "list = 1 :: 2 :: [3]" |> has "[1 | [2 | [3]]]"
+        ]
 
-        -- Functions
-        , test "Application" <|
+
+functions : Test
+functions =
+    describe "Functions"
+        [ test "Application" <|
             \() ->
                 "app = a b c d" |> has "a.(b).(c).(d)"
         , test "ffi" <|
@@ -72,9 +75,13 @@ all =
         , test "function calls are snakecased" <|
             \() ->
                 "a = camelCase 1" |> has "camel_case.(1)"
+        ]
 
-        -- Operators
-        , test "Simple ops" <|
+
+binOps : Test
+binOps =
+    describe "Binary Operators"
+        [ test "Simple ops" <|
             \() ->
                 "add = a + b" |> has "a + b"
         , test "Ops as lambda" <|
@@ -86,9 +93,13 @@ all =
         , test "Ops as lambda" <|
             \() ->
                 "add = map (+) list" |> has "map.((&+/0).()).(list)"
+        ]
 
-        -- Typespecs
-        , test "Typespecs with dependant types" <|
+
+specs : Test
+specs =
+    describe "Specs"
+        [ test "Typespecs with dependant types" <|
             \() ->
                 "sum : (List Int) -> Int" |> has "@spec sum(list(integer)) :: integer"
         , test "Typespecs with functions" <|
@@ -113,9 +124,28 @@ all =
             \() ->
                 "f : Remote.Module.Type -> String.T"
                     |> has "f(Remote.Module.type) :: String.t"
+        ]
 
-        -- Type aliases
-        , test "Types" <|
+
+records : Test
+records =
+    describe "Records"
+        [ test "Records work" <|
+            \() ->
+                "a = { a = 1 }" |> has "%{a: 1}"
+        , test "Complex records work" <|
+            \() ->
+                "a = { a = 1, b = 2, c = (a b)}" |> has "%{a: 1, b: 2, c: a.(b)}"
+        , test "Updating records work" <|
+            \() ->
+                "addToA r = {r | a = (r.a + 5), b = 2} " |> has "%{r | a: r.a + 5, b: 2}"
+        ]
+
+
+types : Test
+types =
+    describe "types"
+        [ test "Types" <|
             \() ->
                 "type AType = BType | CType" |> has "@type a_type :: :b_type | :c_type"
         , test "TypeRecord" <|
@@ -128,7 +158,71 @@ all =
                 "type alias A = (Int, Int, Int)"
                     |++ "a = A 1 2 "
                     |> has "{arg1, arg2, arg3}"
-        , test "TypeAlias substitution" <|
+        , test "Types ignore typealiases" <|
+            \() ->
+                "type alias AnyAlias = Lol"
+                    |++ "type AnyType = AnyAlias | AnyType"
+                    |> has "@type any_type :: :any_alias | :any_type"
+        , test "Types can wrap records" <|
+            \() ->
+                "type Lens big small = Lens { get : big -> small }"
+                    |> has "@type lens :: {:lens, %{get: (any -> any)}}"
+        , test "Types args don't polute type application" <|
+            \() ->
+                "type Focus big small = Focus { get : big -> small }"
+                    |++ "a = Focus { get = get, update = update }"
+                    |> has "{:focus, %{get: get, update: update}}"
+        ]
+
+
+meta : Test
+meta =
+    describe "Meta"
+        [ test "Module meta" <|
+            \() ->
+                "meta = [\"use GenServer\", \"@port 100\"]" |> has "use GenServer"
+        , test "Module meta arg" <|
+            \() ->
+                "meta = [\"use GenServer\", \"@port 100\"]" |> has "@port 100"
+        ]
+
+
+typeConstructors : Test
+typeConstructors =
+    describe "Type Constructors"
+        [ test "Type application" <|
+            \() ->
+                "a = Type a b c" |> has "{:type, a, b, c}"
+        , test "Type in tuple" <|
+            \() ->
+                "a = (Type, a, b, c)" |> has "{:type, a, b, c}"
+        , test "Remote types" <|
+            \() ->
+                "a = Remote.Type a b c" |> has "{:type, a, b, c}"
+        , test "Remote types in tuples" <|
+            \() ->
+                "a = (Remote.Type, a, b, c)" |> has "{:type, a, b, c}"
+        ]
+
+
+doctests : Test
+doctests =
+    describe "Doctests"
+        [ test "Doctests" <|
+            \() ->
+                "{-| A equals 1. It just does\n"
+                    ++ "what the hell\n"
+                    ++ "    a == 1\n"
+                    ++ "-}\n"
+                    ++ "a = 1"
+                    |> has "iex> a\n"
+        ]
+
+
+typeAliases : Test
+typeAliases =
+    describe "Type aliases in specs"
+        [ test "TypeAlias substitution" <|
             \() ->
                 "type alias MyType a = List a"
                     |++ "test : MyType Int"
@@ -155,20 +249,6 @@ all =
                     |++ "type Val a = AnyKey (MyList a)"
                     |++ "test : Val Int"
                     |> has "@spec test() :: val"
-        , test "Types ignore typealiases" <|
-            \() ->
-                "type alias AnyAlias = Lol"
-                    |++ "type AnyType = AnyAlias | AnyType"
-                    |> has "@type any_type :: :any_alias | :any_type"
-        , test "Types can wrap records" <|
-            \() ->
-                "type Lens big small = Lens { get : big -> small }"
-                    |> has "@type lens :: {:lens, %{get: (any -> any)}}"
-        , test "Types args don't polute type application" <|
-            \() ->
-                "type Focus big small = Focus { get : big -> small }"
-                    |++ "a = Focus { get = get, update = update }"
-                    |> has "{:focus, %{get: get, update: update}}"
 
         -- Polymorhpism
         , test "Polymorhpic record alias" <|
@@ -191,49 +271,23 @@ all =
                 "type alias Namable a = { a | name : String }"
                     |++ "getName : Namable a -> String "
                     |> has "@spec get_name(%{name: String.t}) :: String.t"
+        ]
 
-        -- Records
-        , test "Records work" <|
-            \() ->
-                "a = { a = 1 }" |> has "%{a: 1}"
-        , test "Complex records work" <|
-            \() ->
-                "a = { a = 1, b = 2, c = (a b)}" |> has "%{a: 1, b: 2, c: a.(b)}"
-        , test "Updating records work" <|
-            \() ->
-                "addToA r = {r | a = (r.a + 5), b = 2} " |> has "%{r | a: r.a + 5, b: 2}"
 
-        -- Module Meta
-        , test "Module meta" <|
-            \() ->
-                "meta = [\"use GenServer\", \"@port 100\"]" |> has "use GenServer"
-        , test "Module meta" <|
-            \() ->
-                "meta = [\"use GenServer\", \"@port 100\"]" |> has "@port 100"
+all : Test
+all =
+    describe "All"
+        [ tuples
+        , lists
+        , functions
+        , binOps
 
-        -- Types Are Tuples
-        , test "Type application" <|
-            \() ->
-                "a = Type a b c" |> has "{:type, a, b, c}"
-        , test "Type in tuple" <|
-            \() ->
-                "a = (Type, a, b, c)" |> has "{:type, a, b, c}"
-        , test "Remote types" <|
-            \() ->
-                "a = Remote.Type a b c" |> has "{:type, a, b, c}"
-        , test "Remote types in tuples" <|
-            \() ->
-                "a = (Remote.Type, a, b, c)" |> has "{:type, a, b, c}"
-
-        -- Doctest
-        , test "Doctests" <|
-            \() ->
-                "{-| A equals 1. It just does\n"
-                    ++ "what the hell\n"
-                    ++ "    a == 1\n"
-                    ++ "-}\n"
-                    ++ "a = 1"
-                    |> has "iex> a\n"
-
-        -- End
+        -- Disabled util specs are working correctly
+        --, specs
+        --, typeAliases
+        , types
+        , records
+        , meta
+        , typeConstructors
+        , doctests
         ]

@@ -68,30 +68,6 @@ elixirT flatten c t =
                 any ->
                     "any"
 
-        -- |> Dict.get name
-        -- |> (\a ->
-        --         case a of
-        --             Just ( mod, (TypeVariable name) as t ) ->
-        --                 if mod == c.mod then
-        --                     toSnakeCase True name
-        --                 else
-        --                     mod ++ "." ++ name
-        --
-        --             Just ( mod, (TypeConstructor _ _) as t ) ->
-        --                 if mod == c.mod then
-        --                     elixirTNoFlat c t
-        --                 else
-        --                     mod ++ "." ++ name
-        --
-        --             Just ( mod, t ) ->
-        --                 Debug.crash (toString t ++ " in module " ++ mod ++ " is too complex for current compiler")
-        --
-        --             Nothing ->
-        --                 if isCapitilzed name then
-        --                     name
-        --                 else
-        --                     "any"
-        --    )
         TypeConstructor [ t ] any ->
             elixirTypeConstructor flatten c t any
 
@@ -106,14 +82,16 @@ elixirT flatten c t =
                     Debug.crash "Shouldn't ever happen"
 
         TypeRecord fields ->
-            "%{\n"
+            "%{"
+                ++ ind (c.indent + 1)
                 ++ (map
                         (\( k, v ) ->
-                            k ++ ": " ++ elixirT flatten c v
+                            k ++ ": " ++ elixirT flatten (indent c) v
                         )
                         fields
                         |> String.join ("," ++ ind (c.indent + 1))
                    )
+                ++ ind (c.indent)
                 ++ "}"
 
         (TypeRecordConstructor _ _) as tr ->
@@ -163,7 +141,7 @@ typeRecordFields c flatten t =
                     )
                     (fields)
                 )
-                    ++ (Maybe.withDefault [ "KURWA" ] inherited)
+                    ++ (Maybe.withDefault [ "" ] inherited)
 
         TypeRecordConstructor (TypeRecord inherited) fields ->
             (map
@@ -333,14 +311,6 @@ typealiasConstructor args ({ mod, aliasType, arity, body, getTypeBody } as ali) 
 
         other ->
             Nothing
-
-
-
--- Debug.crash
---     ("Only simple type aliases.\n"
---         ++ toString other
---         ++ " is to complex. Sorry"
---     )
 
 
 constructApplication : List String -> List Expression
