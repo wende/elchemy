@@ -41,7 +41,7 @@ elixirE c e =
                 ++ String.join "." right
 
         AccessFunction name ->
-            "(fn a -> a." ++ toSnakeCase True name ++ ")"
+            "(fn a -> a." ++ toSnakeCase True name ++ " end)"
 
         -- Basic operators that are functions in Elixir
         -- Exception, ( "//", "" )
