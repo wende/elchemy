@@ -87,15 +87,16 @@ elixirS c s =
                                     ++ toSnakeCase True name
                                     ++ (ExType.typespec0 c t)
                                 )
-                                ++ onlyWithoutFlag c
-                                    "nospec"
-                                    name
-                                    ((ind c.indent)
-                                        ++ "@spec "
-                                        ++ toSnakeCase True name
-                                        ++ (ExType.typespec c t)
-                                    )
 
+        -- Disabled until partial functions fixed
+        -- ++ onlyWithoutFlag c
+        --     "nospec"
+        --     name
+        --     ((ind c.indent)
+        --         ++ "@spec "
+        --         ++ toSnakeCase True name
+        --         ++ (ExType.typespec c t)
+        --     )
         (FunctionTypeDeclaration name t) as def ->
             let
                 definition =
