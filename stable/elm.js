@@ -14449,7 +14449,7 @@ var _user$project$ExExpression$elixirE = F2(
 						A2(
 							_elm_lang$core$Basics_ops['++'],
 							A2(_user$project$Helpers$toSnakeCase, true, _p19._0),
-							')'));
+							' end)'));
 				case 'BinOp':
 					if (((_p19._0.ctor === 'Variable') && (_p19._0._0.ctor === '::')) && (_p19._0._0._1.ctor === '[]')) {
 						return A4(_user$project$ExExpression$elixirBinop, c, _p19._0._0._0, _p19._1, _p19._2);
@@ -16760,7 +16760,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elmchemy', '\n'));
-var _user$project$Compiler$version = '0.3.26';
+var _user$project$Compiler$version = '0.3.27';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		return A2(
