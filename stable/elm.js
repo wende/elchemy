@@ -13347,8 +13347,8 @@ var _user$project$ExType$constructApplication = function (list) {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExType',
 			{
-				start: {line: 348, column: 5},
-				end: {line: 359, column: 14}
+				start: {line: 318, column: 5},
+				end: {line: 329, column: 14}
 			},
 			_p0)('Wrong application');
 	} else {
@@ -13628,8 +13628,8 @@ var _user$project$ExType$elixirT = F3(
 								return _elm_lang$core$Native_Utils.crashCase(
 									'ExType',
 									{
-										start: {line: 99, column: 13},
-										end: {line: 106, column: 56}
+										start: {line: 75, column: 13},
+										end: {line: 82, column: 56}
 									},
 									_p15)('Shouldn\'t ever happen');
 							}
@@ -13640,29 +13640,39 @@ var _user$project$ExType$elixirT = F3(
 				case 'TypeRecord':
 					return A2(
 						_elm_lang$core$Basics_ops['++'],
-						'%{\n',
+						'%{',
 						A2(
 							_elm_lang$core$Basics_ops['++'],
+							_user$project$Helpers$ind(c.indent + 1),
 							A2(
-								_elm_lang$core$String$join,
+								_elm_lang$core$Basics_ops['++'],
+								A2(
+									_elm_lang$core$String$join,
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										',',
+										_user$project$Helpers$ind(c.indent + 1)),
+									A2(
+										_elm_lang$core$List$map,
+										function (_p17) {
+											var _p18 = _p17;
+											return A2(
+												_elm_lang$core$Basics_ops['++'],
+												_p18._0,
+												A2(
+													_elm_lang$core$Basics_ops['++'],
+													': ',
+													A3(
+														_user$project$ExType$elixirT,
+														flatten,
+														_user$project$ExContext$indent(c),
+														_p18._1)));
+										},
+										_p13._0)),
 								A2(
 									_elm_lang$core$Basics_ops['++'],
-									',',
-									_user$project$Helpers$ind(c.indent + 1)),
-								A2(
-									_elm_lang$core$List$map,
-									function (_p17) {
-										var _p18 = _p17;
-										return A2(
-											_elm_lang$core$Basics_ops['++'],
-											_p18._0,
-											A2(
-												_elm_lang$core$Basics_ops['++'],
-												': ',
-												A3(_user$project$ExType$elixirT, flatten, c, _p18._1)));
-									},
-									_p13._0)),
-							'}'));
+									_user$project$Helpers$ind(c.indent),
+									'}'))));
 				case 'TypeRecordConstructor':
 					return A2(
 						_elm_lang$core$Basics_ops['++'],
@@ -13910,7 +13920,7 @@ var _user$project$ExType$typeRecordFields = F3(
 									_elm_lang$core$Maybe$withDefault,
 									{
 										ctor: '::',
-										_0: 'KURWA',
+										_0: '',
 										_1: {ctor: '[]'}
 									},
 									inherited));
@@ -13972,8 +13982,8 @@ var _user$project$ExType$typeRecordFields = F3(
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExType',
 			{
-				start: {line: 152, column: 5},
-				end: {line: 194, column: 75}
+				start: {line: 130, column: 5},
+				end: {line: 172, column: 75}
 			},
 			_p32)(
 			A2(
@@ -14020,8 +14030,8 @@ var _user$project$ExType$uniontype = F2(
 			return _elm_lang$core$Native_Utils.crashCase(
 				'ExType',
 				{
-					start: {line: 277, column: 5},
-					end: {line: 289, column: 96}
+					start: {line: 255, column: 5},
+					end: {line: 267, column: 96}
 				},
 				_p44)(
 				A2(
@@ -14055,8 +14065,8 @@ var _user$project$ExType$typespec = F2(
 			return _elm_lang$core$Native_Utils.crashCase(
 				'ExType',
 				{
-					start: {line: 262, column: 5},
-					end: {line: 272, column: 37}
+					start: {line: 240, column: 5},
+					end: {line: 250, column: 37}
 				},
 				_p46)('impossible');
 		}
@@ -15937,8 +15947,8 @@ var _user$project$ExStatement$getTypeDefinition = function (a) {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExStatement',
 			{
-				start: {line: 338, column: 5},
-				end: {line: 347, column: 54}
+				start: {line: 336, column: 5},
+				end: {line: 345, column: 54}
 			},
 			_p1)('It\'s not a type declaration');
 	}
@@ -16001,8 +16011,8 @@ var _user$project$ExStatement$subsetExport = function (exp) {
 			return _elm_lang$core$Native_Utils.crashCase(
 				'ExStatement',
 				{
-					start: {line: 305, column: 5},
-					end: {line: 313, column: 56}
+					start: {line: 303, column: 5},
+					end: {line: 311, column: 56}
 				},
 				_p5)(
 				A2(
@@ -16162,23 +16172,52 @@ var _user$project$ExStatement$elixirS = F2(
 															_elm_lang$core$Basics_ops['++'],
 															_user$project$Helpers$translateOperator(_p18),
 															A2(_user$project$ExType$typespec0, c, _p19))))),
-											A4(_user$project$ExContext$onlyWithoutFlag, c, 'nospec', _p18, ''));
-									default:
-										return A4(
-											_user$project$ExContext$onlyWithoutFlag,
-											c,
-											'nospec0',
-											_p18,
 											A2(
 												_elm_lang$core$Basics_ops['++'],
-												_user$project$Helpers$ind(c.indent),
+												A4(_user$project$ExContext$onlyWithoutFlag, c, 'nospec', _p18, ''),
 												A2(
 													_elm_lang$core$Basics_ops['++'],
-													'@spec ',
+													_user$project$Helpers$ind(c.indent),
 													A2(
 														_elm_lang$core$Basics_ops['++'],
-														A2(_user$project$Helpers$toSnakeCase, true, _p18),
-														A2(_user$project$ExType$typespec0, c, _p19)))));
+														'@spec ',
+														A2(
+															_elm_lang$core$Basics_ops['++'],
+															_user$project$Helpers$translateOperator(_p18),
+															A2(_user$project$ExType$typespec, c, _p19))))));
+									default:
+										return A2(
+											_elm_lang$core$Basics_ops['++'],
+											A4(
+												_user$project$ExContext$onlyWithoutFlag,
+												c,
+												'nospec0',
+												_p18,
+												A2(
+													_elm_lang$core$Basics_ops['++'],
+													_user$project$Helpers$ind(c.indent),
+													A2(
+														_elm_lang$core$Basics_ops['++'],
+														'@spec ',
+														A2(
+															_elm_lang$core$Basics_ops['++'],
+															A2(_user$project$Helpers$toSnakeCase, true, _p18),
+															A2(_user$project$ExType$typespec0, c, _p19))))),
+											A4(
+												_user$project$ExContext$onlyWithoutFlag,
+												c,
+												'nospec',
+												_p18,
+												A2(
+													_elm_lang$core$Basics_ops['++'],
+													_user$project$Helpers$ind(c.indent),
+													A2(
+														_elm_lang$core$Basics_ops['++'],
+														'@spec ',
+														A2(
+															_elm_lang$core$Basics_ops['++'],
+															A2(_user$project$Helpers$toSnakeCase, true, _p18),
+															A2(_user$project$ExType$typespec, c, _p19))))));
 								}
 							}());
 					} else {
@@ -16417,8 +16456,8 @@ var _user$project$ExStatement$elixirS = F2(
 											return _elm_lang$core$Native_Utils.crashCase(
 												'ExStatement',
 												{
-													start: {line: 224, column: 37},
-													end: {line: 232, column: 87}
+													start: {line: 222, column: 37},
+													end: {line: 230, column: 87}
 												},
 												_p30)(
 												A2(
@@ -16721,7 +16760,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elmchemy', '\n'));
-var _user$project$Compiler$version = '0.3.25';
+var _user$project$Compiler$version = '0.3.26';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		return A2(

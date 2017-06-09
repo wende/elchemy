@@ -13,7 +13,7 @@ import Regex exposing (..)
 
 version : String
 version =
-    "0.3.25"
+    "0.3.26"
 
 
 glueStart : String
