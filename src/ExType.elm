@@ -71,12 +71,26 @@ elixirT flatten c t =
         TypeConstructor [ t ] any ->
             elixirTypeConstructor flatten c t any
 
-        TypeConstructor t [] ->
+        TypeConstructor t args ->
             case lastAndRest t of
                 ( Just last, a ) ->
-                    String.join "." a
-                        ++ "."
-                        ++ toSnakeCase True last
+                    ExAlias.maybeAlias c.aliases last
+                        |> Maybe.andThen
+                            (\ali ->
+                                if ali.aliasType == ExContext.TypeAlias then
+                                    Just ali
+                                else
+                                    Nothing
+                            )
+                        |> Maybe.map (\{ getTypeBody } -> getTypeBody args)
+                        |> Maybe.map (elixirT flatten c)
+                        |> Maybe.withDefault
+                            (String.join
+                                "."
+                                a
+                                ++ "."
+                                ++ toSnakeCase True last
+                            )
 
                 _ ->
                     Debug.crash "Shouldn't ever happen"
@@ -120,9 +134,6 @@ elixirT flatten c t =
                     ++ " -> "
                     ++ elixirT flatten c r
                     ++ ")"
-
-        other ->
-            notImplemented "type" other
 
 
 typeRecordFields : Context -> Bool -> Type -> List String
