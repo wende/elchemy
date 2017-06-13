@@ -138,7 +138,7 @@ records =
                 "a = { a = 1, b = 2, c = (a b)}" |> has "%{a: 1, b: 2, c: a.(b)}"
         , test "Updating records work" <|
             \() ->
-                "addToA r = {r | a = (r.a + 5), b = 2} " |> has "%{r | a: r.a + 5, b: 2}"
+                "addToA r = {r | a = (r.a + 5), b = 2} " |> has "%{r | a: ( r.a + 5 ), b: 2}"
         ]
 
 

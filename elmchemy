@@ -60,9 +60,9 @@ case "$1" in
         while IFS= read -r line; do
             if [[ $line =~ ">>>>" ]]; then
                 current_file="${line/\/\///}"
-                current_file="${current_file%%.elm}.ex"
                 current_file="${current_file/>>>>$2/$3}"
                 echo "Linking: $current_file"
+                current_file="${current_file%%.elm}.ex"
                 current_file=$(create_file $current_file)
                 echo "To: $current_file"
                 else
