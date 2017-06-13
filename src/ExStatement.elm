@@ -59,18 +59,18 @@ elixirS c s =
                             ""
 
                         Custom ->
+                            -- onlyWithoutFlag c
+                            -- "nospec0"
+                            -- name
+                            -- ((ind c.indent)
+                            --     ++ "@spec "
+                            --     ++ translateOperator name
+                            --     ++ (ExType.typespec0 c t)
+                            -- )
                             onlyWithoutFlag c
-                                "nospec0"
+                                "nospec"
                                 name
-                                ((ind c.indent)
-                                    ++ "@spec "
-                                    ++ translateOperator name
-                                    ++ (ExType.typespec0 c t)
-                                )
-                                ++ onlyWithoutFlag c
-                                    "nospec"
-                                    name
-                                    ""
+                                ""
                                 ++ ((ind c.indent)
                                         ++ "@spec "
                                         ++ translateOperator name
@@ -78,22 +78,22 @@ elixirS c s =
                                    )
 
                         None ->
+                            -- onlyWithoutFlag c
+                            --     "nospec0"
+                            --     name
+                            --     ((ind c.indent)
+                            --         ++ "@spec "
+                            --         ++ toSnakeCase True name
+                            --         ++ (ExType.typespec0 c t)
+                            --     )
                             onlyWithoutFlag c
-                                "nospec0"
+                                "nospec"
                                 name
                                 ((ind c.indent)
                                     ++ "@spec "
                                     ++ toSnakeCase True name
-                                    ++ (ExType.typespec0 c t)
+                                    ++ (ExType.typespec c t)
                                 )
-                                ++ onlyWithoutFlag c
-                                    "nospec"
-                                    name
-                                    ((ind c.indent)
-                                        ++ "@spec "
-                                        ++ toSnakeCase True name
-                                        ++ (ExType.typespec c t)
-                                    )
 
         (FunctionTypeDeclaration name t) as def ->
             let

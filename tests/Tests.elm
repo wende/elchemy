@@ -119,7 +119,7 @@ specs =
                 "mapMap : a" |> has "@spec map_map"
         , test "Records in typespecs" <|
             \() ->
-                "record : { a : Int, b : String}" |> has "@spec record() :: %{a: integer, b: String.t}"
+                "record : { a : Int, b : String}" |> has "@spec record() :: %{a: integer,b: String.t}"
         , test "Remote typespecs" <|
             \() ->
                 "f : Remote.Module.Type -> String.T"
@@ -283,8 +283,8 @@ all =
         , binOps
 
         -- Disabled util specs are working correctly
-        --, specs
-        --, typeAliases
+        , specs
+        , typeAliases
         , types
         , records
         , meta
