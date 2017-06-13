@@ -16171,67 +16171,33 @@ var _user$project$ExStatement$elixirS = F2(
 									case 'Custom':
 										return A2(
 											_elm_lang$core$Basics_ops['++'],
-											A4(
-												_user$project$ExContext$onlyWithoutFlag,
-												c,
-												'nospec0',
-												_p18,
-												A2(
-													_elm_lang$core$Basics_ops['++'],
-													_user$project$Helpers$ind(c.indent),
-													A2(
-														_elm_lang$core$Basics_ops['++'],
-														'@spec ',
-														A2(
-															_elm_lang$core$Basics_ops['++'],
-															_user$project$Helpers$translateOperator(_p18),
-															A2(_user$project$ExType$typespec0, c, _p19))))),
+											A4(_user$project$ExContext$onlyWithoutFlag, c, 'nospec', _p18, ''),
 											A2(
 												_elm_lang$core$Basics_ops['++'],
-												A4(_user$project$ExContext$onlyWithoutFlag, c, 'nospec', _p18, ''),
+												_user$project$Helpers$ind(c.indent),
 												A2(
 													_elm_lang$core$Basics_ops['++'],
-													_user$project$Helpers$ind(c.indent),
+													'@spec ',
 													A2(
 														_elm_lang$core$Basics_ops['++'],
-														'@spec ',
-														A2(
-															_elm_lang$core$Basics_ops['++'],
-															_user$project$Helpers$translateOperator(_p18),
-															A2(_user$project$ExType$typespec, c, _p19))))));
+														_user$project$Helpers$translateOperator(_p18),
+														A2(_user$project$ExType$typespec, c, _p19)))));
 									default:
-										return A2(
-											_elm_lang$core$Basics_ops['++'],
-											A4(
-												_user$project$ExContext$onlyWithoutFlag,
-												c,
-												'nospec0',
-												_p18,
+										return A4(
+											_user$project$ExContext$onlyWithoutFlag,
+											c,
+											'nospec',
+											_p18,
+											A2(
+												_elm_lang$core$Basics_ops['++'],
+												_user$project$Helpers$ind(c.indent),
 												A2(
 													_elm_lang$core$Basics_ops['++'],
-													_user$project$Helpers$ind(c.indent),
+													'@spec ',
 													A2(
 														_elm_lang$core$Basics_ops['++'],
-														'@spec ',
-														A2(
-															_elm_lang$core$Basics_ops['++'],
-															A2(_user$project$Helpers$toSnakeCase, true, _p18),
-															A2(_user$project$ExType$typespec0, c, _p19))))),
-											A4(
-												_user$project$ExContext$onlyWithoutFlag,
-												c,
-												'nospec',
-												_p18,
-												A2(
-													_elm_lang$core$Basics_ops['++'],
-													_user$project$Helpers$ind(c.indent),
-													A2(
-														_elm_lang$core$Basics_ops['++'],
-														'@spec ',
-														A2(
-															_elm_lang$core$Basics_ops['++'],
-															A2(_user$project$Helpers$toSnakeCase, true, _p18),
-															A2(_user$project$ExType$typespec, c, _p19))))));
+														A2(_user$project$Helpers$toSnakeCase, true, _p18),
+														A2(_user$project$ExType$typespec, c, _p19)))));
 								}
 							}());
 					} else {
@@ -16774,7 +16740,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elmchemy', '\n'));
-var _user$project$Compiler$version = '0.3.28';
+var _user$project$Compiler$version = '0.3.29';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		return A2(
