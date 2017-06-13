@@ -1,6 +1,6 @@
 {
   "name": "elmchemy",
-  "version": "0.3.28",
+  "version": "0.3.29",
   "description": "Write Elixir code using Elm-inspired syntax (elm-make compatible)",
   "directories": {
     "example": "example",
