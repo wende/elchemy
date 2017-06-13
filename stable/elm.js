@@ -14598,14 +14598,22 @@ var _user$project$ExExpression$elixirBinop = F4(
 								' ',
 								{
 									ctor: '::',
-									_0: A2(_user$project$ExExpression$elixirE, c, l),
+									_0: '(',
 									_1: {
 										ctor: '::',
-										_0: _user$project$Helpers$translateOperator(_p25),
+										_0: A2(_user$project$ExExpression$elixirE, c, l),
 										_1: {
 											ctor: '::',
-											_0: A2(_user$project$ExExpression$elixirE, c, r),
-											_1: {ctor: '[]'}
+											_0: _user$project$Helpers$translateOperator(_p25),
+											_1: {
+												ctor: '::',
+												_0: A2(_user$project$ExExpression$elixirE, c, r),
+												_1: {
+													ctor: '::',
+													_0: ')',
+													_1: {ctor: '[]'}
+												}
+											}
 										}
 									}
 								});
@@ -14615,7 +14623,7 @@ var _user$project$ExExpression$elixirBinop = F4(
 								_user$project$Helpers$translateOperator(_p25),
 								A2(
 									_elm_lang$core$Basics_ops['++'],
-									'.(',
+									'(',
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										A2(_user$project$ExExpression$elixirE, c, l),
@@ -16740,7 +16748,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elmchemy', '\n'));
-var _user$project$Compiler$version = '0.3.29';
+var _user$project$Compiler$version = '0.3.30';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		return A2(
