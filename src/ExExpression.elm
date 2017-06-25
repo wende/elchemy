@@ -387,30 +387,12 @@ tupleOrFunction c a =
         (Variable [ "tryFfi" ]) :: rest ->
             Debug.crash "tryFfi inside function body is deprecated since Elmchemy 0.3"
 
-        -- case rest of
-        --     [ mod, fun, args ] ->
-        --         resolveFfi c (Ffi mod fun args)
-        --
-        --     _ ->
-        --         Debug.crash "Wrong ffi"
         (Variable [ "lffi" ]) :: rest ->
             Debug.crash "Lffi inside function body is deprecated since Elmchemy 0.3"
 
-        -- case rest of
-        --     [ fun, args ] ->
-        --         resolveFfi c (Lffi fun args)
-        --
-        --     _ ->
-        --         Debug.crash "Wrong lffi"
         (Variable [ "flambda" ]) :: rest ->
             Debug.crash "Flambda is deprecated since Elmchemy 0.3"
 
-        -- case rest of
-        --     [ Integer arity, fun ] ->
-        --         resolveFfi c (Flambda arity fun)
-        --
-        --     _ ->
-        --         Debug.crash "Wrong flambda"
         [ Variable [ "Just" ], arg ] ->
             "{" ++ elixirE c arg ++ "}"
 
@@ -426,29 +408,7 @@ tupleOrFunction c a =
         (Variable list) :: rest ->
             case lastAndRest list of
                 ( Just last, _ ) ->
-                    ExAlias.maybeAlias c.aliases last
-                        |> Maybe.andThen
-                            (\({ aliasType } as ali) ->
-                                case aliasType of
-                                    ExContext.TypeAlias ->
-                                        Just ali
-
-                                    ExContext.Type ->
-                                        Nothing
-                            )
-                        |> Maybe.andThen
-                            (ExType.typealiasConstructor [])
-                        |> Maybe.map
-                            (elixirE c
-                                >> (++) "("
-                                >> flip (++)
-                                    (rest
-                                        |> map (elixirE c)
-                                        |> String.join ").("
-                                        |> (++) ").("
-                                        |> flip (++) ")"
-                                    )
-                            )
+                    aliasFor c last rest
                         |> Maybe.withDefault
                             ("{"
                                 ++ elixirE c (Variable [ last ])
@@ -462,6 +422,32 @@ tupleOrFunction c a =
 
         other ->
             Debug.crash ("Shouldn't ever work for" ++ toString other)
+
+
+aliasFor : Context -> String -> List Expression -> Maybe String
+aliasFor c name rest =
+    ExAlias.maybeAlias c.aliases name
+        |> Maybe.andThen
+            (\({ aliasType } as ali) ->
+                case aliasType of
+                    ExContext.TypeAlias ->
+                        Just ali
+
+                    ExContext.Type ->
+                        Nothing
+            )
+        |> Maybe.andThen (ExType.typealiasConstructor [])
+        |> Maybe.map
+            ((elixirE c)
+                >> (++) "("
+                >> flip (++)
+                    (rest
+                        |> map (elixirE c)
+                        |> String.join ").("
+                        |> (++) ").("
+                        |> flip (++) ")"
+                    )
+            )
 
 
 type Ffi
