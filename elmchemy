@@ -19,6 +19,10 @@ done
 SOURCE_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 case "$1" in
+    clean)
+      rm -rf ./elm-deps
+      rm -rf ./elm-stuff
+    ;;
     init)
         if [ -a ./mix.exs ]
         then
@@ -38,7 +42,11 @@ case "$1" in
     compile)
         rm -rf ".elmchemy"
         echo "" > .elmchemy_output
-        elm-package install -y
+        if ! hash elm-github-install 2>/dev/null; then
+          echo "No elm-github-install found. Installing..."
+          npm i -g elm-github-install
+        fi
+        elm-install
         for f in `{ find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#." ; find $2/../elm-stuff/packages -name "*.elm" | grep -v "/tests/" ;}`
         do
             if [[ ${f} == *"elm-lang"* ]] || [[ ${f} == *"Elmchemy.elm"* ]]; then
