@@ -15981,8 +15981,8 @@ var _user$project$ExStatement$getTypeDefinition = function (a) {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExStatement',
 			{
-				start: {line: 336, column: 5},
-				end: {line: 345, column: 54}
+				start: {line: 356, column: 5},
+				end: {line: 365, column: 54}
 			},
 			_p1)('It\'s not a type declaration');
 	}
@@ -16045,8 +16045,8 @@ var _user$project$ExStatement$subsetExport = function (exp) {
 			return _elm_lang$core$Native_Utils.crashCase(
 				'ExStatement',
 				{
-					start: {line: 303, column: 5},
-					end: {line: 311, column: 56}
+					start: {line: 323, column: 5},
+					end: {line: 331, column: 56}
 				},
 				_p5)(
 				A2(
@@ -16271,9 +16271,9 @@ var _user$project$ExStatement$elixirS = F2(
 							}());
 					}
 				case 'FunctionDeclaration':
-					var _p28 = _p16._0;
-					var _p27 = _p16._2;
-					var _p26 = _p16._1;
+					var _p29 = _p16._0;
+					var _p28 = _p16._2;
+					var _p27 = _p16._1;
 					return A2(
 						F2(
 							function (v0, v1) {
@@ -16281,15 +16281,52 @@ var _user$project$ExStatement$elixirS = F2(
 							}),
 						c,
 						function () {
-							if (_elm_lang$core$Native_Utils.eq(_p28, 'meta') && _elm_lang$core$Native_Utils.eq(
-								_p26,
+							if (_elm_lang$core$Native_Utils.eq(_p29, 'meta') && _elm_lang$core$Native_Utils.eq(
+								_p27,
 								{ctor: '[]'})) {
-								return _user$project$ExExpression$generateMeta(_p27);
+								return _user$project$ExExpression$generateMeta(_p28);
 							} else {
-								var _p23 = _p27;
-								_v11_3:
+								var _p23 = _p28;
+								_v11_4:
 								do {
 									switch (_p23.ctor) {
+										case 'Access':
+											if (((((_p23._0.ctor === 'Variable') && (_p23._0._0.ctor === '::')) && (_p23._0._0._0 === 'Native')) && (_p23._1.ctor === '::')) && (_p23._1._1.ctor === '[]')) {
+												return A4(
+													_user$project$ExExpression$generateFfi,
+													c,
+													_p29,
+													A2(
+														_elm_lang$core$List$map,
+														_user$project$ExStatement$typeAplicationToList,
+														A2(
+															_elm_lang$core$Maybe$withDefault,
+															{ctor: '[]'},
+															A2(
+																_elm_lang$core$Maybe$map,
+																function (_p24) {
+																	return _user$project$ExStatement$typeAplicationToList(
+																		function (_) {
+																			return _.def;
+																		}(_p24));
+																},
+																A2(_elm_lang$core$Dict$get, _p29, c.definitions)))),
+													A2(
+														_Bogdanp$elm_ast$Ast_Expression$Application,
+														A2(
+															_Bogdanp$elm_ast$Ast_Expression$Application,
+															_Bogdanp$elm_ast$Ast_Expression$Variable(
+																{
+																	ctor: '::',
+																	_0: 'ffi',
+																	_1: {ctor: '[]'}
+																}),
+															_Bogdanp$elm_ast$Ast_Expression$String(
+																A2(_elm_lang$core$String$join, '.', _p23._0._0._1))),
+														_Bogdanp$elm_ast$Ast_Expression$String(_p23._1._0)));
+											} else {
+												break _v11_4;
+											}
 										case 'Application':
 											if ((((_p23._0.ctor === 'Application') && (_p23._0._0.ctor === 'Variable')) && (_p23._0._0._0.ctor === '::')) && (_p23._0._0._0._1.ctor === '[]')) {
 												switch (_p23._0._0._0._0) {
@@ -16297,28 +16334,7 @@ var _user$project$ExStatement$elixirS = F2(
 														return A4(
 															_user$project$ExExpression$generateFfi,
 															c,
-															_p28,
-															A2(
-																_elm_lang$core$List$map,
-																_user$project$ExStatement$typeAplicationToList,
-																A2(
-																	_elm_lang$core$Maybe$withDefault,
-																	{ctor: '[]'},
-																	A2(
-																		_elm_lang$core$Maybe$map,
-																		function (_p24) {
-																			return _user$project$ExStatement$typeAplicationToList(
-																				function (_) {
-																					return _.def;
-																				}(_p24));
-																		},
-																		A2(_elm_lang$core$Dict$get, _p28, c.definitions)))),
-															_p23);
-													case 'tryFfi':
-														return A4(
-															_user$project$ExExpression$generateFfi,
-															c,
-															_p28,
+															_p29,
 															A2(
 																_elm_lang$core$List$map,
 																_user$project$ExStatement$typeAplicationToList,
@@ -16333,28 +16349,49 @@ var _user$project$ExStatement$elixirS = F2(
 																					return _.def;
 																				}(_p25));
 																		},
-																		A2(_elm_lang$core$Dict$get, _p28, c.definitions)))),
+																		A2(_elm_lang$core$Dict$get, _p29, c.definitions)))),
+															_p23);
+													case 'tryFfi':
+														return A4(
+															_user$project$ExExpression$generateFfi,
+															c,
+															_p29,
+															A2(
+																_elm_lang$core$List$map,
+																_user$project$ExStatement$typeAplicationToList,
+																A2(
+																	_elm_lang$core$Maybe$withDefault,
+																	{ctor: '[]'},
+																	A2(
+																		_elm_lang$core$Maybe$map,
+																		function (_p26) {
+																			return _user$project$ExStatement$typeAplicationToList(
+																				function (_) {
+																					return _.def;
+																				}(_p26));
+																		},
+																		A2(_elm_lang$core$Dict$get, _p29, c.definitions)))),
 															_p23);
 													default:
-														break _v11_3;
+														break _v11_4;
 												}
 											} else {
-												break _v11_3;
+												break _v11_4;
 											}
 										case 'Case':
 											return _elm_lang$core$Native_Utils.eq(
 												_user$project$ExExpression$flattenCommas(_p23._0),
-												_p26) ? A5(_user$project$ExExpression$genOverloadedFunctionDefinition, c, _p28, _p26, _p27, _p23._1) : A4(_user$project$ExExpression$genFunctionDefinition, c, _p28, _p26, _p27);
+												_p27) ? A5(_user$project$ExExpression$genOverloadedFunctionDefinition, c, _p29, _p27, _p28, _p23._1) : A4(_user$project$ExExpression$genFunctionDefinition, c, _p29, _p27, _p28);
 										default:
-											break _v11_3;
+											break _v11_4;
 									}
 								} while(false);
-								return A4(_user$project$ExExpression$genFunctionDefinition, c, _p28, _p26, _p27);
+								return A4(_user$project$ExExpression$genFunctionDefinition, c, _p29, _p27, _p28);
 							}
 						}());
 				case 'Comment':
-					var _p29 = _user$project$ExStatement$getCommentType(_p16._0);
-					switch (_p29.ctor) {
+					var _p30 = _user$project$ExStatement$getCommentType(_p16._0);
+					switch (_p30.ctor) {
 						case 'Doc':
 							return A2(
 								F2(
@@ -16394,7 +16431,7 @@ var _user$project$ExStatement$elixirS = F2(
 																A2(
 																	_elm_lang$core$List$map,
 																	_user$project$ExStatement$maybeDoctest(c),
-																	_elm_lang$core$String$lines(_p29._0))))))),
+																	_elm_lang$core$String$lines(_p30._0))))))),
 											A2(
 												_elm_lang$core$Basics_ops['++'],
 												_user$project$Helpers$ind(c.indent),
@@ -16415,7 +16452,7 @@ var _user$project$ExStatement$elixirS = F2(
 										A2(
 											_elm_lang$core$List$map,
 											_elm_lang$core$String$trim,
-											A2(_elm_lang$core$String$split, '\n', _p29._0)))));
+											A2(_elm_lang$core$String$split, '\n', _p30._0)))));
 						case 'Flag':
 							return A3(
 								_elm_lang$core$Basics$flip,
@@ -16431,19 +16468,19 @@ var _user$project$ExStatement$elixirS = F2(
 									A2(
 										_elm_lang$core$List$filterMap,
 										function (flag) {
-											var _p30 = flag;
+											var _p31 = flag;
 											_v13_2:
 											do {
-												if (_p30.ctor === '::') {
-													if (_p30._1.ctor === '::') {
-														if (_p30._1._1.ctor === '[]') {
+												if (_p31.ctor === '::') {
+													if (_p31._1.ctor === '::') {
+														if (_p31._1._1.ctor === '[]') {
 															return _elm_lang$core$Maybe$Just(
-																{ctor: '_Tuple2', _0: _p30._0, _1: _p30._1._0});
+																{ctor: '_Tuple2', _0: _p31._0, _1: _p31._1._0});
 														} else {
 															break _v13_2;
 														}
 													} else {
-														if (_p30._0 === '') {
+														if (_p31._0 === '') {
 															return _elm_lang$core$Maybe$Nothing;
 														} else {
 															break _v13_2;
@@ -16456,14 +16493,14 @@ var _user$project$ExStatement$elixirS = F2(
 											return _elm_lang$core$Native_Utils.crashCase(
 												'ExStatement',
 												{
-													start: {line: 222, column: 37},
-													end: {line: 230, column: 87}
+													start: {line: 242, column: 37},
+													end: {line: 250, column: 87}
 												},
-												_p30)(
+												_p31)(
 												A2(
 													_elm_lang$core$Basics_ops['++'],
 													'Wrong flag format ',
-													_elm_lang$core$Basics$toString(_p30)));
+													_elm_lang$core$Basics$toString(_p31)));
 										},
 										A2(
 											_elm_lang$core$List$map,
@@ -16472,7 +16509,7 @@ var _user$project$ExStatement$elixirS = F2(
 												_elm_lang$core$Regex$split,
 												_elm_lang$core$Regex$All,
 												_elm_lang$core$Regex$regex('\\s+'),
-												_p29._0)))));
+												_p30._0)))));
 						default:
 							return A2(
 								F2(
@@ -16483,7 +16520,7 @@ var _user$project$ExStatement$elixirS = F2(
 								A2(
 									_user$project$Helpers$indAll,
 									c.indent,
-									A2(_user$project$Helpers$prependAll, '# ', _p29._0)));
+									A2(_user$project$Helpers$prependAll, '# ', _p30._0)));
 					}
 				case 'ImportStatement':
 					if (_p16._1.ctor === 'Just') {
@@ -16760,7 +16797,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elmchemy', '\n'));
-var _user$project$Compiler$version = '0.3.31';
+var _user$project$Compiler$version = '0.3.32';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		return A2(
