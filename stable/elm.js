@@ -15981,8 +15981,8 @@ var _user$project$ExStatement$getTypeDefinition = function (a) {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExStatement',
 			{
-				start: {line: 356, column: 5},
-				end: {line: 365, column: 54}
+				start: {line: 359, column: 5},
+				end: {line: 368, column: 54}
 			},
 			_p1)('It\'s not a type declaration');
 	}
@@ -16045,8 +16045,8 @@ var _user$project$ExStatement$subsetExport = function (exp) {
 			return _elm_lang$core$Native_Utils.crashCase(
 				'ExStatement',
 				{
-					start: {line: 323, column: 5},
-					end: {line: 331, column: 56}
+					start: {line: 326, column: 5},
+					end: {line: 334, column: 56}
 				},
 				_p5)(
 				A2(
@@ -16134,9 +16134,11 @@ var _user$project$ExStatement$getCommentType = function (comment) {
 var _user$project$ExStatement$elixirS = F2(
 	function (c, s) {
 		var _p16 = s;
-		_v8_10:
+		_v8_11:
 		do {
 			switch (_p16.ctor) {
+				case 'InfixDeclaration':
+					return {ctor: '_Tuple2', _0: c, _1: ''};
 				case 'TypeDeclaration':
 					if (((_p16._0.ctor === 'TypeConstructor') && (_p16._0._0.ctor === '::')) && (_p16._0._0._1.ctor === '[]')) {
 						return A2(
@@ -16168,7 +16170,7 @@ var _user$project$ExStatement$elixirS = F2(
 														_p16._1)),
 												'\n'))))));
 					} else {
-						break _v8_10;
+						break _v8_11;
 					}
 				case 'TypeAliasDeclaration':
 					return {ctor: '_Tuple2', _0: c, _1: ''};
@@ -16493,8 +16495,8 @@ var _user$project$ExStatement$elixirS = F2(
 											return _elm_lang$core$Native_Utils.crashCase(
 												'ExStatement',
 												{
-													start: {line: 242, column: 37},
-													end: {line: 250, column: 87}
+													start: {line: 245, column: 37},
+													end: {line: 253, column: 87}
 												},
 												_p31)(
 												A2(
@@ -16542,7 +16544,7 @@ var _user$project$ExStatement$elixirS = F2(
 											_user$project$Helpers$modulePath(_p16._0),
 											A2(_elm_lang$core$Basics_ops['++'], ', as: ', _p16._1._0)))));
 						} else {
-							break _v8_10;
+							break _v8_11;
 						}
 					} else {
 						if (_p16._2.ctor === 'Nothing') {
@@ -16609,12 +16611,12 @@ var _user$project$ExStatement$elixirS = F2(
 												'import ',
 												_user$project$Helpers$modulePath(_p16._0))));
 								default:
-									break _v8_10;
+									break _v8_11;
 							}
 						}
 					}
 				default:
-					break _v8_10;
+					break _v8_11;
 			}
 		} while(false);
 		return A2(
@@ -16797,7 +16799,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elmchemy', '\n'));
-var _user$project$Compiler$version = '0.3.32';
+var _user$project$Compiler$version = '0.3.33';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		return A2(
