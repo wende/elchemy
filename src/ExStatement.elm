@@ -150,7 +150,7 @@ elixirS c s =
                                 )
                                 (Application
                                     (Application (Variable [ "ffi" ])
-                                        (String (String.join "." rest))
+                                        (String (String.join "." (map maybeReplaceStd rest)))
                                     )
                                     (String call)
                                 )
