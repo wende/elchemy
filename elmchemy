@@ -47,6 +47,13 @@ case "$1" in
           npm i -g elm-github-install
         fi
         elm-install
+        for f in `{ find $2/../elm-stuff/packages -name "*.ex" | grep -v "elmchemy.ex" ;}`
+        do
+          echo "FOUND $f"
+          file=$(create_file $f)
+          echo "TO $file"
+          cp $f $file
+        done
         for f in `{ find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#." ; find $2/../elm-stuff/packages -name "*.elm" | grep -v "/tests/" ;}`
         do
             if [[ ${f} == *"elm-lang"* ]] || [[ ${f} == *"Elmchemy.elm"* ]]; then
@@ -70,7 +77,7 @@ case "$1" in
                 current_file="${line/\/\///}"
                 current_file="${current_file/>>>>$2/$3}"
                 echo "Linking: $current_file"
-                current_file="${current_file%%.elm}.ex"
+                current_file="${current_file%%.elm}.elmchemy.ex"
                 current_file=$(create_file $current_file)
                 echo "To: $current_file"
                 else
