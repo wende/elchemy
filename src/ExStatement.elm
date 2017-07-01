@@ -35,6 +35,9 @@ moduleStatement s =
 elixirS : Context -> Statement -> ( Context, String )
 elixirS c s =
     case s of
+        InfixDeclaration _ _ _ ->
+            ( c, "" )
+
         TypeDeclaration (TypeConstructor [ name ] _) types ->
             (,) c <|
                 (ind c.indent)
