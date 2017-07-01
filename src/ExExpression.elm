@@ -437,6 +437,10 @@ aliasFor c name rest =
                         Nothing
             )
         |> Maybe.andThen (ExType.typealiasConstructor [])
+        |> maybeOr
+            (Dict.get c.types name
+                |> 1
+            )
         |> Maybe.map
             ((elixirE c)
                 >> (++) "("
