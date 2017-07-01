@@ -27,6 +27,7 @@ test-std:
 	cd elmchemy-core/ && mix test
 
 compile-std:
+	make compile
 	rm -rf elmchemy-core/lib/Elmchemy/*
 	cd elmchemy-core && ../elmchemy compile elm/ lib/
 
