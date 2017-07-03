@@ -437,10 +437,6 @@ aliasFor c name rest =
                         Nothing
             )
         |> Maybe.andThen (ExType.typealiasConstructor [])
-        |> maybeOr
-            (Dict.get c.types name
-                |> 1
-            )
         |> Maybe.map
             ((elixirE c)
                 >> (++) "("
@@ -450,6 +446,47 @@ aliasFor c name rest =
                         |> String.join ").("
                         |> (++) ").("
                         |> flip (++) ")"
+                    )
+            )
+        |> maybeOr
+            (Dict.get name c.types
+                |> Maybe.map
+                    (\arity ->
+                        let
+                            len =
+                                length rest
+
+                            dif =
+                                arity - len
+
+                            arguments =
+                                generateArguments dif
+
+                            varArgs =
+                                map (singleton >> Variable) arguments
+                        in
+                            if dif >= 0 then
+                                arguments
+                                    |> map ((++) " fn ")
+                                    |> map (flip (++) " ->")
+                                    |> String.join ""
+                                    |> flip (++)
+                                        (" {"
+                                            ++ atomize name
+                                            ++ ", "
+                                            ++ (map (elixirE c) (rest ++ varArgs) |> String.join ", ")
+                                            ++ "}"
+                                        )
+                                    |> flip (++) (String.repeat dif " end ")
+                            else
+                                Debug.crash
+                                    ("Expected "
+                                        ++ toString arity
+                                        ++ " arguments for '"
+                                        ++ name
+                                        ++ "'. Got: "
+                                        ++ toString (length rest)
+                                    )
                     )
             )
 
@@ -743,10 +780,7 @@ elixirVariable c var =
 
         [ name ] ->
             if isCapitilzed name then
-                ExAlias.maybeAlias c.aliases name
-                    |> Maybe.andThen
-                        (ExType.typealiasConstructor [])
-                    |> Maybe.map (elixirE c)
+                aliasFor c name []
                     |> Maybe.withDefault (atomize name)
             else if String.startsWith "@" name then
                 String.dropLeft 1 name
