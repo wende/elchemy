@@ -10,10 +10,10 @@ none | Just a | Just a > {a} | yes
 nil | Nothing | Nothing -> nil | yes
 fn/0 | none | `flambda 0 value` | yes
 fn/1 | \\a | \\a | yes 
-fn/x | \\a b... | lambdas translate to curried fn/1. Other lambdas can be expressed with (flambda arity f) | yes
-tuple | tuples | tuples with first atom == types with params & normal tuples | yes
-charlist | String | none | TBD
-binary (string)  | none | String | yes
+fn/x | \\a b... | lambdas translate to curried fn/1. Other lambdas will be automatically uncurried in ffi/Native calls
+tuples | tuples | tuples | yes
+charlist | none | none | TBD
+binary (string)  | String | String | yes
 One element charlist | Char | Char | yes
 integer | Int | Int | yes
 float | Float | Float | yes
