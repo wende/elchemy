@@ -465,7 +465,9 @@ aliasFor c name rest =
                             varArgs =
                                 map (singleton >> Variable) arguments
                         in
-                            if dif >= 0 then
+                            if arity == 0 then
+                                atomize name
+                            else if dif >= 0 then
                                 arguments
                                     |> map ((++) " fn ")
                                     |> map (flip (++) " ->")
