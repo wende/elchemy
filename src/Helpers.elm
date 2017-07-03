@@ -265,3 +265,13 @@ maybeReplaceStd s =
         "X" ++ s
     else
         s
+
+
+maybeOr : Maybe a -> Maybe a -> Maybe a
+maybeOr m1 m2 =
+    case m1 of
+        Just a ->
+            m1
+
+        Nothing ->
+            m2

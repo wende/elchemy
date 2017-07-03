@@ -14,45 +14,62 @@ import ExContext
         )
 
 
-getAliases : Context -> List Statement -> Aliases
+getAliases : Context -> List Statement -> Context
 getAliases c list =
-    list
-        |> foldl (registerAlias c) Dict.empty
+    foldl registerAlias c list
 
 
-registerAlias : Context -> Statement -> Aliases -> Aliases
-registerAlias c s ls =
+registerAlias : Statement -> Context -> Context
+registerAlias s c =
     case s of
         TypeDeclaration (TypeConstructor [ name ] arguments) a ->
-            Dict.insert
-                name
-                (Alias c.mod
-                    (length arguments)
-                    ExContext.Type
-                    (TypeVariable ("@" ++ name))
-                    (\_ -> (TypeVariable ("@" ++ name)))
-                )
-                ls
+            { c
+                | aliases =
+                    c.aliases
+                        |> Dict.insert
+                            name
+                            (Alias c.mod
+                                (length arguments)
+                                ExContext.Type
+                                (TypeVariable ("@" ++ name))
+                                (\_ -> (TypeVariable ("@" ++ name)))
+                            )
+                , types =
+                    foldl
+                        (\t acc ->
+                            case t of
+                                TypeConstructor [ name ] args ->
+                                    Dict.insert name (length args) acc
+
+                                any ->
+                                    Debug.crash "Type can only start with a tag"
+                        )
+                        c.types
+                        a
+            }
 
         (TypeDeclaration _ _) as ts ->
             Debug.crash ("Wrong type declaration " ++ toString ts)
 
         TypeAliasDeclaration (TypeConstructor [ name ] arguments) a ->
             -- We need to register every type argument as an alias in the context
-            Dict.insert name
-                (Alias c.mod
-                    (length arguments)
-                    ExContext.TypeAlias
-                    a
-                    (replaceAliasArgs name arguments a)
-                )
-                ls
+            { c
+                | aliases =
+                    Dict.insert name
+                        (Alias c.mod
+                            (length arguments)
+                            ExContext.TypeAlias
+                            a
+                            (replaceAliasArgs name arguments a)
+                        )
+                        c.aliases
+            }
 
         (TypeAliasDeclaration _ _) as ts ->
             Debug.crash ("Wrong type alias declaration " ++ toString ts)
 
         _ ->
-            ls
+            c
 
 
 replaceAliasArgs : String -> List Type -> Type -> (List Type -> Type)
