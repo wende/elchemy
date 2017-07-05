@@ -69,12 +69,6 @@ To launch and test the web demo
 - Seamless and stressless interop with existing Elixir code, preferably with magically working type safety
 - Full integration with entire elm syntax for editors and compilers magic
 
-## TODO (priority desc)
-- [X] Saving and reading from files
-- [X] Basic API (operators, functions, monadic types [Maybe, Just etc])
-- [X] Simple Elixir/Erlang interop
-- [ ] Compiler built-in into elixir ecosystem
-
 # FAQ
 ## Why *would* I want to use that
 - You like types
@@ -123,18 +117,18 @@ meta =
 ## Can I define an Elixir macro in Elmchemy.
 So you want to write an Elm-like code, that will manipulate Elixir code, which generates and Elixir code that manipulates Elixir code? How about no?
 
-## Do I need to have elm installed to compile my `.elm` files with Elmchemy.
-Ironically, no, you don't. Elmchemy is written entirely in Elm, which means the compiler is in JavaScript.
+## Do I need to have Elm installed to compile my `.elm` files with Elmchemy.
+Ironically, no, you don't. Elmchemy is written entirely in Elm, which means the executable file of the compiler is in JavaScript.
 But it's nice to use `elm-make` to check your type safety from time to time.
 
 
 # Progress of the project
 
-- Parser - **95%** (of Elm's syntax)
-- Compiler - **70%** (still needs some nicer solutions of code generation plus we might come out with some new nice ideas)
-- Elmchemy-core - **35%** ( We have Basics, Debug, Char, String, List, Result, Tuple and Maybe) 
+- Parser - **98%** (of Elm's syntax)
+- Compiler - **90%** (still needs some nicer solutions of code generation plus we might come out with some new nice ideas)
+- Elmchemy-core - **40%** ( We have Basics, Debug, Char, String, List, Result, Tuple and Maybe) 
 - Elmchemy-core for Erlang VM - **0%** (Everything for os related tasks like filesystem, OTP goodies etc has to be done)
 - Elmchemy-effects - **0%** - You can't and shouldn't write anything with side-effects in Elmchemy yet
-- Documentation - **10%** - It's virtually nonexistent
+- Documentation - **30%** - There's couple of tutorials online and exemplar project. Nothing fancy yet, though
 - Interop with Elixir - **50%** - It works and it's semi-typesafe. But reliability of its type safetyness is questionable.
-- Ideology - **10%** - We only have a gist. There is so much work to do we rarely have time to sit and just think
+- Ideology - **30%** - We only have a gist. There is so much work to do we rarely have time to sit and just think
