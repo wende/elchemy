@@ -14,6 +14,17 @@ https://wende.github.io/elmchemy/stable/
 
 ### CAVEAT: Web version does *not* do any type checking. It only parses syntax. For full type and syntax checking run the CLI version
 
+## Patch Notes:
+### v0.4 
+  - New name `Elchemy` (without 'm')
+    - New repository and std lib name 
+    - New compile tools commands (All commands can be still called with an old name and it will be supported for next couple of versions)
+### v0.3
+  - Native modules
+  - Imported types and type aliases
+  - Type polimorhpism 
+  - Advanced syntax and bugfixes
+
 ## Usage
 
 ### Prerequisites
