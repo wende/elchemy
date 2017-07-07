@@ -18,6 +18,11 @@ if git diff-index --quiet HEAD --; then
     npm publish
     sed -i "" "s/name\": \"elmchemy\"/name\": \"elchemy\"/g" package.json
     npm publish
+
+    sed -i "" "s/$SEMVER/$VER/g" elchemy-core/mix.exs
+    cd elchemy-core
+    mix archive.build
+    mix archive.install "elchemy-$VER"
 else
     echo "Git directory must be clean"
     exit 1
