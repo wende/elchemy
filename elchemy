@@ -1,0 +1,98 @@
+#!/bin/bash
+
+function create_file {
+    local file=$1
+    if [[ ${file} == *"elm-stuff/packages"* ]]; then
+        file=${file/elm-stuff\/packages/elm-deps}
+    fi
+    mkdir -p `dirname $file`
+    echo "" > $file
+    echo "$file"
+}
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+    DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+SOURCE_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+case "$1" in
+    clean)
+      rm -rf ./elm-deps
+      rm -rf ./elm-stuff
+    ;;
+    init)
+        if [ -a ./mix.exs ]
+        then
+            mix archive.install https://github.com/wende/elchemy/releases/download/0.3.23/elchemy-0.4.0.ez
+            mkdir -p elm
+            cp $SOURCE_DIR/templates/elm-package.json ./
+            cp $SOURCE_DIR/templates/Hello.elm ./elm/
+            cp $SOURCE_DIR/templates/elchemy_test.exs ./test/
+            printf  "Elchemy initialised. Make sure to add:\n\n\tcompilers: [:elchemy, :yecc, :leex, :erlang, :elixir, :app],\n\telixirc_paths: [\"lib\", \"elm-deps\"],\n\telchemy_path: \"elm\",\n\nto your mix.exs file\nThen run mix test to check if everything went fine\n"
+            printf "\nelm-deps" >> .gitignore
+            printf "\nelm-package.json" >> .gitignore
+            printf "\nelm-stuff" >> .gitignore
+        else
+            printf  "ERROR: No elixir project found. Make sure to run init in a project"
+        fi
+    ;;
+    compile)
+        rm -rf ".elchemy"
+        echo "" > .elchemy_output
+        if ! hash elm-github-install 2>/dev/null; then
+          echo "No elm-github-install found. Installing..."
+          npm i -g elm-github-install
+        fi
+        elm-install
+        for f in `{ find $2/../elm-stuff/packages -name "*.ex" | grep -v "elchemy.ex" ;}`
+        do
+          echo "FOUND $f"
+          file=$(create_file $f)
+          echo "TO $file"
+          cp $f $file
+        done
+        i=0
+        for f in `{ find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#." ; find $2/../elm-stuff/packages -name "*.elm" | grep -v "/tests/" ;}`
+        do
+            if [[ ${f} == *"elm-lang"* ]] || [[ ${f} == *"Elchemy.elm"* ]]; then
+                continue
+            fi
+            echo "----------"
+            echo "Compiling $f"
+            echo ">>>>$f" >> .elchemy_output
+            # We don't need to typecheck deps again
+            if [[ ${f} != *"elm-stuff"* ]]; then
+                elm-make $f --output .elchemy_output_tmp.js || { echo 'Compilation failed' ; exit 1; }
+                rm .elchemy_output_tmp.js
+            fi
+            i=$((i+1))
+            echo "#$i"
+            cat $f >> .elchemy_output
+        done
+        echo "-- Linking files --"
+        node --max_old_space_size=2048 $SOURCE_DIR/elchemy.js .elchemy_output > .elchemy_elixir_output
+        current_file=""
+        while IFS= read -r line; do
+            if [[ $line =~ ">>>>" ]]; then
+                current_file="${line/\/\///}"
+                current_file="${current_file/>>>>$2/$3}"
+                echo "Linking: $current_file"
+                current_file="${current_file%%.elm}.elchemy.ex"
+                current_file=$(create_file $current_file)
+                echo "To: $current_file"
+                else
+                if [ "$current_file" != "" ]; then
+                    printf '%s\n' "$line" >> "$current_file"
+                fi
+            fi
+        done < .elchemy_elixir_output
+
+        ;;
+    *)
+        echo $"Usage: $0 compile [input_dir] [output_dir] [--unsafe]"
+        exit 1
+
+esac

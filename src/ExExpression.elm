@@ -382,16 +382,16 @@ tupleOrFunction c a =
             elixirE c left ++ ".(" ++ elixirE c right ++ ")"
 
         (Variable [ "ffi" ]) :: rest ->
-            Debug.crash "Ffi inside function body is deprecated since Elmchemy 0.3"
+            Debug.crash "Ffi inside function body is deprecated since Elchemy 0.3"
 
         (Variable [ "tryFfi" ]) :: rest ->
-            Debug.crash "tryFfi inside function body is deprecated since Elmchemy 0.3"
+            Debug.crash "tryFfi inside function body is deprecated since Elchemy 0.3"
 
         (Variable [ "lffi" ]) :: rest ->
-            Debug.crash "Lffi inside function body is deprecated since Elmchemy 0.3"
+            Debug.crash "Lffi inside function body is deprecated since Elchemy 0.3"
 
         (Variable [ "flambda" ]) :: rest ->
-            Debug.crash "Flambda is deprecated since Elmchemy 0.3"
+            Debug.crash "Flambda is deprecated since Elchemy 0.3"
 
         [ Variable [ "Just" ], arg ] ->
             "{" ++ elixirE c arg ++ "}"
@@ -524,7 +524,7 @@ resolveFfi c ffi =
                 ++ ")"
                 ++ " end"
 
-        -- Elmchemy hack
+        -- Elchemy hack
         Ffi (String mod) (String fun) ((Tuple _) as args) ->
             mod ++ "." ++ fun ++ "(" ++ combineComas c args ++ ")"
 
@@ -532,7 +532,7 @@ resolveFfi c ffi =
         Ffi (String mod) (String fun) any ->
             mod ++ "." ++ fun ++ "(" ++ elixirE c any ++ ")"
 
-        -- Elmchemy hack
+        -- Elchemy hack
         Lffi (String fun) ((Tuple _) as args) ->
             fun ++ "(" ++ combineComas c args ++ ")"
 

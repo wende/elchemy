@@ -12502,7 +12502,7 @@ var _user$project$ExReserved$maybeReplaceStd = function (s) {
 			start: {line: 14, column: 9},
 			end: {line: 14, column: 20}
 		})(
-		A2(_elm_lang$core$Basics_ops['++'], 'Compile found out you\'re using Native modules in the codebase.', 'Elmchemy doesn\'t support Elm Native Modules since they\'re JavaScript')) : s);
+		A2(_elm_lang$core$Basics_ops['++'], 'Compile found out you\'re using Native modules in the codebase.', 'Elchemy doesn\'t support Elm Native Modules since they\'re JavaScript')) : s);
 };
 var _user$project$ExReserved$ops = A2(
 	_elm_lang$core$List$indexedMap,
@@ -15109,7 +15109,7 @@ var _user$project$ExExpression$tupleOrFunction = F2(
 												start: {line: 380, column: 5},
 												end: {line: 464, column: 70}
 											},
-											_p43)('Ffi inside function body is deprecated since Elmchemy 0.3');
+											_p43)('Ffi inside function body is deprecated since Elchemy 0.3');
 									case 'tryFfi':
 										return _elm_lang$core$Native_Utils.crashCase(
 											'ExExpression',
@@ -15117,7 +15117,7 @@ var _user$project$ExExpression$tupleOrFunction = F2(
 												start: {line: 380, column: 5},
 												end: {line: 464, column: 70}
 											},
-											_p43)('tryFfi inside function body is deprecated since Elmchemy 0.3');
+											_p43)('tryFfi inside function body is deprecated since Elchemy 0.3');
 									case 'lffi':
 										return _elm_lang$core$Native_Utils.crashCase(
 											'ExExpression',
@@ -15125,7 +15125,7 @@ var _user$project$ExExpression$tupleOrFunction = F2(
 												start: {line: 380, column: 5},
 												end: {line: 464, column: 70}
 											},
-											_p43)('Lffi inside function body is deprecated since Elmchemy 0.3');
+											_p43)('Lffi inside function body is deprecated since Elchemy 0.3');
 									case 'flambda':
 										return _elm_lang$core$Native_Utils.crashCase(
 											'ExExpression',
@@ -15133,7 +15133,7 @@ var _user$project$ExExpression$tupleOrFunction = F2(
 												start: {line: 380, column: 5},
 												end: {line: 464, column: 70}
 											},
-											_p43)('Flambda is deprecated since Elmchemy 0.3');
+											_p43)('Flambda is deprecated since Elchemy 0.3');
 									case 'Just':
 										if ((_p43._1.ctor === '::') && (_p43._1._1.ctor === '[]')) {
 											return A2(
@@ -16798,13 +16798,13 @@ var _user$project$Compiler$glueEnd = A2(
 var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
-	A2(_elm_lang$core$Basics_ops['++'], 'use Elmchemy', '\n'));
+	A2(_elm_lang$core$Basics_ops['++'], 'use Elchemy', '\n'));
 var _user$project$Compiler$version = '0.3.33';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		return A2(
 			_elm_lang$core$Basics_ops['++'],
-			A2(_elm_lang$core$Basics_ops['++'], '# Compiled using Elmchemy v', _user$project$Compiler$version),
+			A2(_elm_lang$core$Basics_ops['++'], '# Compiled using Elchemy v', _user$project$Compiler$version),
 			A2(
 				_elm_lang$core$Basics_ops['++'],
 				'\n',
