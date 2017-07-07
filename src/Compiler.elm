@@ -167,7 +167,7 @@ parse fileName m =
                     ++ "\nat:\n "
                     ++ (input
                             |> String.lines
-                            |> List.take 10
+                            |> List.take 30
                             |> String.join "\n"
                        )
                     ++ "\n"
@@ -185,15 +185,5 @@ prepare codebase =
 removeComments : String -> String
 removeComments =
     -- Need to remove the second one
-    Regex.replace All (regex "--.$") (always "")
+    Regex.replace All (regex "\\s--.*\n") (always "")
         >> Regex.replace All (regex "\n +\\w+ : .*") (always "")
-
-
-crunchSplitLines : String -> String
-crunchSplitLines =
-    Regex.replace All (regex "(?:({-(?:\\n|.)*?-})|([\\w\\])}\"][\\t ]*)\\n[\\t ]+((?!.*\\s->\\s)(?!.*=)(?!.*\\bin\\b)[\\w[({\"]))") <|
-        \m ->
-            m.submatches
-                |> map (Maybe.map (flip (++) " "))
-                |> filterMap identity
-                |> String.join " "
