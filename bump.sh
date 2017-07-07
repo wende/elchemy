@@ -6,7 +6,7 @@ if git diff-index --quiet HEAD --; then
     npm version $1
     SEMVER='[0-9][0-9]*\.[0-9][0-9]*\.[0-9]*'
     VER=`npm ls | grep -o $SEMVER`
-    
+
     make compile-std
     cd elchemy-core
     sed -i "" "s/$SEMVER/$VER/g" mix.exs
@@ -15,7 +15,7 @@ if git diff-index --quiet HEAD --; then
     git tag $VER
     git push origin master $VER
     mix archive.build
-    mix archive.install "elchemy-$VER.ez"
+    mix archive.install "elchemy-$VER.ez" --force
 
     cd ..
     git pull origin master
