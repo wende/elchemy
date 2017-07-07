@@ -14,7 +14,7 @@ compile:
 	sed 's/var Elm = {}/&; \
 	var fs = require(\"fs\"); \
 	var a = fs.readFileSync(process.argv[2]).toString(); \
-	console.log(_user$$project$$Compiler$$tree(a))/' compiled.js > elmchemy.js
+	console.log(_user$$project$$Compiler$$tree(a))/' compiled.js > elchemy.js
 	rm compiled.js
 
 compile-watch:
@@ -24,24 +24,24 @@ test:
 	elm test
 
 test-std:
-	cd elmchemy-core/ && mix test
+	cd elchemy-core/ && mix test
 
 compile-std:
 	make compile
-	rm -rf elmchemy-core/lib/Elmchemy/*
-	cd elmchemy-core && ../elmchemy compile elm/ lib/
+	rm -rf elchemy-core/lib/Elchemy/*
+	cd elchemy-core && ../elchemy compile elm/ lib/
 
 compile-std-watch:
-	find elmchemy-core -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr make compile-std
+	find elchemy-core -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr make compile-std
 
 compile-std-tests-watch:
-	find elmchemy-core -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c "make compile && make compile-std && make test-std"
+	find elchemy-core -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c "make compile && make compile-std && make test-std"
 
 tests-watch:
 	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr elm-test
 
 compile-demo:
-	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c "make compile && node elmchemy.js src/Example.elm  > elixir-stuff/elmchemy/lib/example.ex"
+	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c "make compile && node elchemy.js src/Example.elm  > elixir-stuff/elchemy/lib/example.ex"
 
 install-sysconf:
 	git clone "https://github.com/obmarg/libsysconfcpus.git"

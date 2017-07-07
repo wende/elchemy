@@ -1,6 +1,6 @@
-defmodule ElmchemyTest do
+defmodule ElchemyTest do
   use ExUnit.Case
-  use Elmchemy
+  use Elchemy
   doctest Hello
 
   test "Hello" do

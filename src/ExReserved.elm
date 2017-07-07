@@ -13,7 +13,7 @@ maybeReplaceStd s =
     else if s == "Native" then
         Debug.crash
             ("Compile found out you're using Native modules in the codebase."
-                ++ "Elmchemy doesn't support Elm Native Modules since they're JavaScript"
+                ++ "Elchemy doesn't support Elm Native Modules since they're JavaScript"
             )
     else
         s

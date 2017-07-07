@@ -19,7 +19,7 @@ version =
 glueStart : String
 glueStart =
     (ind 0)
-        ++ "use Elmchemy"
+        ++ "use Elchemy"
         ++ "\n"
 
 
@@ -144,7 +144,7 @@ aggregateStatements s ( c, code ) =
 
 getCode : Context -> List Statement -> String
 getCode context statements =
-    ("# Compiled using Elmchemy v" ++ version)
+    ("# Compiled using Elchemy v" ++ version)
         ++ "\n"
         ++ ("defmodule " ++ context.mod ++ " do")
         ++ glueStart

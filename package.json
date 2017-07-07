@@ -1,5 +1,5 @@
 {
-  "name": "elmchemy",
+  "name": "elchemy",
   "version": "0.3.33",
   "description": "Write Elixir code using Elm-inspired syntax (elm-make compatible)",
   "directories": {
@@ -7,12 +7,12 @@
     "test": "tests"
   },
   "files": [
-    "elmchemy",
-    "elmchemy.js",
+    "elchemy",
+    "elchemy.js",
     "templates/*"
   ],
   "bin": {
-    "elmchemy": "./elmchemy"
+    "elchemy": "./elchemy"
   },
   "scripts": {
     "test": "elm-test",
@@ -20,12 +20,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wende/elmchemy.git"
+    "url": "git+https://github.com/wende/elchemy.git"
   },
   "bugs": {
-    "url": "https://github.com/wende/elmchemy/issues"
+    "url": "https://github.com/wende/elchemy/issues"
   },
-  "homepage": "https://github.com/wende/elmchemy#readme",
+  "homepage": "https://github.com/wende/elchemy#readme",
   "devDependencies": {
     "elm-format": "^0.6.1-alpha",
     "husky": "^0.13.3",
