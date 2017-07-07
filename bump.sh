@@ -3,6 +3,10 @@
     exit 0
 fi
 if git diff-index --quiet HEAD --; then
+    npm version $1
+    SEMVER='[0-9][0-9]*\.[0-9][0-9]*\.[0-9]*'
+    VER=`npm ls | grep -o $SEMVER`
+    
     make compile-std
     cd elchemy-core
     sed -i "" "s/$SEMVER/$VER/g" mix.exs
@@ -15,9 +19,6 @@ if git diff-index --quiet HEAD --; then
 
     cd ..
     git pull origin master
-    npm version $1
-    SEMVER='[0-9][0-9]*\.[0-9][0-9]*\.[0-9]*'
-    VER=`npm ls | grep -o $SEMVER`
     sed -i "" "s/$SEMVER/$VER/g" src/Compiler.elm
     make compile
     make release
