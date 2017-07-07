@@ -4,14 +4,16 @@
 fi
 if git diff-index --quiet HEAD --; then
     make compile-std
-    sed -i "" "s/$SEMVER/$VER/g" elchemy-core/mix.exs
     cd elchemy-core
+    sed -i "" "s/$SEMVER/$VER/g" mix.exs
+    git pull origin master
     git commit -am "Release $VER"
     git tag $VER
     git push origin master $VER
     mix archive.build
     mix archive.install "elchemy-$VER.ez"
 
+    cd ..
     git pull origin master
     npm version $1
     SEMVER='[0-9][0-9]*\.[0-9][0-9]*\.[0-9]*'
