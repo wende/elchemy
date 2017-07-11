@@ -186,6 +186,13 @@ typeRecordFields c flatten t =
 elixirTypeConstructor : Bool -> Context -> String -> List Type -> String
 elixirTypeConstructor flatten c name args =
     case ( name, args ) of
+        ( "Result", [ a, b ] ) ->
+            "{:ok, "
+                ++ elixirT flatten c a
+                ++ "} | {:error, "
+                ++ elixirT flatten c b
+                ++ "}"
+
         ( "String", [] ) ->
             "String.t"
 
@@ -356,3 +363,39 @@ aliasOr c name args default =
                             elixirTNoFlat c (getTypeBody args)
             )
         |> Maybe.withDefault default
+
+
+hasReturnedType : Type -> Type -> Bool
+hasReturnedType desired t =
+    let
+        forAll l r =
+            (map2 (,) l r |> map (uncurry hasReturnedType) |> foldl (&&) True)
+    in
+        case ( desired, t ) of
+            ( TypeApplication l1 r1, TypeApplication l2 r2 ) ->
+                hasReturnedType l1 l2 && hasReturnedType r1 r2
+
+            ( TypeConstructor lnames largs, TypeConstructor rnames rargs ) ->
+                (lnames == rnames)
+                    && (length largs)
+                    == length (rargs)
+                    && forAll largs rargs
+
+            ( TypeVariable lname, TypeVariable rname ) ->
+                True
+
+            ( TypeTuple ltypes, TypeTuple rtypes ) ->
+                (length ltypes == length rtypes)
+                    && forAll ltypes rtypes
+
+            ( _, TypeApplication _ right ) ->
+                hasReturnedType desired right
+
+            ( TypeVariable _, _ ) ->
+                True
+
+            ( _, TypeVariable _ ) ->
+                True
+
+            ( _, _ ) ->
+                False

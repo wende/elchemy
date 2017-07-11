@@ -202,7 +202,7 @@ generateMeta e =
             Debug.crash "Meta function has to have specific format"
 
 
-flambdify : Context -> List (List a) -> String
+flambdify : Context -> List (List a) -> List String
 flambdify c argTypes =
     let
         arity =
@@ -224,7 +224,6 @@ flambdify c argTypes =
                         list ->
                             resolveFfi c (Flambda (length list - 1) (Variable [ "a" ++ toString i ]))
                 )
-            |> String.join ", "
 
 
 generateFfi : Context -> String -> List (List Type) -> Expression -> String
@@ -268,7 +267,7 @@ generateFfi c name argTypes e =
                     ++ "."
                     ++ fun
                     ++ "("
-                    ++ flambdaArguments
+                    ++ (flambdaArguments |> String.join ", ")
                     ++ ")"
 
             ( Just def, [ Variable [ "tryFfi" ], String mod, String fun ] ) ->
@@ -287,12 +286,31 @@ generateFfi c name argTypes e =
                     ++ "."
                     ++ fun
                     ++ "("
-                    ++ flambdaArguments
+                    ++ (flambdaArguments |> String.join ", ")
                     ++ ")"
                     ++ ind (c.indent + 1)
                     ++ "end"
                     ++ ind c.indent
                     ++ "end"
+
+            ( Just def, [ Variable [ "io" ], String mod, String fun ] ) ->
+                functionCurry c
+                    name
+                    (def.arity)
+                    ++ ind c.indent
+                    ++ "def "
+                    ++ toSnakeCase True name
+                    ++ "("
+                    ++ (generateArguments_ "a" def.arity |> String.join ", ")
+                    ++ ")"
+                    ++ ", do: command(fn -> "
+                    ++ mod
+                    ++ "."
+                    ++ fun
+                    ++ "("
+                    ++ (flambdaArguments |> String.join ", ")
+                    ++ ")"
+                    ++ " end)"
 
             _ ->
                 Debug.crash "Wrong ffi definition"
@@ -346,6 +364,9 @@ isMacro e =
         Variable [ "flambda" ] ->
             True
 
+        Variable [ "io" ] ->
+            True
+
         other ->
             False
 
@@ -388,10 +409,13 @@ tupleOrFunction c a =
             Debug.crash "tryFfi inside function body is deprecated since Elchemy 0.3"
 
         (Variable [ "lffi" ]) :: rest ->
-            Debug.crash "Lffi inside function body is deprecated since Elchemy 0.3"
+            Debug.crash "Lffi is deprecated since Elchemy 0.4"
 
         (Variable [ "flambda" ]) :: rest ->
             Debug.crash "Flambda is deprecated since Elchemy 0.3"
+
+        (Variable [ "io" ]) :: rest ->
+            Debug.crash "io needs 3 arguments"
 
         [ Variable [ "Just" ], arg ] ->
             "{" ++ elixirE c arg ++ "}"

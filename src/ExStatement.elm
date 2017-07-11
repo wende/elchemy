@@ -130,137 +130,10 @@ elixirS c s =
                                 )
 
         (FunctionDeclaration name args body) as fd ->
-            (,) c <|
-                if name == "meta" && args == [] then
-                    ExExpression.generateMeta body
-                else
-                    case body of
-                        Access (Variable ("Native" :: rest)) [ call ] ->
-                            ExExpression.generateFfi
-                                c
-                                name
-                                (c.definitions
-                                    |> Dict.get name
-                                    |> Maybe.map
-                                        (.def
-                                            >> typeAplicationToList
-                                        )
-                                    |> Maybe.withDefault []
-                                    |> map typeAplicationToList
-                                )
-                                (Application
-                                    (Application (Variable [ "ffi" ])
-                                        (String (String.join "." rest))
-                                    )
-                                    (String call)
-                                )
-
-                        (Application (Application (Variable [ "ffi" ]) _) _) as app ->
-                            ExExpression.generateFfi
-                                c
-                                name
-                                (c.definitions
-                                    |> Dict.get name
-                                    |> Maybe.map
-                                        (.def
-                                            >> typeAplicationToList
-                                        )
-                                    |> Maybe.withDefault []
-                                    |> map typeAplicationToList
-                                )
-                                app
-
-                        (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
-                            ExExpression.generateFfi
-                                c
-                                name
-                                (c.definitions
-                                    |> Dict.get name
-                                    |> Maybe.map
-                                        (.def
-                                            >> typeAplicationToList
-                                        )
-                                    |> Maybe.withDefault []
-                                    |> map typeAplicationToList
-                                )
-                                app
-
-                        Case vars expressions ->
-                            if ExExpression.flattenCommas vars == args then
-                                ExExpression.genOverloadedFunctionDefinition
-                                    c
-                                    name
-                                    args
-                                    body
-                                    expressions
-                            else
-                                ExExpression.genFunctionDefinition
-                                    c
-                                    name
-                                    args
-                                    body
-
-                        _ ->
-                            ExExpression.genFunctionDefinition
-                                c
-                                name
-                                args
-                                body
+            (,) c <| handleFunctionDeclaration c name args body
 
         Comment content ->
-            case getCommentType content of
-                Doc content ->
-                    (,) c <|
-                        (ind c.indent)
-                            ++ "@doc \"\"\"\n "
-                            ++ (content
-                                    |> String.lines
-                                    |> map (maybeDoctest c)
-                                    |> map (Helpers.escape)
-                                    |> map (flip (++) (ind c.indent))
-                                    |> map trimIndentations
-                                    |> String.join ""
-                                    -- Drop an unnecessary \n at the end
-                                    |> String.dropRight 1
-                               )
-                            ++ (ind c.indent)
-                            ++ "\"\"\""
-
-                Ex content ->
-                    (,) c <|
-                        (content
-                            |> String.split "\n"
-                            |> map String.trim
-                            |> String.join "\n"
-                            |> indAll c.indent
-                        )
-
-                Flag content ->
-                    flip (,) "" <|
-                        (content
-                            |> Regex.split All (regex "\\s+")
-                            |> map (String.split ":+")
-                            |> filterMap
-                                (\flag ->
-                                    case flag of
-                                        [ k, v ] ->
-                                            Just ( k, v )
-
-                                        [ "" ] ->
-                                            Nothing
-
-                                        a ->
-                                            crash ("Wrong flag format " ++ toString a)
-                                )
-                            |> foldl (ExContext.addFlag) c
-                        )
-
-                Normal content ->
-                    (,) c <|
-                        (content
-                            |> prependAll ("# ")
-                            |> indAll c.indent
-                        )
+            handleComment c content
 
         -- That's not a real import. In elixir it's called alias
         ImportStatement path Nothing Nothing ->
@@ -295,6 +168,149 @@ elixirS c s =
         s ->
             (,) c <|
                 notImplemented "statement" s
+
+
+handleFunctionDeclaration : Context -> String -> List Expression -> Expression -> String
+handleFunctionDeclaration c name args body =
+    let
+        returns t =
+            c.definitions
+                |> Dict.get name
+                |> Maybe.map (.def >> ExType.hasReturnedType t)
+                |> Maybe.withDefault False
+
+        typeDefinition =
+            (c.definitions
+                |> Dict.get name
+                |> Maybe.map
+                    (.def
+                        >> typeAplicationToList
+                    )
+                |> Maybe.withDefault []
+                |> map typeAplicationToList
+            )
+    in
+        if name == "meta" && args == [] then
+            ExExpression.generateMeta body
+        else
+            case body of
+                Access (Variable ("Native" :: rest)) [ call ] ->
+                    ExExpression.generateFfi
+                        c
+                        name
+                        typeDefinition
+                        (Application
+                            (Application (Variable [ "ffi" ])
+                                (String (String.join "." rest))
+                            )
+                            (String call)
+                        )
+
+                (Application (Application (Variable [ "io" ]) _) _) as app ->
+                    if returns (TypeConstructor [ "Cmd" ] ([ TypeVariable "a" ])) then
+                        ExExpression.generateFfi
+                            c
+                            name
+                            typeDefinition
+                            app
+                    else
+                        Debug.crash "io has to return Cmd a"
+
+                (Application (Application (Variable [ "ffi" ]) _) _) as app ->
+                    ExExpression.generateFfi
+                        c
+                        name
+                        typeDefinition
+                        app
+
+                (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
+                    if returns (TypeConstructor [ "Result" ] ([ TypeConstructor [ "String" ] [], TypeVariable "a" ])) then
+                        ExExpression.generateFfi
+                            c
+                            name
+                            typeDefinition
+                            app
+                    else
+                        Debug.crash "io has to return `Result String a`"
+
+                Case vars expressions ->
+                    if ExExpression.flattenCommas vars == args then
+                        ExExpression.genOverloadedFunctionDefinition
+                            c
+                            name
+                            args
+                            body
+                            expressions
+                    else
+                        ExExpression.genFunctionDefinition
+                            c
+                            name
+                            args
+                            body
+
+                _ ->
+                    ExExpression.genFunctionDefinition
+                        c
+                        name
+                        args
+                        body
+
+
+handleComment : Context -> String -> ( Context, String )
+handleComment c content =
+    case getCommentType content of
+        Doc content ->
+            (,) c <|
+                (ind c.indent)
+                    ++ "@doc \"\"\"\n "
+                    ++ (content
+                            |> String.lines
+                            |> map (maybeDoctest c)
+                            |> map (Helpers.escape)
+                            |> map (flip (++) (ind c.indent))
+                            |> map trimIndentations
+                            |> String.join ""
+                            -- Drop an unnecessary \n at the end
+                            |> String.dropRight 1
+                       )
+                    ++ (ind c.indent)
+                    ++ "\"\"\""
+
+        Ex content ->
+            (,) c <|
+                (content
+                    |> String.split "\n"
+                    |> map String.trim
+                    |> String.join "\n"
+                    |> indAll c.indent
+                )
+
+        Flag content ->
+            flip (,) "" <|
+                (content
+                    |> Regex.split All (regex "\\s+")
+                    |> map (String.split ":+")
+                    |> filterMap
+                        (\flag ->
+                            case flag of
+                                [ k, v ] ->
+                                    Just ( k, v )
+
+                                [ "" ] ->
+                                    Nothing
+
+                                a ->
+                                    crash ("Wrong flag format " ++ toString a)
+                        )
+                    |> foldl (ExContext.addFlag) c
+                )
+
+        Normal content ->
+            (,) c <|
+                (content
+                    |> prependAll ("# ")
+                    |> indAll c.indent
+                )
 
 
 getCommentType : String -> ElchemyComment
