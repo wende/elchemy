@@ -22,6 +22,7 @@ case "$1" in
     clean)
       rm -rf ./elm-deps
       rm -rf ./elm-stuff
+      rm -rf ~/.elm-install/github.com/
     ;;
     init)
         if [ -a ./mix.exs ]
