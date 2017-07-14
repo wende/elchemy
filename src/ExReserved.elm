@@ -25,6 +25,7 @@ isStdModule a =
         [ "Basics"
         , "List"
         , "String"
+        , "Debug"
         , "Maybe"
         , "Char"
         , "Result"
