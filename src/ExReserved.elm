@@ -19,20 +19,6 @@ maybeReplaceStd s =
         s
 
 
-isStdModule : String -> Bool
-isStdModule a =
-    List.member a
-        [ "Basics"
-        , "List"
-        , "String"
-        , "Debug"
-        , "Maybe"
-        , "Char"
-        , "Result"
-        , "Tuple"
-        ]
-
-
 reservedWords : List String
 reservedWords =
     [ "fn", "do", "end" ]

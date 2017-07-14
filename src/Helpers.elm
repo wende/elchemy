@@ -253,6 +253,7 @@ isStdModule a =
         , "List"
         , "String"
         , "Maybe"
+        , "Debug"
         , "Char"
         , "Result"
         , "Tuple"
