@@ -12724,17 +12724,21 @@ var _user$project$ExReserved$isStdModule = function (a) {
 					_0: 'String',
 					_1: {
 						ctor: '::',
-						_0: 'Maybe',
+						_0: 'Debug',
 						_1: {
 							ctor: '::',
-							_0: 'Char',
+							_0: 'Maybe',
 							_1: {
 								ctor: '::',
-								_0: 'Result',
+								_0: 'Char',
 								_1: {
 									ctor: '::',
-									_0: 'Tuple',
-									_1: {ctor: '[]'}
+									_0: 'Result',
+									_1: {
+										ctor: '::',
+										_0: 'Tuple',
+										_1: {ctor: '[]'}
+									}
 								}
 							}
 						}
@@ -12852,8 +12856,8 @@ var _user$project$ExReserved$replaceOp_ = function (op) {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExReserved',
 			{
-				start: {line: 50, column: 5},
-				end: {line: 57, column: 37}
+				start: {line: 51, column: 5},
+				end: {line: 58, column: 37}
 			},
 			_p2)('Illegal op');
 	}
@@ -17148,7 +17152,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elchemy', '\n'));
-var _user$project$Compiler$version = '0.4.6';
+var _user$project$Compiler$version = '0.4.7';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		return A2(
