@@ -12709,53 +12709,6 @@ var _user$project$ExReserved$reservedWords = {
 var _user$project$ExReserved$maybeReplaceReserved = function (a) {
 	return A2(_elm_lang$core$List$member, a, _user$project$ExReserved$reservedWords) ? A2(_elm_lang$core$Basics_ops['++'], a, '__') : a;
 };
-var _user$project$ExReserved$isStdModule = function (a) {
-	return A2(
-		_elm_lang$core$List$member,
-		a,
-		{
-			ctor: '::',
-			_0: 'Basics',
-			_1: {
-				ctor: '::',
-				_0: 'List',
-				_1: {
-					ctor: '::',
-					_0: 'String',
-					_1: {
-						ctor: '::',
-						_0: 'Debug',
-						_1: {
-							ctor: '::',
-							_0: 'Maybe',
-							_1: {
-								ctor: '::',
-								_0: 'Char',
-								_1: {
-									ctor: '::',
-									_0: 'Result',
-									_1: {
-										ctor: '::',
-										_0: 'Tuple',
-										_1: {ctor: '[]'}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		});
-};
-var _user$project$ExReserved$maybeReplaceStd = function (s) {
-	return _user$project$ExReserved$isStdModule(s) ? A2(_elm_lang$core$Basics_ops['++'], 'X', s) : (_elm_lang$core$Native_Utils.eq(s, 'Native') ? _elm_lang$core$Native_Utils.crash(
-		'ExReserved',
-		{
-			start: {line: 14, column: 9},
-			end: {line: 14, column: 20}
-		})(
-		A2(_elm_lang$core$Basics_ops['++'], 'Compile found out you\'re using Native modules in the codebase.', 'Elchemy doesn\'t support Elm Native Modules since they\'re JavaScript')) : s);
-};
 var _user$project$ExReserved$ops = A2(
 	_elm_lang$core$List$indexedMap,
 	F2(
@@ -12856,8 +12809,8 @@ var _user$project$ExReserved$replaceOp_ = function (op) {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExReserved',
 			{
-				start: {line: 51, column: 5},
-				end: {line: 58, column: 37}
+				start: {line: 24, column: 5},
+				end: {line: 31, column: 37}
 			},
 			_p2)('Illegal op');
 	}
@@ -12906,14 +12859,18 @@ var _user$project$Helpers$isStdModule = function (a) {
 						_0: 'Maybe',
 						_1: {
 							ctor: '::',
-							_0: 'Char',
+							_0: 'Debug',
 							_1: {
 								ctor: '::',
-								_0: 'Result',
+								_0: 'Char',
 								_1: {
 									ctor: '::',
-									_0: 'Tuple',
-									_1: {ctor: '[]'}
+									_0: 'Result',
+									_1: {
+										ctor: '::',
+										_0: 'Tuple',
+										_1: {ctor: '[]'}
+									}
 								}
 							}
 						}
@@ -17152,7 +17109,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elchemy', '\n'));
-var _user$project$Compiler$version = '0.4.7';
+var _user$project$Compiler$version = '0.4.9';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		return A2(
