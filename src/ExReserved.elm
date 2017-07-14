@@ -6,19 +6,6 @@ ops =
     [ '+', '-', '/', '*', '=', '.', '$', '<', '>', ':', '&', '|', '^', '?', '%', '#', '@', '~', '!' ] |> List.indexedMap (,)
 
 
-maybeReplaceStd : String -> String
-maybeReplaceStd s =
-    if isStdModule s then
-        "X" ++ s
-    else if s == "Native" then
-        Debug.crash
-            ("Compile found out you're using Native modules in the codebase."
-                ++ "Elchemy doesn't support Elm Native Modules since they're JavaScript"
-            )
-    else
-        s
-
-
 reservedWords : List String
 reservedWords =
     [ "fn", "do", "end" ]
