@@ -59,6 +59,7 @@ type alias Context =
     , exports : ExportSet
     , indent : Int
     , aliases : Aliases
+    , types : Dict String Int
     , flags : List Flag
     , definitions : Dict String Definition
     }
@@ -66,7 +67,7 @@ type alias Context =
 
 empty : String -> ExportSet -> Context
 empty name exports =
-    Context name exports 0 Dict.empty [] Dict.empty
+    Context name exports 0 Dict.empty Dict.empty [] Dict.empty
 
 
 indent : Context -> Context

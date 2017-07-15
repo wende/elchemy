@@ -1,5 +1,5 @@
 
-| Elixir | Elm | Elmchemy | implemented? |
+| Elixir | Elm | Elchemy | implemented? |
 | --- | --- | --- | --- |
 var | let in | let in | yes
 atom | none | Types constructors -> atoms | yes

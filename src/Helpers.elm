@@ -189,6 +189,22 @@ isOperator name =
                 None
 
 
+translateOperator : String -> String
+translateOperator op =
+    case Dict.get op operators of
+        Just "" ->
+            Debug.crash
+                (op
+                    ++ " is not a valid or not implemented yet operator"
+                )
+
+        Just key ->
+            key
+
+        _ ->
+            replaceOp op
+
+
 trimIndentations : String -> String
 trimIndentations line =
     Regex.replace All (regex "\\s+\\n") (always "\n") line
@@ -219,22 +235,6 @@ escape s =
 ops : List ( Int, Char )
 ops =
     [ '+', '-', '/', '*', '=', '.', '$', '<', '>', ':', '&', '|', '^', '?', '%', '#', '@', '~', '!' ] |> List.indexedMap (,)
-
-
-translateOperator : String -> String
-translateOperator op =
-    case Dict.get op operators of
-        Just "" ->
-            Debug.crash
-                (op
-                    ++ " is not a valid or not implemented yet operator"
-                )
-
-        Just key ->
-            key
-
-        _ ->
-            replaceOp op
 
 
 modulePath : List String -> String
@@ -269,6 +269,7 @@ isStdModule a =
         , "Debug"
         , "Dict"
         , "List"
+        , "String"
         , "Maybe"
         , "Regex"
         , "Result"
@@ -309,3 +310,13 @@ maybeReplaceReserved a =
         a ++ "__"
     else
         a
+
+
+maybeOr : Maybe a -> Maybe a -> Maybe a
+maybeOr m1 m2 =
+    case m1 of
+        Just a ->
+            m1
+
+        Nothing ->
+            m2

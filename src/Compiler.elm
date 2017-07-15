@@ -13,13 +13,13 @@ import Regex exposing (..)
 
 version : String
 version =
-    "0.3.33"
+    "0.4.10"
 
 
 glueStart : String
 glueStart =
     (ind 0)
-        ++ "use Elmchemy"
+        ++ "use Elchemy"
         ++ "\n"
 
 
@@ -130,7 +130,7 @@ getContext statements =
                 base =
                     ExStatement.moduleStatement mod
             in
-                ( Just { base | aliases = (ExAlias.getAliases base statements) }, statements )
+                ( Just (ExAlias.getAliases base statements), statements )
 
 
 aggregateStatements : Statement -> ( Context, String ) -> ( Context, String )
@@ -144,7 +144,7 @@ aggregateStatements s ( c, code ) =
 
 getCode : Context -> List Statement -> String
 getCode context statements =
-    ("# Compiled using Elmchemy v" ++ version)
+    ("# Compiled using Elchemy v" ++ version)
         ++ "\n"
         ++ ("defmodule " ++ context.mod ++ " do")
         ++ glueStart
@@ -167,7 +167,7 @@ parse fileName m =
                     ++ "\nat:\n "
                     ++ (input
                             |> String.lines
-                            |> List.take 10
+                            |> List.take 30
                             |> String.join "\n"
                        )
                     ++ "\n"
@@ -185,5 +185,15 @@ prepare codebase =
 removeComments : String -> String
 removeComments =
     -- Need to remove the second one
-    Regex.replace All (regex "--.*\n") (always "")
+    Regex.replace All (regex "\\s--.*\n") (always "")
         >> Regex.replace All (regex "\n +\\w+ : .*") (always "")
+
+
+crunchSplitLines : String -> String
+crunchSplitLines =
+    Regex.replace All (regex "(?:({-(?:\\n|.)*?-})|([\\w\\])}\"][\\t ]*)\\n[\\t ]+((?!.*\\s->\\s)(?!.*=)(?!.*\\bin\\b)[\\w[({\"]))") <|
+        \m ->
+            m.submatches
+                |> map (Maybe.map (flip (++) " "))
+                |> filterMap identity
+                |> String.join " "

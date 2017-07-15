@@ -172,6 +172,11 @@ types =
                 "type Focus big small = Focus { get : big -> small }"
                     |++ "a = Focus { get = get, update = update }"
                     |> has "{:focus, %{get: get, update: update}}"
+        , test "Types work when applied incompletely" <|
+            \() ->
+                "type Focus = A Int Int | B Int Int Int"
+                    |++ "a = B 1 1"
+                    |> has "fn x1 -> {:b, 1, 1, x1} end"
         ]
 
 

@@ -15,7 +15,7 @@ import Helpers exposing (..)
 import Debug exposing (crash)
 
 
-type ElmchemyComment
+type ElchemyComment
     = Doc String
     | Ex String
     | Normal String
@@ -297,7 +297,7 @@ elixirS c s =
                 notImplemented "statement" s
 
 
-getCommentType : String -> ElmchemyComment
+getCommentType : String -> ElchemyComment
 getCommentType comment =
     [ ( "^\\sex\\b", (Ex) )
     , ( "^\\|", (Doc) )
@@ -307,7 +307,7 @@ getCommentType comment =
         |> List.foldl findCommentType (Normal comment)
 
 
-findCommentType : ( Regex.Regex, String -> ElmchemyComment ) -> ElmchemyComment -> ElmchemyComment
+findCommentType : ( Regex.Regex, String -> ElchemyComment ) -> ElchemyComment -> ElchemyComment
 findCommentType ( regex, commentType ) acc =
     case acc of
         Normal content ->
