@@ -207,6 +207,14 @@ elixirTypeConstructor flatten c name args =
         ( "List", [ t ] ) ->
             "list(" ++ elixirT flatten c t ++ ")"
 
+        ( "Dict", [ key, val ] ) ->
+            "%{}"
+
+        -- "%{required("
+        --     ++ elixirT flatten c key
+        --     ++ ") => "
+        --     ++ elixirT flatten c val
+        --     ++ "}"
         ( "Maybe", [ t ] ) ->
             "{" ++ elixirT flatten c t ++ "} | nil"
 

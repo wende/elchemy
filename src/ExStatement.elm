@@ -325,8 +325,10 @@ maybeDoctest c line =
                     ++ ind (c.indent + 2)
                     ++ "iex> "
                     ++ ExExpression.elixirE c l
-                    ++ ind (c.indent + 2)
+                    ++ " == "
                     ++ ExExpression.elixirE c r
+                    ++ ind (c.indent + 2)
+                    ++ "true"
 
             _ ->
                 line

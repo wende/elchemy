@@ -202,7 +202,7 @@ generateMeta e =
             Debug.crash "Meta function has to have specific format"
 
 
-flambdify : Context -> List (List a) -> String
+flambdify : Context -> List (List Type) -> String
 flambdify c argTypes =
     let
         arity =
