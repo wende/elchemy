@@ -616,8 +616,8 @@ lambda c args body =
             elixirE c body
 
 
-genElixirFunc : Context -> String -> List Expression -> Expression -> String
-genElixirFunc c name args body =
+genElixirFunc : Context -> String -> List Expression -> Int -> Expression -> String
+genElixirFunc c name args missingArgs body =
     case ( isOperator name, args ) of
         ( Builtin, [ l, r ] ) ->
             (ind c.indent)
@@ -644,11 +644,16 @@ genElixirFunc c name args body =
                 ++ "("
                 ++ (args
                         |> List.map (elixirE c)
+                        |> flip (++) (generateArguments missingArgs)
                         |> String.join ", "
                    )
                 ++ ") do"
                 ++ (ind <| c.indent + 1)
                 ++ elixirE (indent c) body
+                ++ (generateArguments missingArgs
+                        |> map (\a -> ".(" ++ a ++ ")")
+                        |> String.join ""
+                   )
                 ++ ind c.indent
                 ++ "end"
 
@@ -665,11 +670,16 @@ genElixirFunc c name args body =
                 ++ "("
                 ++ (args
                         |> List.map (elixirE c)
+                        |> flip (++) (generateArguments missingArgs)
                         |> String.join ", "
                    )
                 ++ ") do"
                 ++ (ind <| c.indent + 1)
                 ++ elixirE (indent c) body
+                ++ (generateArguments missingArgs
+                        |> map (\a -> ".(" ++ a ++ ")")
+                        |> String.join ""
+                   )
                 ++ ind c.indent
                 ++ "end"
 
@@ -718,12 +728,19 @@ functionCurry c name arity =
 
 genFunctionDefinition : Context -> String -> List Expression -> Expression -> String
 genFunctionDefinition c name args body =
-    if ExContext.hasFlag "nodef" name c then
-        functionCurry c name (length args)
-    else
-        functionCurry c name (length args)
-            ++ genElixirFunc c name args body
-            ++ "\n"
+    let
+        typeDef =
+            c.definitions |> Dict.get name
+
+        arity =
+            typeDef |> Maybe.map .arity |> Maybe.withDefault 0
+    in
+        if ExContext.hasFlag "nodef" name c then
+            functionCurry c name arity
+        else
+            functionCurry c name arity
+                ++ genElixirFunc c name args (arity - length args) body
+                ++ "\n"
 
 
 genOverloadedFunctionDefinition :
@@ -734,22 +751,30 @@ genOverloadedFunctionDefinition :
     -> List ( Expression, Expression )
     -> String
 genOverloadedFunctionDefinition c name args body expressions =
-    if ExContext.hasFlag "nodef" name c then
-        functionCurry c name (length args)
-    else
-        functionCurry c name (length args)
-            ++ (expressions
-                    |> List.map
-                        (\( left, right ) ->
-                            genElixirFunc
-                                c
-                                name
-                                [ left ]
-                                right
-                        )
-                    |> List.foldr (++) ""
-                    |> flip (++) "\n"
-               )
+    let
+        typeDef =
+            c.definitions |> Dict.get name
+
+        arity =
+            typeDef |> Maybe.map .arity |> Maybe.withDefault 0
+    in
+        if ExContext.hasFlag "nodef" name c then
+            functionCurry c name arity
+        else
+            functionCurry c name arity
+                ++ (expressions
+                        |> List.map
+                            (\( left, right ) ->
+                                genElixirFunc
+                                    c
+                                    name
+                                    [ left ]
+                                    (arity - 1)
+                                    right
+                            )
+                        |> List.foldr (++) ""
+                        |> flip (++) "\n"
+                   )
 
 
 getVariableName : Expression -> String
