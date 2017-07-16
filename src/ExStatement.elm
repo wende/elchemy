@@ -135,26 +135,6 @@ elixirS c s =
                     ExExpression.generateMeta body
                 else
                     case body of
-                        Access (Variable ("Native" :: rest)) [ call ] ->
-                            ExExpression.generateFfi
-                                c
-                                name
-                                (c.definitions
-                                    |> Dict.get name
-                                    |> Maybe.map
-                                        (.def
-                                            >> typeAplicationToList
-                                        )
-                                    |> Maybe.withDefault []
-                                    |> map typeAplicationToList
-                                )
-                                (Application
-                                    (Application (Variable [ "ffi" ])
-                                        (String (String.join "." rest))
-                                    )
-                                    (String call)
-                                )
-
                         (Application (Application (Variable [ "ffi" ]) _) _) as app ->
                             ExExpression.generateFfi
                                 c
