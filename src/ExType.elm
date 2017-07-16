@@ -190,7 +190,7 @@ elixirTypeConstructor flatten c name args =
             "String.t"
 
         ( "Char", [] ) ->
-            "char_list"
+            "integer"
 
         ( "Bool", [] ) ->
             "boolean"

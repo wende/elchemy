@@ -128,7 +128,7 @@ elixirTypeInstances c e =
                     name ++ ".0"
 
         Character value ->
-            toString value
+            "?" ++ String.fromChar value
 
         String value ->
             unescape (toString value)
