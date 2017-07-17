@@ -139,10 +139,18 @@ elixirTypeInstances c e =
                     name ++ ".0"
 
         Character value ->
-            if value == ' ' then
-                "?\\s"
-            else
-                "?" ++ String.fromChar value
+            case value of
+                ' ' ->
+                    "?\\s"
+
+                '\n' ->
+                    "?\\n"
+
+                '\t' ->
+                    "?\\t"
+
+                other ->
+                    "?" ++ String.fromChar other
 
         String value ->
             unescape (toString value)
@@ -924,8 +932,8 @@ elixirBinop c op l r =
         op ->
             case isOperator op of
                 Builtin ->
-                    [ "(", elixirE c l, translateOperator op, elixirE c r, ")" ]
-                        |> String.join " "
+                    [ "(", elixirE c l, " ", translateOperator op, " ", elixirE c r, ")" ]
+                        |> String.join ""
 
                 Custom ->
                     (translateOperator op)
