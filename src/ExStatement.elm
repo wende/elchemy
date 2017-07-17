@@ -190,21 +190,29 @@ elixirS c s =
         Comment content ->
             case getCommentType content of
                 Doc content ->
-                    (,) c <|
-                        (ind c.indent)
-                            ++ "@doc \"\"\"\n "
-                            ++ (content
-                                    |> String.lines
-                                    |> map (maybeDoctest c)
-                                    |> map (Helpers.escape)
-                                    |> map (flip (++) (ind c.indent))
-                                    |> map trimIndentations
-                                    |> String.join ""
-                                    -- Drop an unnecessary \n at the end
-                                    |> String.dropRight 1
-                               )
-                            ++ (ind c.indent)
-                            ++ "\"\"\""
+                    let
+                        docOrModdoc =
+                            if c.hasModuleDoc then
+                                "@doc"
+                            else
+                                "@moduledoc"
+                    in
+                        (,) { c | hasModuleDoc = True } <|
+                            (ind c.indent)
+                                ++ docOrModdoc
+                                ++ " \"\"\"\n "
+                                ++ (content
+                                        |> String.lines
+                                        |> map (maybeDoctest c)
+                                        |> map (Helpers.escape)
+                                        |> map (flip (++) (ind c.indent))
+                                        |> map trimIndentations
+                                        |> String.join ""
+                                        -- Drop an unnecessary \n at the end
+                                        |> String.dropRight 1
+                                   )
+                                ++ (ind c.indent)
+                                ++ "\"\"\""
 
                 Ex content ->
                     (,) c <|

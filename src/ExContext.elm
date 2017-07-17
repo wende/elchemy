@@ -65,12 +65,13 @@ type alias Context =
     , definitions : Dict String Definition
     , variables : Set String
     , inArgs : Bool
+    , hasModuleDoc : Bool
     }
 
 
 empty : String -> ExportSet -> Context
 empty name exports =
-    Context name exports 0 Dict.empty Dict.empty [] Dict.empty Set.empty False
+    Context name exports 0 Dict.empty Dict.empty [] Dict.empty Set.empty False False
 
 
 indent : Context -> Context
