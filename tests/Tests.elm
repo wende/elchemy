@@ -65,7 +65,7 @@ functions =
     describe "Functions"
         [ test "Application" <|
             \() ->
-                "app = a b c d" |> has "a.(b).(c).(d)"
+                "app = a b c d" |> has "a().(b()).(c()).(d())"
         , test "ffi" <|
             \() ->
                 "upcase : String -> String\nupcase name = ffi \"String\" \"to_upper\" " |> has "String.to_upper("
@@ -74,7 +74,7 @@ functions =
                 "camelCase = 1" |> has "camel_case()"
         , test "function calls are snakecased" <|
             \() ->
-                "a = camelCase 1" |> has "camel_case.(1)"
+                "a = camelCase 1" |> has "camel_case().(1)"
         ]
 
 
@@ -83,16 +83,16 @@ binOps =
     describe "Binary Operators"
         [ test "Simple ops" <|
             \() ->
-                "add = a + b" |> has "a + b"
+                "add = a + b" |> has "a() + b()"
         , test "Ops as lambda" <|
             \() ->
                 "add = (+)" |> has "(&+/0).()"
         , test "Ops as lambda with param" <|
             \() ->
                 "add = ((+) 2)" |> has "(&+/0).().(2)"
-        , test "Ops as lambda" <|
+        , test "Complex ops as lambda " <|
             \() ->
-                "add = map (+) list" |> has "map.((&+/0).()).(list)"
+                "add = map (+) list" |> has "map().((&+/0).()).(list())"
         ]
 
 
@@ -135,10 +135,10 @@ records =
                 "a = { a = 1 }" |> has "%{a: 1}"
         , test "Complex records work" <|
             \() ->
-                "a = { a = 1, b = 2, c = (a b)}" |> has "%{a: 1, b: 2, c: a.(b)}"
+                "a = { a = 1, b = 2, c = (a b)}" |> has "%{a: 1, b: 2, c: a().(b())}"
         , test "Updating records work" <|
             \() ->
-                "addToA r = {r | a = (r.a + 5), b = 2} " |> has "%{r | a: ( r.a + 5 ), b: 2}"
+                "addToA r = {r | a = (r.a + 5), b = 2} " |> has "%{r | a: (r.a + 5), b: 2}"
         ]
 
 
@@ -197,16 +197,16 @@ typeConstructors =
     describe "Type Constructors"
         [ test "Type application" <|
             \() ->
-                "a = Type a b c" |> has "{:type, a, b, c}"
+                "a = Type a b c" |> has "{:type, a(), b(), c()}"
         , test "Type in tuple" <|
             \() ->
-                "a = (Type, a, b, c)" |> has "{:type, a, b, c}"
+                "a = (Type, a, b, c)" |> has "{:type, a(), b(), c()}"
         , test "Remote types" <|
             \() ->
-                "a = Remote.Type a b c" |> has "{:type, a, b, c}"
+                "a = Remote.Type a b c" |> has "{:type, a(), b(), c()}"
         , test "Remote types in tuples" <|
             \() ->
-                "a = (Remote.Type, a, b, c)" |> has "{:type, a, b, c}"
+                "a = (Remote.Type, a, b, c)" |> has "{:type, a(), b(), c()}"
         ]
 
 
