@@ -139,10 +139,18 @@ elixirTypeInstances c e =
                     name ++ ".0"
 
         Character value ->
-            if value == ' ' then
-                "?\\s"
-            else
-                "?" ++ String.fromChar value
+            case value of
+                ' ' ->
+                    "?\\s"
+
+                '\n' ->
+                    "?\\n"
+
+                '\t' ->
+                    "?\\t"
+
+                other ->
+                    "?" ++ String.fromChar other
 
         String value ->
             unescape (toString value)
