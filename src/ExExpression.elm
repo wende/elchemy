@@ -146,6 +146,9 @@ elixirTypeInstances c e =
                 '\n' ->
                     "?\\n"
 
+                '\x0D' ->
+                    "?\\r"
+
                 '\t' ->
                     "?\\t"
 
@@ -831,16 +834,6 @@ genOverloadedFunctionDefinition c name args body expressions =
                         |> List.foldr (++) ""
                         |> flip (++) "\n"
                    )
-
-
-
--- getVariableName : Expression -> String
--- getVariableName e =
---     case e of
---         Variable [ name ] ->
---             name
---         _ ->
---             Debug.crash "It's not a variable"
 
 
 elixirVariable : Context -> List String -> String
