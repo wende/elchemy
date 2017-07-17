@@ -924,8 +924,8 @@ elixirBinop c op l r =
         op ->
             case isOperator op of
                 Builtin ->
-                    [ "(", elixirE c l, translateOperator op, elixirE c r, ")" ]
-                        |> String.join " "
+                    [ "(", elixirE c l, " ", translateOperator op, " ", elixirE c r, ")" ]
+                        |> String.join ""
 
                 Custom ->
                     (translateOperator op)
