@@ -266,6 +266,10 @@ elixirS c s =
                     ++ (map subsetExport exports |> foldl (++) [] |> String.join ",")
                     ++ "]"
 
+        -- Suppresses the compiler warning
+        ImportStatement [ "Elchemy" ] Nothing (Just AllExport) ->
+            ( c, "" )
+
         ImportStatement path Nothing (Just AllExport) ->
             (,) c <|
                 (ind c.indent)
