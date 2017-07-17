@@ -825,19 +825,6 @@ genOverloadedFunctionDefinition c name args body expressions =
                    )
 
 
-<<<<<<< Updated upstream
-
--- getVariableName : Expression -> String
--- getVariableName e =
---     case e of
---         Variable [ name ] ->
---             name
---         _ ->
---             Debug.crash "It's not a variable"
-
-
-=======
->>>>>>> Stashed changes
 elixirVariable : Context -> List String -> String
 elixirVariable c var =
     case var of
