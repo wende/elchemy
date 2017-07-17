@@ -146,6 +146,9 @@ elixirTypeInstances c e =
                 '\n' ->
                     "?\\n"
 
+                '\x0D' ->
+                    "?\\r"
+
                 '\t' ->
                     "?\\t"
 
