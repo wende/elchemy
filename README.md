@@ -122,7 +122,7 @@ meta =
   [ "use GenServer" ]
 ```
 Or inline an elixir code with:
-```
+```elm
 {- ex
   code_here
 -}
