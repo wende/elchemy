@@ -2,9 +2,8 @@
 > Write Elixir code using Elm-inspired syntax (elm-make compatible)
 
 ## What is it?
-Elchemy (name subject to change) is a project with one idea in mind: Seamless acommodation of Elm-like language on Erlang VM.
+Elchemy is a project with one idea in mind: Seamless acommodation of Elm-like language on Erlang VM.
 
-### Elchemy is a community project and is in no way related to the core team of Elm language
 
 ## UPDATE: [You can read a tutorial on using Elchemy here](https://medium.com/@krzysztof.wende/elmchemy-write-type-safe-elixir-code-with-elms-syntax-part-1-introduction-8968b76d721d)
 
