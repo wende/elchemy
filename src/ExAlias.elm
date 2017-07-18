@@ -16,7 +16,7 @@ import ExContext
 
 getAliases : Context -> List Statement -> Context
 getAliases c list =
-    foldl registerAlias c list
+    foldl registerAlias c list 
 
 
 registerAlias : Statement -> Context -> Context

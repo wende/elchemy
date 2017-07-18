@@ -1,5 +1,6 @@
 const init = `
 module FizzBuzz exposing (fizzbuzz)
+{-| Fizbbuzz example module -}
 
 import List exposing (map, range)
 
