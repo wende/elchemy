@@ -22,6 +22,12 @@ type ElchemyComment
     | Flag String
 
 
+type DocType
+    = Fundoc
+    | Typedoc
+    | ModuleDoc
+
+
 moduleStatement : Statement -> Context
 moduleStatement s =
     case s of
@@ -39,13 +45,20 @@ elixirS c s =
             ( c, "" )
 
         TypeDeclaration (TypeConstructor [ name ] _) types ->
-            (,) c <|
-                (ind c.indent)
-                    ++ "@type "
-                    ++ toSnakeCase True name
-                    ++ " :: "
-                    ++ (map (ExType.uniontype c) types |> String.join " | ")
-                    ++ "\n"
+            let
+                ( newC, code ) =
+                    c.lastDoc
+                        |> Maybe.map (elixirDoc c Typedoc)
+                        |> Maybe.withDefault ( c, "" )
+            in
+                (,) newC <|
+                    code
+                        ++ (ind c.indent)
+                        ++ "@type "
+                        ++ toSnakeCase True name
+                        ++ " :: "
+                        ++ (map (ExType.uniontype c) types |> String.join " | ")
+                        ++ "\n"
 
         TypeAliasDeclaration _ _ ->
             ( c, "" )
@@ -54,80 +67,91 @@ elixirS c s =
             let
                 definition =
                     getTypeDefinition def
-            in
-                (,) (addTypeDefinition c name definition) <|
-                    case isOperator name of
-                        Builtin ->
-                            -- TODO implement operator specs
-                            ""
 
-                        Custom ->
-                            -- onlyWithoutFlag c
-                            -- "nospec0"
-                            -- name
-                            -- ((ind c.indent)
-                            --     ++ "@spec "
-                            --     ++ translateOperator name
-                            --     ++ (ExType.typespec0 c t)
-                            -- )
-                            onlyWithoutFlag c
-                                "nospec"
-                                name
+                ( newC, code ) =
+                    c.lastDoc
+                        |> Maybe.map (elixirDoc c Fundoc)
+                        |> Maybe.withDefault ( c, "" )
+            in
+                (,) (addTypeDefinition newC name definition) <|
+                    (onlyWithoutFlag newC "nodef" name code)
+                        ++ case isOperator name of
+                            Builtin ->
+                                -- TODO implement operator specs
                                 ""
-                                ++ ((ind c.indent)
+
+                            Custom ->
+                                -- onlyWithoutFlag c
+                                -- "nospec0"
+                                -- name
+                                -- ((ind c.indent)
+                                --     ++ "@spec "
+                                --     ++ translateOperator name
+                                --     ++ (ExType.typespec0 c t)
+                                -- )
+                                onlyWithoutFlag newC
+                                    "nospec"
+                                    name
+                                    ((ind newC.indent)
                                         ++ "@spec "
                                         ++ translateOperator name
-                                        ++ (ExType.typespec c t)
-                                   )
+                                        ++ (ExType.typespec newC t)
+                                    )
 
-                        None ->
-                            -- onlyWithoutFlag c
-                            --     "nospec0"
-                            --     name
-                            --     ((ind c.indent)
-                            --         ++ "@spec "
-                            --         ++ toSnakeCase True name
-                            --         ++ (ExType.typespec0 c t)
-                            --     )
-                            onlyWithoutFlag c
-                                "nospec"
-                                name
-                                ((ind c.indent)
-                                    ++ "@spec "
-                                    ++ toSnakeCase True name
-                                    ++ (ExType.typespec c t)
-                                )
+                            None ->
+                                -- onlyWithoutFlag c
+                                --     "nospec0"
+                                --     name
+                                --     ((ind c.indent)
+                                --         ++ "@spec "
+                                --         ++ toSnakeCase True name
+                                --         ++ (ExType.typespec0 c t)
+                                --     )
+                                onlyWithoutFlag newC
+                                    "nospec"
+                                    name
+                                    ((ind newC.indent)
+                                        ++ "@spec "
+                                        ++ toSnakeCase True name
+                                        ++ (ExType.typespec newC t)
+                                    )
 
         (FunctionTypeDeclaration name t) as def ->
             let
                 definition =
                     getTypeDefinition def
+
+                ( newC, code ) =
+                    c.lastDoc
+                        |> Maybe.map (elixirDoc c Fundoc)
+                        |> Maybe.withDefault ( c, "" )
             in
-                (,) (addTypeDefinition c name definition) <|
-                    case isOperator name of
-                        Builtin ->
-                            -- TODO implement operator specs
-                            ""
+                (,) (addTypeDefinition newC name definition) <|
+                    code
+                        ++ case isOperator name of
+                            Builtin ->
+                                -- TODO implement operator specs
+                                ""
 
-                        Custom ->
-                            onlyWithoutFlag c
-                                name
-                                "nospec"
-                                ((ind c.indent)
-                                    ++ "@spec "
-                                    ++ translateOperator name
-                                    ++ (ExType.typespec c t)
-                                )
+                            Custom ->
+                                onlyWithoutFlag newC
+                                    name
+                                    "nospec"
+                                    ((ind c.indent)
+                                        ++ "@spec "
+                                        ++ translateOperator name
+                                        ++ (ExType.typespec newC t)
+                                    )
 
-                        None ->
-                            onlyWithoutFlag c
-                                name
-                                "nospec"
-                                ((ind c.indent)
-                                    ++ "@spec "
-                                    ++ toSnakeCase True name
-                                    ++ (ExType.typespec c t)
-                                )
+                            None ->
+                                onlyWithoutFlag newC
+                                    name
+                                    "nospec"
+                                    ((ind c.indent)
+                                        ++ "@spec "
+                                        ++ toSnakeCase True name
+                                        ++ (ExType.typespec newC t)
+                                    )
 
         (FunctionDeclaration name args body) as fd ->
             (,) c <|
@@ -190,29 +214,10 @@ elixirS c s =
         Comment content ->
             case getCommentType content of
                 Doc content ->
-                    let
-                        docOrModdoc =
-                            if c.hasModuleDoc then
-                                "@doc"
-                            else
-                                "@moduledoc"
-                    in
-                        (,) { c | hasModuleDoc = True } <|
-                            (ind c.indent)
-                                ++ docOrModdoc
-                                ++ " \"\"\"\n "
-                                ++ (content
-                                        |> String.lines
-                                        |> map (maybeDoctest c)
-                                        |> map (Helpers.escape)
-                                        |> map (flip (++) (ind c.indent))
-                                        |> map trimIndentations
-                                        |> String.join ""
-                                        -- Drop an unnecessary \n at the end
-                                        |> String.dropRight 1
-                                   )
-                                ++ (ind c.indent)
-                                ++ "\"\"\""
+                    if c.hasModuleDoc then
+                        (,) { c | lastDoc = Just content } ""
+                    else
+                        elixirDoc c ModuleDoc content
 
                 Ex content ->
                     (,) c <|
@@ -287,6 +292,40 @@ elixirS c s =
         s ->
             (,) c <|
                 notImplemented "statement" s
+
+
+elixirDoc : Context -> DocType -> String -> ( Context, String )
+elixirDoc c doctype content =
+    let
+        prefix =
+            if not c.hasModuleDoc then
+                "@moduledoc"
+            else if doctype == Fundoc then
+                "@doc"
+            else
+                "@typedoc"
+    in
+        (,)
+            { c
+                | hasModuleDoc = True
+                , lastDoc = Nothing
+            }
+        <|
+            (ind c.indent)
+                ++ prefix
+                ++ " \"\"\"\n "
+                ++ (content
+                        |> String.lines
+                        |> map (maybeDoctest c)
+                        |> map (Helpers.escape)
+                        |> map (flip (++) (ind c.indent))
+                        |> map trimIndentations
+                        |> String.join ""
+                        -- Drop an unnecessary \n at the end
+                        |> String.dropRight 1
+                   )
+                ++ (ind c.indent)
+                ++ "\"\"\""
 
 
 getCommentType : String -> ElchemyComment

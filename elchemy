@@ -23,7 +23,12 @@ case "$1" in
       rm -rf ./elm-deps
       rm -rf ./elm-stuff
       rm -rf ~/.elm-install/github.com/
-    ;;
+      ;;
+    new)
+        mix new $2
+        cd $2
+        $SOURCE_DIR/elchemy init
+        ;;
     init)
         if [ -a ./mix.exs ]
         then

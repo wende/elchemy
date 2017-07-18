@@ -1,6 +1,6 @@
 module ExContext exposing (..)
 
-import Ast.Statement exposing (ExportSet, Type(..))
+import Ast.Statement exposing (ExportSet, Type(..), Statement)
 import Dict exposing (Dict)
 import Set exposing (Set)
 
@@ -66,12 +66,23 @@ type alias Context =
     , variables : Set String
     , inArgs : Bool
     , hasModuleDoc : Bool
+    , lastDoc : Maybe String
     }
 
 
 empty : String -> ExportSet -> Context
 empty name exports =
-    Context name exports 0 Dict.empty Dict.empty [] Dict.empty Set.empty False False
+    Context name
+        exports
+        0
+        Dict.empty
+        Dict.empty
+        []
+        Dict.empty
+        Set.empty
+        False
+        False
+        Nothing
 
 
 indent : Context -> Context
