@@ -74,7 +74,7 @@ elixirS c s =
                         |> Maybe.withDefault ( c, "" )
             in
                 (,) (addTypeDefinition newC name definition) <|
-                    code
+                    (onlyWithoutFlag newC "nodef" name code)
                         ++ case isOperator name of
                             Builtin ->
                                 -- TODO implement operator specs
@@ -92,12 +92,11 @@ elixirS c s =
                                 onlyWithoutFlag newC
                                     "nospec"
                                     name
-                                    ""
-                                    ++ ((ind newC.indent)
-                                            ++ "@spec "
-                                            ++ translateOperator name
-                                            ++ (ExType.typespec newC t)
-                                       )
+                                    ((ind newC.indent)
+                                        ++ "@spec "
+                                        ++ translateOperator name
+                                        ++ (ExType.typespec newC t)
+                                    )
 
                             None ->
                                 -- onlyWithoutFlag c
