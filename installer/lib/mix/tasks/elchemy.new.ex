@@ -1,4 +1,7 @@
-defmodule Mix.Tasks.Elmchemy.New do
+defmodule Mix.Tasks.Elchemy.New do
+
+  alias Elchemy.Project
+  alias Elchemy.NewProject
 
   @moduledoc """
   Here will be help
@@ -6,7 +9,8 @@ defmodule Mix.Tasks.Elmchemy.New do
 
   def run(argv) do
     [name | _opts] = argv
-    IO.inspect name
+    project = Project.new(name)
+    Elchemy.Generator.copy_from(project, NewProject, :new)
   end
 
 end

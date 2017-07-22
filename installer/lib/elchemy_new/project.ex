@@ -1,13 +1,20 @@
-defmodule Elmchemy.Project do
-  defstruct app_name: "", app_module: nil
+defmodule Elchemy.Project do
+  defstruct app_name: "", app_module: nil, project_path: "./", binding: []
 
   alias __MODULE__
 
   def new(app_name) do
-    %__MODULE__{app_name: app_name, app_module: Macro.camelize(app_name)}
+    mod = Macro.camelize(app_name)
+    %__MODULE__{app_name: app_name, app_module: mod, binding: [
+                   app_name: app_name,
+                   app_module: mod
+                 ]}
   end
 
   def join_path(%Project{} = project, location, path) do
+
+    IO.inspect location
+    IO.inspect path
 
     project
     |> Map.fetch!(:"#{location}_path")

@@ -1,7 +1,7 @@
-defmodule Elmchemy.Generator do
+defmodule Elchemy.Generator do
   @callback generate(Project.t) :: any
 
-  alias Elmchemy.Project
+  alias Elchemy.Project
   import Mix.Generator
 
   defmacro __using__(_env) do
@@ -17,7 +17,7 @@ defmodule Elmchemy.Generator do
   defmacro __before_compile__(env) do
     root = Path.expand("../../templates", __DIR__)
     templates_ast = for {name, mappings} <- Module.get_attribute(env.module, :templates) do
-      for {format, source, _, _} <- mappings, format != :keep do
+      for {format, source, _} <- mappings, format != :keep do
         path = Path.join(root, source)
         quote do
           @external_resource unquote(path)
@@ -25,6 +25,9 @@ defmodule Elmchemy.Generator do
         end
       end
     end
+
+    Macro.to_string(templates_ast)
+    |> IO.inspect
 
     quote do
       unquote(templates_ast)
@@ -42,8 +45,12 @@ defmodule Elmchemy.Generator do
 
   def copy_from(%Project{} = project, mod, name) when is_atom(name) do
     mapping = mod.template_files(name)
-    for {format, source, project_location, target_path} <- mapping do
+
+    IO.inspect mapping
+    project_location ="project"
+    for {format, source, target_path} <- mapping do
       target = Project.join_path(project, project_location, target_path)
+      IO.inspect target
 
       case format do
         :eex  ->
