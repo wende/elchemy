@@ -5,7 +5,7 @@
 Elchemy is a project with one idea in mind: Seamless acommodation of Elm-like language on Erlang VM.
 
 
-## UPDATE: [You can read a tutorial on using Elchemy here](https://medium.com/@krzysztof.wende/elmchemy-write-type-safe-elixir-code-with-elms-syntax-part-1-introduction-8968b76d721d)
+## [You can read a tutorial on using Elchemy here](https://medium.com/@krzysztof.wende/elmchemy-write-type-safe-elixir-code-with-elms-syntax-part-1-introduction-8968b76d721d)
 
 ## Web demo
 You can test `elchemy` online at:
