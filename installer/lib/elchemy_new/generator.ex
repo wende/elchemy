@@ -26,9 +26,6 @@ defmodule Elchemy.Generator do
       end
     end
 
-    Macro.to_string(templates_ast)
-    |> IO.inspect
-
     quote do
       unquote(templates_ast)
       def template_files(name), do: Keyword.fetch!(@templates, name)
@@ -46,11 +43,9 @@ defmodule Elchemy.Generator do
   def copy_from(%Project{} = project, mod, name) when is_atom(name) do
     mapping = mod.template_files(name)
 
-    IO.inspect mapping
     project_location ="project"
     for {format, source, target_path} <- mapping do
       target = Project.join_path(project, project_location, target_path)
-      IO.inspect target
 
       case format do
         :eex  ->

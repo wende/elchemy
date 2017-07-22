@@ -5,16 +5,13 @@ defmodule Elchemy.Project do
 
   def new(app_name) do
     mod = Macro.camelize(app_name)
-    %__MODULE__{app_name: app_name, app_module: mod, binding: [
+    %__MODULE__{app_name: app_name, app_module: mod, project_path: "#{app_name}", binding: [
                    app_name: app_name,
                    app_module: mod
                  ]}
   end
 
   def join_path(%Project{} = project, location, path) do
-
-    IO.inspect location
-    IO.inspect path
 
     project
     |> Map.fetch!(:"#{location}_path")
