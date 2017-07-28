@@ -8,8 +8,19 @@ defmodule Mix.Tasks.Elchemy.New do
   ]
 
   @moduledoc """
-  Here will be help
+  Task for generation of Elchemy projects.
+
+  Switches:
+    --location  -  specify location for generation
+
+  Sample usage:
+
+    mix elchemy.new porject_name --location folder
   """
+
+  def run([]) do
+    Mix.Tasks.Help.run(["elchemy.new"])
+  end
 
   def run(argv) do
     [name | opts] = argv
