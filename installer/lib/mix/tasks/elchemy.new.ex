@@ -16,6 +16,7 @@ defmodule Mix.Tasks.Elchemy.New do
     project = Project.new(name)
     project = apply_opts(project, opts)
     Elchemy.Generator.copy_from(project, NewProject, :new)
+    Mix.shell.info("Project generated successfully")
   end
 
   def apply_opts(project, opts) do
