@@ -16,3 +16,6 @@ testproject
 │   └── ProjectName.elm
 └── mix.exs
 ```
+
+Credits:
+Havy inspired by Phoenix installer.
