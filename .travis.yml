@@ -46,6 +46,7 @@ install:
 
 script:
   - elm-test && make test-std
+  - (cd installer && mix test)
 
 notifications:
   email: false
