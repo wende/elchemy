@@ -44,7 +44,7 @@ getName file =
 
 tree : String -> String
 tree m =
-    case String.split ">>>>" m of
+    case String.split (">>" ++ ">>") m of
         [ single ] ->
             single
                 |> parse "NoName.elm"
@@ -90,7 +90,7 @@ tree m =
                 wTrueContexts
                     |> map
                         (\( name, c, ast ) ->
-                            ">>>>" ++ name ++ "\n" ++ getCode c ast
+                            ">>" ++ ">>" ++ name ++ "\n" ++ getCode c ast
                         )
                     |> String.join "\n"
 
@@ -114,7 +114,14 @@ getCommonAliases a =
 typeAliasDuplicate : comparable -> a -> a -> Dict.Dict comparable a -> Dict.Dict comparable a
 typeAliasDuplicate k v v2 =
     if v /= v2 then
-        Debug.crash ("You can't have two different type aliases for " ++ toString k)
+        Debug.crash
+            ("You can't have two different type aliases for "
+                ++ toString k
+                ++ "\nThese are: "
+                ++ toString v
+                ++ "\nand\n"
+                ++ toString v2
+            )
     else
         Dict.insert k v
 

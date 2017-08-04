@@ -5,7 +5,6 @@ import Ast.Expression exposing (..)
 import Helpers exposing (..)
 import List exposing (..)
 import ExContext exposing (Context, indent)
-import ExAlias
 
 
 flattenTypeApplication : Type -> List Type
@@ -74,7 +73,7 @@ elixirT flatten c t =
         TypeConstructor t args ->
             case lastAndRest t of
                 ( Just last, a ) ->
-                    ExAlias.maybeAlias c.aliases last
+                    ExContext.getAlias c.mod last c
                         |> Maybe.andThen
                             (\ali ->
                                 if ali.aliasType == ExContext.TypeAlias then
@@ -142,7 +141,7 @@ typeRecordFields c flatten t =
         TypeRecordConstructor (TypeConstructor [ name ] args) fields ->
             let
                 inherited =
-                    ExAlias.maybeAlias c.aliases name
+                    ExContext.getAlias c.mod name c
                         |> Maybe.map (\{ getTypeBody } -> getTypeBody args)
                         |> Maybe.map (typeRecordFields c flatten)
             in
@@ -350,7 +349,7 @@ constructApplication list =
 
 aliasOr : Context -> String -> List Type -> String -> String
 aliasOr c name args default =
-    ExAlias.maybeAlias c.aliases name
+    ExContext.getAlias c.mod name c
         |> Maybe.map
             (\{ mod, getTypeBody, aliasType } ->
                 if mod == c.mod then

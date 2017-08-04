@@ -335,11 +335,11 @@ getCommentType comment =
     , ( "^\\sflag\\b", (Flag) )
     ]
         |> List.map (\( a, b ) -> ( Regex.regex a, b ))
-        |> List.foldl findCommentType (Normal comment)
+        |> List.foldl (uncurry findCommentType) (Normal comment)
 
 
-findCommentType : ( Regex.Regex, String -> ElchemyComment ) -> ElchemyComment -> ElchemyComment
-findCommentType ( regex, commentType ) acc =
+findCommentType : Regex.Regex -> (String -> ElchemyComment) -> ElchemyComment -> ElchemyComment
+findCommentType regex commentType acc =
     case acc of
         Normal content ->
             if Regex.contains regex content then
