@@ -276,7 +276,7 @@ elixirS c s =
                     ++ "import "
                     ++ modulePath path
                     ++ ", only: ["
-                    ++ (map subsetExport exports |> foldl (++) [] |> String.join ",")
+                    ++ (map subsetExport exports |> foldr (++) [] |> String.join ",")
                     ++ "]"
 
         -- Suppresses the compiler warning
