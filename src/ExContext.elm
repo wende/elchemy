@@ -21,7 +21,7 @@ module ExContext
         , addFlag
         )
 
-import Ast.Statement exposing (ExportSet, Type(..), Statement)
+import Ast.Statement exposing (ExportSet, Type(..), Statement, ExportSet(..))
 import Dict exposing (Dict)
 import Set exposing (Set)
 
@@ -268,3 +268,25 @@ inArgs c =
 mergeVariables : Context -> Context -> Context
 mergeVariables left right =
     { left | variables = Set.union left.variables right.variables }
+
+
+{-| Merges everything that should be imported from given module, based
+on given export set value
+-}
+mergeTypes : ExportSet -> String -> Context -> Context
+mergeTypes set mod c =
+    let
+        mergeDict dictA dictB =
+            Dict.toList dictB
+                |> List.foldl (uncurry Dict.insert) dictA
+
+        getModule name dict =
+            Dict.get mod dict
+                |> Maybe.withDefault Dict.empty
+    in
+        case set of
+            AllExport ->
+                { c
+                    | types =
+                        mergeDict (getModule mod c.types) (getModule c.mod c.types)
+                }
