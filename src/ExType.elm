@@ -179,6 +179,9 @@ typeRecordFields c flatten t =
             )
                 ++ typeRecordFields c flatten tr
 
+        (TypeRecord _) as tr ->
+            []
+
         any ->
             Debug.crash ("Wrong type record constructor " ++ toString any)
 
