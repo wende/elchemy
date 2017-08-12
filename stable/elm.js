@@ -13653,8 +13653,8 @@ var _user$project$ExType$constructApplication = function (list) {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExType',
 			{
-				start: {line: 337, column: 5},
-				end: {line: 348, column: 14}
+				start: {line: 340, column: 5},
+				end: {line: 351, column: 14}
 			},
 			_p0)('Wrong application');
 	} else {
@@ -14221,105 +14221,108 @@ var _user$project$ExType$elixirTNoFlat = _user$project$ExType$elixirT(false);
 var _user$project$ExType$typeRecordFields = F3(
 	function (c, flatten, t) {
 		var _p36 = t;
-		_v18_4:
+		_v18_5:
 		do {
-			if (_p36.ctor === 'TypeRecordConstructor') {
-				switch (_p36._0.ctor) {
-					case 'TypeConstructor':
-						if ((_p36._0._0.ctor === '::') && (_p36._0._0._1.ctor === '[]')) {
-							var inherited = A2(
-								_elm_lang$core$Maybe$map,
-								A2(_user$project$ExType$typeRecordFields, c, flatten),
-								A2(
+			switch (_p36.ctor) {
+				case 'TypeRecordConstructor':
+					switch (_p36._0.ctor) {
+						case 'TypeConstructor':
+							if ((_p36._0._0.ctor === '::') && (_p36._0._0._1.ctor === '[]')) {
+								var inherited = A2(
 									_elm_lang$core$Maybe$map,
-									function (_p37) {
-										var _p38 = _p37;
-										return _p38.getTypeBody(_p36._0._1);
-									},
-									A2(_user$project$ExAlias$maybeAlias, c.aliases, _p36._0._0._0)));
+									A2(_user$project$ExType$typeRecordFields, c, flatten),
+									A2(
+										_elm_lang$core$Maybe$map,
+										function (_p37) {
+											var _p38 = _p37;
+											return _p38.getTypeBody(_p36._0._1);
+										},
+										A2(_user$project$ExAlias$maybeAlias, c.aliases, _p36._0._0._0)));
+								return A2(
+									_elm_lang$core$Basics_ops['++'],
+									A2(
+										_elm_lang$core$List$map,
+										function (_p39) {
+											var _p40 = _p39;
+											return A2(
+												_elm_lang$core$Basics_ops['++'],
+												_p40._0,
+												A2(
+													_elm_lang$core$Basics_ops['++'],
+													': ',
+													A3(_user$project$ExType$elixirT, flatten, c, _p40._1)));
+										},
+										_p36._1),
+									A2(
+										_elm_lang$core$Maybe$withDefault,
+										{
+											ctor: '::',
+											_0: '',
+											_1: {ctor: '[]'}
+										},
+										inherited));
+							} else {
+								break _v18_5;
+							}
+						case 'TypeRecord':
+							return A2(
+								_elm_lang$core$List$map,
+								function (_p41) {
+									var _p42 = _p41;
+									return A2(
+										_elm_lang$core$Basics_ops['++'],
+										_p42._0,
+										A2(
+											_elm_lang$core$Basics_ops['++'],
+											': ',
+											A3(_user$project$ExType$elixirT, flatten, c, _p42._1)));
+								},
+								A2(_elm_lang$core$Basics_ops['++'], _p36._1, _p36._0._0));
+						case 'TypeVariable':
+							return A2(
+								_elm_lang$core$List$map,
+								function (_p43) {
+									var _p44 = _p43;
+									return A2(
+										_elm_lang$core$Basics_ops['++'],
+										_p44._0,
+										A2(
+											_elm_lang$core$Basics_ops['++'],
+											': ',
+											A3(_user$project$ExType$elixirT, flatten, c, _p44._1)));
+								},
+								_p36._1);
+						case 'TypeRecordConstructor':
 							return A2(
 								_elm_lang$core$Basics_ops['++'],
 								A2(
 									_elm_lang$core$List$map,
-									function (_p39) {
-										var _p40 = _p39;
+									function (_p45) {
+										var _p46 = _p45;
 										return A2(
 											_elm_lang$core$Basics_ops['++'],
-											_p40._0,
+											_p46._0,
 											A2(
 												_elm_lang$core$Basics_ops['++'],
 												': ',
-												A3(_user$project$ExType$elixirT, flatten, c, _p40._1)));
+												A3(_user$project$ExType$elixirT, flatten, c, _p46._1)));
 									},
 									_p36._1),
-								A2(
-									_elm_lang$core$Maybe$withDefault,
-									{
-										ctor: '::',
-										_0: '',
-										_1: {ctor: '[]'}
-									},
-									inherited));
-						} else {
-							break _v18_4;
-						}
-					case 'TypeRecord':
-						return A2(
-							_elm_lang$core$List$map,
-							function (_p41) {
-								var _p42 = _p41;
-								return A2(
-									_elm_lang$core$Basics_ops['++'],
-									_p42._0,
-									A2(
-										_elm_lang$core$Basics_ops['++'],
-										': ',
-										A3(_user$project$ExType$elixirT, flatten, c, _p42._1)));
-							},
-							A2(_elm_lang$core$Basics_ops['++'], _p36._1, _p36._0._0));
-					case 'TypeVariable':
-						return A2(
-							_elm_lang$core$List$map,
-							function (_p43) {
-								var _p44 = _p43;
-								return A2(
-									_elm_lang$core$Basics_ops['++'],
-									_p44._0,
-									A2(
-										_elm_lang$core$Basics_ops['++'],
-										': ',
-										A3(_user$project$ExType$elixirT, flatten, c, _p44._1)));
-							},
-							_p36._1);
-					case 'TypeRecordConstructor':
-						return A2(
-							_elm_lang$core$Basics_ops['++'],
-							A2(
-								_elm_lang$core$List$map,
-								function (_p45) {
-									var _p46 = _p45;
-									return A2(
-										_elm_lang$core$Basics_ops['++'],
-										_p46._0,
-										A2(
-											_elm_lang$core$Basics_ops['++'],
-											': ',
-											A3(_user$project$ExType$elixirT, flatten, c, _p46._1)));
-								},
-								_p36._1),
-							A3(_user$project$ExType$typeRecordFields, c, flatten, _p36._0));
-					default:
-						break _v18_4;
-				}
-			} else {
-				break _v18_4;
+								A3(_user$project$ExType$typeRecordFields, c, flatten, _p36._0));
+						default:
+							break _v18_5;
+					}
+				case 'TypeRecord':
+					return {ctor: '[]'};
+				default:
+					break _v18_5;
 			}
 		} while(false);
 		return _elm_lang$core$Native_Utils.crashCase(
 			'ExType',
 			{
 				start: {line: 141, column: 5},
-				end: {line: 183, column: 75}
+				end: {line: 186, column: 75}
 			},
 			_p36)(
 			A2(
@@ -14366,8 +14369,8 @@ var _user$project$ExType$uniontype = F2(
 			return _elm_lang$core$Native_Utils.crashCase(
 				'ExType',
 				{
-					start: {line: 274, column: 5},
-					end: {line: 286, column: 96}
+					start: {line: 277, column: 5},
+					end: {line: 289, column: 96}
 				},
 				_p48)(
 				A2(
@@ -14401,8 +14404,8 @@ var _user$project$ExType$typespec = F2(
 			return _elm_lang$core$Native_Utils.crashCase(
 				'ExType',
 				{
-					start: {line: 259, column: 5},
-					end: {line: 269, column: 37}
+					start: {line: 262, column: 5},
+					end: {line: 272, column: 37}
 				},
 				_p50)('impossible');
 		}
@@ -17569,7 +17572,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elchemy', '\n'));
-var _user$project$Compiler$version = '0.4.12';
+var _user$project$Compiler$version = '0.4.13';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		return A2(
