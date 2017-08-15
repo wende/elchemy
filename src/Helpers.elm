@@ -70,9 +70,14 @@ isCapitilzed s =
         |> Maybe.withDefault False
 
 
+indNoNewline : Int -> String
+indNoNewline i =
+    List.repeat ((i + 1) * 2) " " |> String.join ""
+
+
 ind : Int -> String
 ind i =
-    "\n" ++ (List.repeat ((i + 1) * 2) " " |> String.join "")
+    "\n" ++ indNoNewline i
 
 
 prependAll : String -> String -> String

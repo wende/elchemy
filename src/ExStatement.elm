@@ -318,13 +318,11 @@ elixirDoc c doctype content =
                         |> String.lines
                         |> map (maybeDoctest c)
                         |> map (Helpers.escape)
-                        |> map (flip (++) (ind c.indent))
-                        |> map trimIndentations
-                        |> String.join ""
-                        -- Drop an unnecessary \n at the end
-                        |> String.dropRight 1
+                        -- |> map trimIndentations
+                        |> String.join "\n"
+                    -- Drop an unnecessary \n at the end
                    )
-                ++ (ind c.indent)
+                ++ indNoNewline c.indent
                 ++ "\"\"\""
 
 
@@ -370,7 +368,8 @@ maybeDoctest c line =
     if String.startsWith (ind (c.indent + 1)) ("\n" ++ line) then
         case Ast.parseExpression Ast.BinOp.operators (String.trim line) of
             Ok ( _, _, BinOp (Variable [ "==" ]) l r ) ->
-                ind (c.indent + 2)
+                --"\n"
+                indNoNewline (c.indent + 2)
                     ++ "iex> import "
                     ++ c.mod
                     ++ ind (c.indent + 2)
@@ -378,6 +377,7 @@ maybeDoctest c line =
                     ++ ExExpression.elixirE c l
                     ++ ind (c.indent + 2)
                     ++ ExExpression.elixirE c r
+                    ++ "\n"
 
             _ ->
                 line
