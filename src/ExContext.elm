@@ -276,17 +276,24 @@ on given export set value
 mergeTypes : ExportSet -> String -> Context -> Context
 mergeTypes set mod c =
     let
-        mergeDict dictA dictB =
-            Dict.toList dictB
-                |> List.foldl (uncurry Dict.insert) dictA
+        updateThis fTypes fAliases c =
+            { c
+                | types = Dict.update c.mod (Maybe.map fTypes >> Just)
+                , aliases = Dict.update c.mod (Maybe.map fAliases >> Just)
+            }
 
-        getModule name dict =
-            Dict.get mod dict
-                |> Maybe.withDefault Dict.empty
+        getTypes name =
+            c.types |> Dict.get name
+
+        getAliases name =
+            c.aliases |> Dict.get name
+
+        merge =
+            Dict.merge
+                Dict.insert
+                (\_ _ -> Debug.crash "Can't import two same types")
+                Dict.insert
     in
         case set of
             AllExport ->
-                { c
-                    | types =
-                        mergeDict (getModule mod c.types) (getModule c.mod c.types)
-                }
+                addToThis (getModule mod c.types)
