@@ -10,7 +10,7 @@ release:
 	cp -r example/ stable/
 
 compile:
-	elm-make Main.elm --output compiled.js
+	elm-make Main.elm --yes --output compiled.js
 	sed 's/var Elm = {}/&; \
 	var fs = require(\"fs\"); \
 	var a = fs.readFileSync(process.argv[2]).toString(); \
