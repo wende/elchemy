@@ -319,10 +319,10 @@ elixirDoc c doctype content =
                         |> map (maybeDoctest c)
                         |> map (Helpers.escape)
                         -- |> map trimIndentations
-                        |> String.join "\n"
+                        |> String.join (ind c.indent)
                     -- Drop an unnecessary \n at the end
                    )
-                ++ indNoNewline c.indent
+                ++ ind c.indent
                 ++ "\"\"\""
 
 
