@@ -157,6 +157,8 @@ elixirS c s =
             (,) c <|
                 if name == "meta" && args == [] then
                     ExExpression.generateMeta body
+                else if Dict.get name c.definitions == Nothing then
+                    Debug.crash "You need to provide function type"
                 else
                     case body of
                         (Application (Application (Variable [ "ffi" ]) _) _) as app ->
