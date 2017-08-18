@@ -6,10 +6,8 @@ Elchemy is a project with one idea in mind: Seamless acommodation of Elm-like la
 
 
 ## [You can read a tutorial on using Elchemy here](https://medium.com/@krzysztof.wende/elmchemy-write-type-safe-elixir-code-with-elms-syntax-part-1-introduction-8968b76d721d)
-
-## Web demo
-You can test `elchemy` online at:
-https://wende.github.io/elchemy/stable/
+## [You can read Elchemy documentation (WIP) here](https://wende.github.io/elchemy-ivy/)
+## [You can test Elchemy online here](https://wende.github.io/elchemy/stable/)
 
 ### CAVEAT: Web version does *not* do any type checking. It only parses syntax. For full type and syntax checking run the CLI version
 
