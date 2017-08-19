@@ -287,7 +287,9 @@ generateFfi c name argTypes e =
                                 )
                            )
                         ++ ind c.indent
-                        ++ "def "
+                        ++ "def"
+                        ++ privateOrPublic c name
+                        ++ " "
                         ++ toSnakeCase True name
                         ++ "("
                         ++ (arguments |> String.join ", ")
@@ -311,7 +313,9 @@ generateFfi c name argTypes e =
                 in
                     functionCurry c name def.arity
                         ++ ind c.indent
-                        ++ "def "
+                        ++ "def"
+                        ++ privateOrPublic c name
+                        ++ " "
                         ++ toSnakeCase True name
                         ++ "("
                         ++ (generateArguments_ "a" def.arity |> String.join ", ")
@@ -847,6 +851,15 @@ elixirVariable c var =
 
         [ "Nothing" ] ->
             "nil"
+
+        [ "Just" ] ->
+            "fn x1 -> {x1} end"
+
+        [ "Err" ] ->
+            "fn x1 -> {:error, x1} end"
+
+        [ "Ok" ] ->
+            "fn x1 -> {:ok, x1} end"
 
         [ "curry" ] ->
             "curried()"

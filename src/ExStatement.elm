@@ -371,7 +371,7 @@ maybeDoctest c line =
         case Ast.parseExpression Ast.BinOp.operators (String.trim line) of
             Ok ( _, _, BinOp (Variable [ "==" ]) l r ) ->
                 --"\n"
-                indNoNewline (c.indent + 2)
+                indNoNewline (c.indent + 1)
                     ++ "iex> import "
                     ++ c.mod
                     ++ ind (c.indent + 2)
