@@ -1,4 +1,10 @@
-module Compiler exposing (..)
+module Compiler exposing (version, tree)
+
+{-| Module responsible for compiling Elm code to Elixir
+
+@docs version, tree
+
+-}
 
 import Ast
 import Ast.Statement exposing (Statement)
@@ -11,9 +17,11 @@ import Dict
 import Regex exposing (..)
 
 
+{-| Returns current version
+-}
 version : String
 version =
-    "0.4.11"
+    "0.4.30"
 
 
 glueStart : String
@@ -42,6 +50,8 @@ getName file =
             ( "", "" )
 
 
+{-| Transforms a code in Elm to code in Elixir
+-}
 tree : String -> String
 tree m =
     case String.split (">>" ++ ">>") m of

@@ -286,7 +286,9 @@ generateFfi c name argTypes e =
                                 )
                            )
                         ++ ind c.indent
-                        ++ "def "
+                        ++ "def"
+                        ++ privateOrPublic c name
+                        ++ " "
                         ++ toSnakeCase True name
                         ++ "("
                         ++ (arguments |> String.join ", ")
@@ -310,7 +312,9 @@ generateFfi c name argTypes e =
                 in
                     functionCurry c name def.arity
                         ++ ind c.indent
-                        ++ "def "
+                        ++ "def"
+                        ++ privateOrPublic c name
+                        ++ " "
                         ++ toSnakeCase True name
                         ++ "("
                         ++ (generateArguments_ "a" def.arity |> String.join ", ")
@@ -744,18 +748,10 @@ genElixirFunc c name args missingArgs body =
 
 privateOrPublic : Context -> String -> String
 privateOrPublic context name =
-    case context.exports of
-        SubsetExport exports ->
-            if any (\exp -> exp == FunctionExport name) exports then
-                ""
-            else
-                "p"
-
-        AllExport ->
-            ""
-
-        other ->
-            Debug.crash "No such export"
+    if ExContext.isPrivate context name then
+        "p"
+    else
+        ""
 
 
 functionCurry : Context -> String -> Int -> String
@@ -846,6 +842,15 @@ elixirVariable c var =
 
         [ "Nothing" ] ->
             "nil"
+
+        [ "Just" ] ->
+            "fn x1 -> {x1} end"
+
+        [ "Err" ] ->
+            "fn x1 -> {:error, x1} end"
+
+        [ "Ok" ] ->
+            "fn x1 -> {:ok, x1} end"
 
         [ "curry" ] ->
             "curried()"
@@ -1007,6 +1012,9 @@ extractVariables exp =
 
             BinOp (Variable [ "::" ]) x xs ->
                 many [ x, xs ]
+
+            BinOp (Variable [ "as" ]) ((Variable _) as v1) ((Variable _) as v2) ->
+                many [ v1, v2 ]
 
             BinOp (Variable [ "as" ]) _ (Variable [ name ]) ->
                 one name

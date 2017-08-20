@@ -19,6 +19,7 @@ module ExContext
         , onlyWithoutFlag
         , hasFlag
         , addFlag
+        , isPrivate
         )
 
 import Ast.Statement exposing (ExportSet, Type(..), Statement, ExportSet(..))
@@ -261,6 +262,24 @@ as a refference to an older values or functions and prevents injection of parens
 inArgs : Context -> Context
 inArgs c =
     { c | inArgs = True }
+
+
+{-| Tells you if a function is private or public based on context of a module
+-}
+isPrivate : Context -> String -> Bool
+isPrivate context name =
+    case context.exports of
+        SubsetExport exports ->
+            if List.any (\exp -> exp == FunctionExport name) exports then
+                False
+            else
+                True
+
+        AllExport ->
+            False
+
+        other ->
+            Debug.crash "No such export"
 
 
 {-| Merges a set of two variables from two different contexts

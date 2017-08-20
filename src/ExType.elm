@@ -169,6 +169,9 @@ typeRecordFields c flatten t =
                 (fields)
             )
 
+        TypeRecordConstructor (TypeTuple [ a ]) fields ->
+            typeRecordFields c flatten (TypeRecordConstructor a fields)
+
         TypeRecordConstructor ((TypeRecordConstructor _ _) as tr) fields ->
             (map
                 (\( k, v ) ->
@@ -177,6 +180,14 @@ typeRecordFields c flatten t =
                 (fields)
             )
                 ++ typeRecordFields c flatten tr
+
+        (TypeRecord fields) as tr ->
+            (map
+                (\( k, v ) ->
+                    k ++ ": " ++ elixirT flatten c v
+                )
+                (fields)
+            )
 
         any ->
             Debug.crash ("Wrong type record constructor " ++ toString any)

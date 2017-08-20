@@ -14,11 +14,13 @@ if git diff-index --quiet HEAD --; then
     git commit -am "Release $VER"
     git tag $VER
     git push origin master $VER
+
+    cd ..
+    sed -i "" "s/$SEMVER/$VER/g" mix.exs
     rm -f elchemy-*.ez
     mix archive.build
     mix archive.install "elchemy-$VER.ez" --force
 
-    cd ..
     git pull origin master
     sed -i "" "s/$SEMVER/$VER/g" src/Compiler.elm
     make compile

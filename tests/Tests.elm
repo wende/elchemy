@@ -16,7 +16,7 @@ has : String -> String -> Expect.Expectation
 has expected s =
     let
         result =
-            Compiler.tree ("module MyModule exposing (..) \n" ++ s)
+            Compiler.tree ("module MyModule exposing (nothing) \n" ++ s)
                 |> Regex.replace All (regex "\\n( )+") (always "")
                 |> Regex.replace All (regex "( )+") (always " ")
     in

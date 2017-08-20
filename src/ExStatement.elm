@@ -157,6 +157,17 @@ elixirS c s =
             (,) c <|
                 if name == "meta" && args == [] then
                     ExExpression.generateMeta body
+                else if
+                    Dict.get name c.definitions
+                        == Nothing
+                        && not (ExContext.isPrivate c name)
+                then
+                    Debug.crash
+                        ("You need to provide function type for "
+                            ++ name
+                            ++ " function in module "
+                            ++ toString c.mod
+                        )
                 else
                     case body of
                         (Application (Application (Variable [ "ffi" ]) _) _) as app ->
@@ -276,7 +287,7 @@ elixirS c s =
                     ++ "import "
                     ++ modulePath path
                     ++ ", only: ["
-                    ++ (map subsetExport exports |> foldl (++) [] |> String.join ",")
+                    ++ (map subsetExport exports |> foldr (++) [] |> String.join ",")
                     ++ "]"
 
         -- Suppresses the compiler warning
@@ -318,13 +329,11 @@ elixirDoc c doctype content =
                         |> String.lines
                         |> map (maybeDoctest c)
                         |> map (Helpers.escape)
-                        |> map (flip (++) (ind c.indent))
-                        |> map trimIndentations
-                        |> String.join ""
-                        -- Drop an unnecessary \n at the end
-                        |> String.dropRight 1
+                        -- |> map trimIndentations
+                        |> String.join (ind c.indent)
+                    -- Drop an unnecessary \n at the end
                    )
-                ++ (ind c.indent)
+                ++ ind c.indent
                 ++ "\"\"\""
 
 
@@ -370,7 +379,8 @@ maybeDoctest c line =
     if String.startsWith (ind (c.indent + 1)) ("\n" ++ line) then
         case Ast.parseExpression Ast.BinOp.operators (String.trim line) of
             Ok ( _, _, BinOp (Variable [ "==" ]) l r ) ->
-                ind (c.indent + 2)
+                --"\n"
+                indNoNewline (c.indent + 1)
                     ++ "iex> import "
                     ++ c.mod
                     ++ ind (c.indent + 2)
@@ -378,6 +388,7 @@ maybeDoctest c line =
                     ++ ExExpression.elixirE c l
                     ++ ind (c.indent + 2)
                     ++ ExExpression.elixirE c r
+                    ++ "\n"
 
             _ ->
                 line

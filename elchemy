@@ -32,7 +32,7 @@ case "$1" in
     init)
         if [ -a ./mix.exs ]
         then
-            mix archive.install https://github.com/wende/elchemy/releases/download/0.4.11/elchemy-0.4.11.ez
+            mix archive.install https://github.com/wende/elchemy/releases/download/0.4.30/elchemy-0.4.30.ez
             mkdir -p elm
             cp $SOURCE_DIR/templates/elm-package.json ./
             cp $SOURCE_DIR/templates/Hello.elm ./elm/
@@ -48,14 +48,14 @@ case "$1" in
     compile)
         rm -rf ".elchemy"
         echo "" > .elchemy_output
-        if [[ $* == *--flag* ]]; then
+        if ! [[ $* == *--unsafe* ]]; then
             if ! hash elm-github-install 2>/dev/null; then
                 echo "No elm-github-install found. Installing..."
                 npm i -g elm-github-install
             fi
             elm-install
         fi
-        for f in `{ find $2/../elm-stuff/packages -name "*.ex" | grep -v "elchemy.ex" ;}`
+        for f in `{ find $2/../elm-stuff/packages -name "*.ex" ;}`
         do
           echo "FOUND $f"
           file=$(create_file $f)
@@ -72,8 +72,8 @@ case "$1" in
             echo "Compiling $f"
             echo ">>>>$f" >> .elchemy_output
             # We don't need to typecheck deps again
-            if [[ ${f} != *"elm-stuff"* ]] || [[ $* == *--unsafe* ]]; then
-                elm-make $f --output .elchemy_output_tmp.js || { echo 'Compilation failed' ; exit 1; }
+            if [[ ${f} != *"elm-stuff"* ]] && ! [[ $* == *--unsafe* ]]; then
+                (echo n | elm-make $f --output .elchemy_output_tmp.js) || { echo 'Compilation failed' ; exit 1; }
                 rm .elchemy_output_tmp.js
             fi
             i=$((i+1))
