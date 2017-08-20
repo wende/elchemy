@@ -13,6 +13,8 @@ import Dict exposing (Dict)
 import Regex exposing (..)
 import Helpers exposing (..)
 import Debug exposing (crash)
+import ExFfi
+import ExFunction
 
 
 type ElchemyComment
@@ -139,9 +141,7 @@ elixirS c s =
 
         (FunctionDeclaration name args body) as fd ->
             (,) c <|
-                if name == "meta" && args == [] then
-                    ExExpression.generateMeta body
-                else if
+                if
                     Dict.get name c.definitions
                         == Nothing
                         && not (ExContext.isPrivate c name)
@@ -155,8 +155,9 @@ elixirS c s =
                 else
                     case body of
                         (Application (Application (Variable [ "ffi" ]) _) _) as app ->
-                            ExExpression.generateFfi
+                            ExFfi.generateFfi
                                 c
+                                ExExpression.elixirE
                                 name
                                 (c.definitions
                                     |> Dict.get name
@@ -170,8 +171,9 @@ elixirS c s =
                                 app
 
                         (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
-                            ExExpression.generateFfi
+                            ExFfi.generateFfi
                                 c
+                                ExExpression.elixirE
                                 name
                                 (c.definitions
                                     |> Dict.get name
@@ -185,70 +187,32 @@ elixirS c s =
                                 app
 
                         Case vars expressions ->
-                            if ExExpression.flattenCommas vars == args then
-                                ExExpression.genOverloadedFunctionDefinition
+                            if ExFunction.flattenCommas vars == args then
+                                ExFunction.genOverloadedFunctionDefinition
                                     c
+                                    ExExpression.elixirE
                                     name
                                     args
                                     body
                                     expressions
                             else
-                                ExExpression.genFunctionDefinition
+                                ExFunction.genFunctionDefinition
                                     c
+                                    ExExpression.elixirE
                                     name
                                     args
                                     body
 
                         _ ->
-                            ExExpression.genFunctionDefinition
+                            ExFunction.genFunctionDefinition
                                 c
+                                ExExpression.elixirE
                                 name
                                 args
                                 body
 
         Comment content ->
-            case getCommentType content of
-                Doc content ->
-                    if c.hasModuleDoc then
-                        (,) { c | lastDoc = Just content } ""
-                    else
-                        elixirDoc c ModuleDoc content
-
-                Ex content ->
-                    (,) c <|
-                        (content
-                            |> String.split "\n"
-                            |> map String.trim
-                            |> String.join "\n"
-                            |> indAll c.indent
-                        )
-
-                Flag content ->
-                    flip (,) "" <|
-                        (content
-                            |> Regex.split All (regex "\\s+")
-                            |> map (String.split ":+")
-                            |> filterMap
-                                (\flag ->
-                                    case flag of
-                                        [ k, v ] ->
-                                            Just ( k, v )
-
-                                        [ "" ] ->
-                                            Nothing
-
-                                        a ->
-                                            crash ("Wrong flag format " ++ toString a)
-                                )
-                            |> foldl (ExContext.addFlag) c
-                        )
-
-                Normal content ->
-                    (,) c <|
-                        (content
-                            |> prependAll ("# ")
-                            |> indAll c.indent
-                        )
+            elixirComment c content
 
         -- That's not a real import. In elixir it's called alias
         ImportStatement path Nothing Nothing ->
@@ -287,6 +251,52 @@ elixirS c s =
         s ->
             (,) c <|
                 notImplemented "statement" s
+
+
+elixirComment : Context -> String -> ( Context, String )
+elixirComment c content =
+    case getCommentType content of
+        Doc content ->
+            if c.hasModuleDoc then
+                { c | lastDoc = Just content } => ""
+            else
+                elixirDoc c ModuleDoc content
+
+        Ex content ->
+            (,) c <|
+                (content
+                    |> String.split "\n"
+                    |> map String.trim
+                    |> String.join "\n"
+                    |> indAll c.indent
+                )
+
+        Flag content ->
+            flip (,) "" <|
+                (content
+                    |> Regex.split All (regex "\\s+")
+                    |> map (String.split ":+")
+                    |> filterMap
+                        (\flag ->
+                            case flag of
+                                [ k, v ] ->
+                                    Just ( k, v )
+
+                                [ "" ] ->
+                                    Nothing
+
+                                a ->
+                                    crash ("Wrong flag format " ++ toString a)
+                        )
+                    |> foldl (ExContext.addFlag) c
+                )
+
+        Normal content ->
+            (,) c <|
+                (content
+                    |> prependAll ("# ")
+                    |> indAll c.indent
+                )
 
 
 elixirDoc : Context -> DocType -> String -> ( Context, String )

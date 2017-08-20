@@ -37,7 +37,9 @@ glueEnd =
         ++ String.trim
             """
          end
+
          """
+        ++ "\n"
 
 
 getName : String -> ( String, String )
@@ -70,10 +72,21 @@ tree m =
 
         multiple ->
             let
+                count =
+                    Debug.log "Number of files" (List.length multiple)
+
                 files =
                     multiple
                         |> map getName
-                        |> map (\( name, code ) -> ( name, parse name code ))
+                        |> indexedMap (,)
+                        |> map
+                            (\( i, ( name, code ) ) ->
+                                let
+                                    _ =
+                                        Debug.log ("File " ++ name ++ " linked\n Left") i
+                                in
+                                    ( name, parse name code )
+                            )
 
                 wContexts =
                     files
@@ -112,6 +125,15 @@ tree m =
                             )
             in
                 wTrueContexts
+                    |> List.indexedMap (,)
+                    |> map
+                        (\( i, a ) ->
+                            let
+                                _ =
+                                    Debug.log (toString (i + 1) ++ " left out of") count
+                            in
+                                a
+                        )
                     |> map
                         (\( name, c, ast ) ->
                             ">>" ++ ">>" ++ name ++ "\n" ++ getCode c ast

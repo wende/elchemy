@@ -6,6 +6,7 @@ module ExContext
         , Arity
         , Context
         , Definition
+        , Parser
         , empty
         , addAlias
         , getAlias
@@ -23,10 +24,16 @@ module ExContext
         , mergeTypes
         )
 
+import Ast.Expression exposing (Expression)
 import Ast.Statement exposing (ExportSet, Type(..), Statement, ExportSet(..))
-import Ast
 import Dict exposing (Dict)
 import Set exposing (Set)
+
+
+{-| Alias representing function that produces code out of Context and Ast
+-}
+type alias Parser =
+    Context -> Expression -> String
 
 
 {-| A structure containing all the essential information about Type Alias

@@ -5,6 +5,7 @@ import Tuple exposing (..)
 import List exposing (..)
 import Regex exposing (..)
 import Dict exposing (Dict)
+import Ast.Expression exposing (..)
 
 
 type MaybeUpper
@@ -147,7 +148,7 @@ operators =
     , ( "%", "rem" )
 
     -- Exception
-    , ( "//", "" )
+    , ( "//", "div" )
 
     -- Exception
     --, ( "rem", "rem" )
@@ -334,7 +335,19 @@ modulePathName =
     String.join "."
 
 
+applicationToList : Expression -> List Expression
+applicationToList application =
+    case application of
+        Application left right ->
+            (applicationToList left) ++ [ right ]
+
+        other ->
+            [ other ]
+
+
 {-| Nicer syntax for tuples
 -}
+(=>) : a -> b -> ( a, b )
 (=>) =
     (,)
+infixr 0 =>
