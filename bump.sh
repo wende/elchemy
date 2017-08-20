@@ -15,7 +15,11 @@ if git diff-index --quiet HEAD --; then
     git tag $VER
     git push origin master $VER
     rm -f elchemy-*.ez
-    rm -rf lib/Elchemy/X*
+
+    mv lib/mix tmp_mix
+    rm -rf lib/*
+    mv tmp_mix lib_mix
+
     mix archive.build
     mix archive.install "elchemy-$VER.ez" --force
 
