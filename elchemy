@@ -55,7 +55,7 @@ case "$1" in
             fi
             elm-install
         fi
-        for f in `{ find $2/../elm-stuff/packages -name "*.ex" | grep -v "elchemy.ex" ;}`
+        for f in `{ find $2/../elm-stuff/packages -name "*.ex" ;}`
         do
           echo "FOUND $f"
           file=$(create_file $f)
