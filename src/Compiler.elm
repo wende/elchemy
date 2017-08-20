@@ -13,7 +13,7 @@ import Helpers exposing (..)
 import ExContext exposing (Context, Aliases)
 import ExAlias
 import ExStatement
-import Dict
+import Dict exposing (Dict)
 import Regex exposing (..)
 
 
@@ -91,11 +91,25 @@ tree m =
                 commonAliases =
                     wContexts
                         |> map (\( name, ctx, ast ) -> ctx.aliases)
-                        |> getCommonAliases
+                        |> getCommonImports
+
+                commonTypes =
+                    wContexts
+                        |> map (\( name, ctx, ast ) -> ctx.types)
+                        |> getCommonImports
 
                 wTrueContexts =
                     wContexts
-                        |> map (\( name, c, ast ) -> ( name, { c | aliases = commonAliases }, ast ))
+                        |> map
+                            (\( name, c, ast ) ->
+                                ( name
+                                , { c
+                                    | aliases = commonAliases
+                                    , types = commonTypes
+                                  }
+                                , ast
+                                )
+                            )
             in
                 wTrueContexts
                     |> map
@@ -105,8 +119,8 @@ tree m =
                     |> String.join "\n"
 
 
-getCommonAliases : List Aliases -> Aliases
-getCommonAliases a =
+getCommonImports : List (Dict String v) -> Dict String v
+getCommonImports a =
     foldl
         (\aliases acc ->
             Dict.merge

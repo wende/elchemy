@@ -20,9 +20,11 @@ module ExContext
         , hasFlag
         , addFlag
         , isPrivate
+        , mergeTypes
         )
 
 import Ast.Statement exposing (ExportSet, Type(..), Statement, ExportSet(..))
+import Ast
 import Dict exposing (Dict)
 import Set exposing (Set)
 
@@ -322,7 +324,15 @@ mergeTypes set mod c =
         addThese name add dict =
             Dict.update
                 name
-                (Maybe.map <| mergeDicts add)
+                (\a ->
+                    Just <|
+                        case a of
+                            Just current ->
+                                mergeDicts add current
+
+                            Nothing ->
+                                add
+                )
                 dict
 
         getTypeNames : Maybe ExportSet -> List String
@@ -337,7 +347,10 @@ mergeTypes set mod c =
                                         name
 
                                     _ ->
-                                        Debug.crash "Something went wrong with " ++ toString a
+                                        Debug.crash
+                                            ("Something went wrong with "
+                                                ++ toString a
+                                            )
                             )
 
                 Nothing ->
@@ -360,8 +373,20 @@ mergeTypes set mod c =
                             case a of
                                 TypeExport aliasName types ->
                                     { c
-                                        | aliases = addThese c.mod (getThese mod ((==) aliasName) c.aliases) c.aliases
-                                        , types = addThese c.mod (getThese mod (flip List.member <| getTypeNames types) c.types) c.types
+                                        | aliases =
+                                            (addThese
+                                                c.mod
+                                                (getThese mod ((==) aliasName) c.aliases)
+                                                c.aliases
+                                            )
+                                        , types =
+                                            (addThese c.mod
+                                                (getThese mod
+                                                    (flip List.member <| (Debug.log "Types" getTypeNames) types)
+                                                    c.types
+                                                )
+                                                c.types
+                                            )
                                     }
 
                                 FunctionExport _ ->

@@ -12,6 +12,15 @@ import Regex exposing (..)
     l ++ "\n" ++ r
 
 
+hasFull expected s =
+    let
+        result =
+            Compiler.tree s
+    in
+        String.contains (String.trim expected) result
+            |> Expect.true ("Code:\n" ++ result ++ "\n\ndoes not contain:\n" ++ expected)
+
+
 has : String -> String -> Expect.Expectation
 has expected s =
     let
@@ -279,6 +288,75 @@ typeAliases =
         ]
 
 
+fileImports =
+    describe "Imports"
+        [ test "Same alias names in two files" <|
+            \() ->
+                """
+>>>> FileA.elm
+module A exposing (..)
+type alias A = Int
+
+>>>> FileB.elm
+module B exposing (..)
+type alias B = Float
+    """
+                    -- If it compiles it's already good
+                    |> hasFull ""
+        , test "Imported alias from another file" <|
+            \() ->
+                """
+>>>> FileA.elm
+module A exposing (..)
+type alias MyAlias = Int
+
+>>>> FileB.elm
+module B exposing (..)
+import A exposing (..)
+
+a : MyAlias
+a = 1
+    """
+                    |> hasFull "@spec a() :: integer"
+        , test "Imported type from another file" <|
+            \() ->
+                """
+>>>> FileA.elm
+module A exposing (..)
+type MyType = TypeA Int | TypeB Int
+
+a : MyType
+a = TypeA
+
+>>>> FileB.elm
+module B exposing (..)
+import A exposing (..)
+
+a : MyType
+a = TypeB
+    """
+                    |> hasFull "fn x1 -> {:type_b, x1} end"
+        , test "Imported specific type from another file" <|
+            \() ->
+                """
+>>>> FileA.elm
+module A exposing (..)
+type MyType = TypeA Int | TypeB Int
+
+a : MyType
+a = TypeA
+
+>>>> FileB.elm
+module B exposing (..)
+import A exposing (MyType(TypeB))
+
+a : MyType
+a = TypeA
+    """
+                    |> hasFull ":type_a"
+        ]
+
+
 all : Test
 all =
     describe "All"
@@ -295,4 +373,5 @@ all =
         , meta
         , typeConstructors
         , doctests
+        , fileImports
         ]
