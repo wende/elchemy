@@ -18,7 +18,7 @@ if git diff-index --quiet HEAD --; then
 
     mv lib/mix tmp_mix
     rm -rf lib/*
-    mv tmp_mix lib_mix
+    mv tmp_mix lib/mix
 
     mix archive.build
     mix archive.install "elchemy-$VER.ez" --force
