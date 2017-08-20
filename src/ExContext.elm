@@ -389,7 +389,7 @@ mergeTypes set mod c =
                                         , types =
                                             (addThese c.mod
                                                 (getThese mod
-                                                    (flip List.member <| (Debug.log "Types" getTypeNames) types)
+                                                    (flip List.member <| getTypeNames types)
                                                     c.types
                                                 )
                                                 c.types
