@@ -9,61 +9,53 @@ import ExContext
         , Alias
         , AliasType
         , Aliases
-        , noParamAlias
         , wrongArityAlias
         )
 
 
 getAliases : Context -> List Statement -> Context
 getAliases c list =
-    foldl registerAlias c list 
+    foldl registerAlias c list
 
 
 registerAlias : Statement -> Context -> Context
 registerAlias s c =
     case s of
-        TypeDeclaration (TypeConstructor [ name ] arguments) a ->
-            { c
-                | aliases =
-                    c.aliases
-                        |> Dict.insert
-                            name
-                            (Alias c.mod
-                                (length arguments)
-                                ExContext.Type
-                                (TypeVariable ("@" ++ name))
-                                (\_ -> (TypeVariable ("@" ++ name)))
-                            )
-                , types =
-                    foldl
-                        (\t acc ->
+        TypeDeclaration (TypeConstructor [ name ] arguments) types ->
+            c
+                |> ExContext.addAlias c.mod
+                    name
+                    (Alias c.mod
+                        (length arguments)
+                        ExContext.Type
+                        (TypeVariable ("@" ++ name))
+                        (\_ -> (TypeVariable ("@" ++ name)))
+                    )
+                |> flip
+                    (foldl
+                        (\t context ->
                             case t of
                                 TypeConstructor [ name ] args ->
-                                    Dict.insert name (length args) acc
+                                    ExContext.addType c.mod
+                                        name
+                                        (length args)
+                                        context
 
                                 any ->
                                     Debug.crash "Type can only start with a tag"
                         )
-                        c.types
-                        a
-            }
+                    )
+                    types
 
         (TypeDeclaration _ _) as ts ->
             Debug.crash ("Wrong type declaration " ++ toString ts)
 
         TypeAliasDeclaration (TypeConstructor [ name ] arguments) a ->
-            -- We need to register every type argument as an alias in the context
-            { c
-                | aliases =
-                    Dict.insert name
-                        (Alias c.mod
-                            (length arguments)
-                            ExContext.TypeAlias
-                            a
-                            (replaceAliasArgs name arguments a)
-                        )
-                        c.aliases
-            }
+            -- We need to register every type argument as an alias in the
+            ExContext.addAlias c.mod
+                name
+                (Alias c.mod (length arguments) ExContext.TypeAlias a (replaceAliasArgs name arguments a))
+                c
 
         (TypeAliasDeclaration _ _) as ts ->
             Debug.crash ("Wrong type alias declaration " ++ toString ts)
@@ -136,6 +128,6 @@ resolveTypes expected given return =
         replace return
 
 
-maybeAlias : Aliases -> String -> Maybe Alias
-maybeAlias aliases name =
-    Dict.get name aliases
+localAlias : String -> Context -> Maybe Alias
+localAlias name context =
+    ExContext.getAlias context.mod name context

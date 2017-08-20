@@ -325,3 +325,16 @@ maybeOr m1 m2 =
 
         Nothing ->
             m2
+
+
+{-| Gives a String representation of module path
+-}
+modulePathName : List String -> String
+modulePathName =
+    String.join "."
+
+
+{-| Nicer syntax for tuples
+-}
+(=>) =
+    (,)

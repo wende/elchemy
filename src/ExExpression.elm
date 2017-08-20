@@ -5,7 +5,6 @@ import Helpers exposing (..)
 import Ast.Statement exposing (..)
 import ExContext exposing (Context, indent, deindent, onlyWithoutFlag, inArgs, mergeVariables)
 import List exposing (..)
-import ExAlias
 import ExType
 import Dict
 import Set exposing (Set)
@@ -68,8 +67,8 @@ elixirControlFlow c e =
             lambda c args body
 
         (If check onTrue ((If _ _ _) as onFalse)) as exp ->
-            "cond do"
-                :: handleIfExp (indent c) exp
+            [ "cond do" ]
+                ++ handleIfExp (indent c) exp
                 ++ [ ind c.indent, "end" ]
                 |> String.join ""
 
@@ -471,7 +470,7 @@ tupleOrFunction c a =
 
 aliasFor : Context -> String -> List Expression -> Maybe String
 aliasFor c name rest =
-    ExAlias.maybeAlias c.aliases name
+    ExContext.getAlias c.mod name c
         |> Maybe.andThen
             (\({ aliasType } as ali) ->
                 case aliasType of
@@ -494,7 +493,7 @@ aliasFor c name rest =
                     )
             )
         |> maybeOr
-            (Dict.get name c.types
+            (ExContext.getType c.mod name c
                 |> Maybe.map
                     (\arity ->
                         let
@@ -749,18 +748,10 @@ genElixirFunc c name args missingArgs body =
 
 privateOrPublic : Context -> String -> String
 privateOrPublic context name =
-    case context.exports of
-        SubsetExport exports ->
-            if any (\exp -> exp == FunctionExport name) exports then
-                ""
-            else
-                "p"
-
-        AllExport ->
-            ""
-
-        other ->
-            Debug.crash "No such export"
+    if ExContext.isPrivate context name then
+        "p"
+    else
+        ""
 
 
 functionCurry : Context -> String -> Int -> String

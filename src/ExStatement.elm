@@ -31,8 +31,8 @@ type DocType
 moduleStatement : Statement -> Context
 moduleStatement s =
     case s of
-        ModuleDeclaration names exports ->
-            ExContext.empty (String.join "." names) exports
+        ModuleDeclaration path exports ->
+            ExContext.empty (modulePathName path) exports
 
         other ->
             crash "First statement must be module declaration"
@@ -81,14 +81,6 @@ elixirS c s =
                                 ""
 
                             Custom ->
-                                -- onlyWithoutFlag c
-                                -- "nospec0"
-                                -- name
-                                -- ((ind c.indent)
-                                --     ++ "@spec "
-                                --     ++ translateOperator name
-                                --     ++ (ExType.typespec0 c t)
-                                -- )
                                 onlyWithoutFlag newC
                                     "nospec"
                                     name
@@ -99,14 +91,6 @@ elixirS c s =
                                     )
 
                             None ->
-                                -- onlyWithoutFlag c
-                                --     "nospec0"
-                                --     name
-                                --     ((ind c.indent)
-                                --         ++ "@spec "
-                                --         ++ toSnakeCase True name
-                                --         ++ (ExType.typespec0 c t)
-                                --     )
                                 onlyWithoutFlag newC
                                     "nospec"
                                     name
@@ -157,8 +141,17 @@ elixirS c s =
             (,) c <|
                 if name == "meta" && args == [] then
                     ExExpression.generateMeta body
-                else if Dict.get name c.definitions == Nothing then
-                    Debug.crash "You need to provide function type"
+                else if
+                    Dict.get name c.definitions
+                        == Nothing
+                        && not (ExContext.isPrivate c name)
+                then
+                    Debug.crash
+                        ("You need to provide function type for "
+                            ++ name
+                            ++ " function in module "
+                            ++ toString c.mod
+                        )
                 else
                     case body of
                         (Application (Application (Variable [ "ffi" ]) _) _) as app ->
@@ -259,37 +252,37 @@ elixirS c s =
 
         -- That's not a real import. In elixir it's called alias
         ImportStatement path Nothing Nothing ->
-            (,) c <|
-                (ind c.indent)
-                    ++ "alias "
-                    ++ modulePath path
+            c
+                => (ind c.indent)
+                ++ "alias "
+                ++ modulePath path
 
         ImportStatement path (Just asName) Nothing ->
-            (,) c <|
-                (ind c.indent)
-                    ++ "alias "
-                    ++ modulePath path
-                    ++ ", as: "
-                    ++ asName
+            c
+                => (ind c.indent)
+                ++ "alias "
+                ++ modulePath path
+                ++ ", as: "
+                ++ asName
 
-        ImportStatement path Nothing (Just (SubsetExport exports)) ->
-            (,) c <|
-                (ind c.indent)
-                    ++ "import "
-                    ++ modulePath path
-                    ++ ", only: ["
-                    ++ (map subsetExport exports |> foldr (++) [] |> String.join ",")
-                    ++ "]"
+        ImportStatement path Nothing (Just ((SubsetExport exports) as subset)) ->
+            ExContext.mergeTypes subset (modulePathName path) c
+                => (ind c.indent)
+                ++ "import "
+                ++ modulePath path
+                ++ ", only: ["
+                ++ (map subsetExport exports |> foldr (++) [] |> String.join ",")
+                ++ "]"
 
         -- Suppresses the compiler warning
         ImportStatement [ "Elchemy" ] Nothing (Just AllExport) ->
             ( c, "" )
 
         ImportStatement path Nothing (Just AllExport) ->
-            (,) c <|
-                (ind c.indent)
-                    ++ "import "
-                    ++ modulePath path
+            ExContext.mergeTypes AllExport (modulePathName path) c
+                => (ind c.indent)
+                ++ "import "
+                ++ modulePath path
 
         s ->
             (,) c <|
@@ -335,11 +328,11 @@ getCommentType comment =
     , ( "^\\sflag\\b", (Flag) )
     ]
         |> List.map (\( a, b ) -> ( Regex.regex a, b ))
-        |> List.foldl findCommentType (Normal comment)
+        |> List.foldl (uncurry findCommentType) (Normal comment)
 
 
-findCommentType : ( Regex.Regex, String -> ElchemyComment ) -> ElchemyComment -> ElchemyComment
-findCommentType ( regex, commentType ) acc =
+findCommentType : Regex.Regex -> (String -> ElchemyComment) -> ElchemyComment -> ElchemyComment
+findCommentType regex commentType acc =
     case acc of
         Normal content ->
             if Regex.contains regex content then
