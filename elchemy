@@ -65,7 +65,7 @@ case "$1" in
         i=0
         for f in `{ find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#." ; find $2/../elm-stuff/packages -name "*.elm" | grep -v "/tests/" ;}`
         do
-            if [[ ${f} == *"elm-lang"* ]] || [[ ${f} == *"Elchemy.elm"* ]]; then
+            if [[ ${f} == *"elm-lang"* ]] || [[ ${f} == *"Elchemy.elm"* ]] || [[ ${f} == *"elchemy-core"* ]]; then
                 continue
             fi
             echo "----------"
