@@ -16,11 +16,7 @@ if git diff-index --quiet HEAD --; then
     git push origin master $VER
     rm -f elchemy-*.ez
 
-    mv lib/mix tmp_mix
-    rm -rf lib/*
-    mv tmp_mix lib/mix
-
-    mix archive.build
+    mix archive.build -i lib/mix
     mix archive.install "elchemy-$VER.ez" --force
     git checkout -f
 
