@@ -18,10 +18,10 @@ getAliases c list =
     foldl registerAlias c list
 
 
-registerAlias : Statement -> Context -> Context
-registerAlias s c =
-    case s of
-        TypeDeclaration (TypeConstructor [ name ] arguments) types ->
+registerUnionType : Context -> Type -> List Type -> Context
+registerUnionType c tc types =
+    case tc of
+        TypeConstructor [ name ] arguments ->
             c
                 |> ExContext.addAlias c.mod
                     name
@@ -31,37 +31,59 @@ registerAlias s c =
                         (TypeVariable ("@" ++ name))
                         (\_ -> (TypeVariable ("@" ++ name)))
                     )
-                |> flip
-                    (foldl
-                        (\t context ->
-                            case t of
-                                TypeConstructor [ name ] args ->
-                                    ExContext.addType c.mod
-                                        name
-                                        (length args)
-                                        context
+                |> registerTypes types
 
-                                any ->
-                                    Debug.crash "Type can only start with a tag"
-                        )
-                    )
-                    types
-
-        (TypeDeclaration _ _) as ts ->
+        ts ->
             Debug.crash ("Wrong type declaration " ++ toString ts)
 
-        TypeAliasDeclaration (TypeConstructor [ name ] arguments) a ->
-            -- We need to register every type argument as an alias in the
+
+registerTypeAlias : Context -> Type -> Type -> Context
+registerTypeAlias c tc t =
+    case tc of
+        TypeConstructor [ name ] arguments ->
             ExContext.addAlias c.mod
                 name
-                (Alias c.mod (length arguments) ExContext.TypeAlias a (replaceAliasArgs name arguments a))
+                (Alias c.mod
+                    (length arguments)
+                    ExContext.TypeAlias
+                    t
+                    (replaceAliasArgs name arguments t)
+                )
                 c
 
-        (TypeAliasDeclaration _ _) as ts ->
+        ts ->
             Debug.crash ("Wrong type alias declaration " ++ toString ts)
+
+
+registerAlias : Statement -> Context -> Context
+registerAlias s c =
+    case s of
+        TypeDeclaration tc types ->
+            registerUnionType c tc types
+
+        TypeAliasDeclaration tc t ->
+            registerTypeAlias c tc t
 
         _ ->
             c
+
+
+registerTypes : List Type -> Context -> Context
+registerTypes types c =
+    foldl
+        (\t context ->
+            case t of
+                TypeConstructor [ name ] args ->
+                    ExContext.addType c.mod
+                        name
+                        (length args)
+                        context
+
+                any ->
+                    Debug.crash "Type can only start with a tag"
+        )
+        c
+        types
 
 
 replaceAliasArgs : String -> List Type -> Type -> (List Type -> Type)
