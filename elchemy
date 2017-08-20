@@ -32,7 +32,7 @@ case "$1" in
     init)
         if [ -a ./mix.exs ]
         then
-            mix archive.install https://github.com/wende/elchemy/releases/download/0.4.27/elchemy-0.4.27.ez
+            mix archive.install https://github.com/wende/elchemy/releases/download/0.4.26/elchemy-0.4.26.ez
             mkdir -p elm
             cp $SOURCE_DIR/templates/elm-package.json ./
             cp $SOURCE_DIR/templates/Hello.elm ./elm/
@@ -65,7 +65,7 @@ case "$1" in
         i=0
         for f in `{ find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#." ; find $2/../elm-stuff/packages -name "*.elm" | grep -v "/tests/" ;}`
         do
-            if [[ ${f} == *"elm-lang"* ]] || [[ ${f} == *"Elchemy.elm"* ]] || [[ ${f} == *"elchemy-core"* ]]; then
+            if [[ ${f} == *"elm-lang"* ]] || [[ ${f} == *"Elchemy.elm"* ]]; then
                 continue
             fi
             echo "----------"
