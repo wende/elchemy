@@ -73,7 +73,7 @@ case "$1" in
             echo ">>>>$f" >> .elchemy_output
             # We don't need to typecheck deps again
             if [[ ${f} != *"elm-stuff"* ]] && ! [[ $* == *--unsafe* ]]; then
-                (yes n | elm-make $f --output .elchemy_output_tmp.js) || { echo 'Compilation failed' ; exit 1; }
+                (echo n | elm-make $f --output .elchemy_output_tmp.js) || { echo 'Compilation failed' ; exit 1; }
                 rm .elchemy_output_tmp.js
             fi
             i=$((i+1))
