@@ -276,24 +276,82 @@ on given export set value
 mergeTypes : ExportSet -> String -> Context -> Context
 mergeTypes set mod c =
     let
-        updateThis fTypes fAliases c =
-            { c
-                | types = Dict.update c.mod (Maybe.map fTypes >> Just)
-                , aliases = Dict.update c.mod (Maybe.map fAliases >> Just)
-            }
+        getAll name dict =
+            Dict.get name dict
+                |> Maybe.withDefault Dict.empty
 
-        getTypes name =
-            c.types |> Dict.get name
+        getThese name f dict =
+            getAll name dict
+                |> Dict.filter (\key _ -> (f key))
 
-        getAliases name =
-            c.aliases |> Dict.get name
+        importConflict : String -> v -> v -> Dict String v -> Dict String v
+        importConflict key a b _ =
+            Debug.crash
+                ("You can't have two same imports for name "
+                    ++ key
+                    ++ "\nFirst one is:\n"
+                    ++ toString a
+                    ++ "\n Second one is:\n"
+                    ++ toString b
+                )
 
-        merge =
-            Dict.merge
-                Dict.insert
-                (\_ _ -> Debug.crash "Can't import two same types")
-                Dict.insert
+        mergeDicts : Dict String v -> Dict String v -> Dict String v
+        mergeDicts left right =
+            Dict.merge Dict.insert importConflict Dict.insert left right Dict.empty
+
+        addThese : String -> Dict String v -> Dict String (Dict String v) -> Dict String (Dict String v)
+        addThese name add dict =
+            Dict.update
+                name
+                (Maybe.map <| mergeDicts add)
+                dict
+
+        getTypeNames : Maybe ExportSet -> List String
+        getTypeNames subset =
+            case subset of
+                Just (SubsetExport list) ->
+                    list
+                        |> List.map
+                            (\a ->
+                                case a of
+                                    FunctionExport name ->
+                                        name
+
+                                    _ ->
+                                        Debug.crash "Something went wrong with " ++ toString a
+                            )
+
+                Nothing ->
+                    []
+
+                _ ->
+                    Debug.crash ("Something went wrong with " ++ toString subset)
     in
         case set of
             AllExport ->
-                addToThis (getModule mod c.types)
+                { c
+                    | types = addThese c.mod (getAll mod c.types) c.types
+                    , aliases = addThese c.mod (getAll mod c.aliases) c.aliases
+                }
+
+            SubsetExport list ->
+                list
+                    |> List.foldl
+                        (\a c ->
+                            case a of
+                                TypeExport aliasName types ->
+                                    { c
+                                        | aliases = addThese c.mod (getThese mod ((==) aliasName) c.aliases) c.aliases
+                                        , types = addThese c.mod (getThese mod (flip List.member <| getTypeNames types) c.types) c.types
+                                    }
+
+                                FunctionExport _ ->
+                                    c
+
+                                _ ->
+                                    Debug.crash "You can't import subset of subsets"
+                        )
+                        c
+
+            _ ->
+                Debug.crash "You can't import something that's not a subset"

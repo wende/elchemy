@@ -178,9 +178,6 @@ typeRecordFields c flatten t =
             )
                 ++ typeRecordFields c flatten tr
 
-        (TypeRecord _) as tr ->
-            typeRecordFields c flatten (TypeRecordConstructor tr)
-
         any ->
             Debug.crash ("Wrong type record constructor " ++ toString any)
 
