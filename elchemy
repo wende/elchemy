@@ -81,7 +81,7 @@ case "$1" in
             cat $f >> .elchemy_output
         done
         echo "-- Linking files --"
-        node --max_old_space_size=2048 $SOURCE_DIR/elchemy.js .elchemy_output .elchemy_elixir_output
+        node --max_old_space_size=8192 $SOURCE_DIR/elchemy.js .elchemy_output .elchemy_elixir_output
         current_file=""
         while IFS= read -r line; do
             if [[ $line =~ ">>>>" ]]; then
