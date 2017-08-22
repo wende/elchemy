@@ -354,6 +354,24 @@ a : MyType
 a = TypeA
     """
                     |> hasFull ":type_a"
+        , test "Imported all union types from another file" <|
+            \() ->
+                """
+>>>> FileA.elm
+module A exposing (..)
+type MyType = TypeA Int | TypeB Int
+
+a : MyType
+a = TypeA
+
+>>>> FileB.elm
+module B exposing (..)
+import A exposing (MyType(..))
+
+a : MyType
+a = (TypeA, TypeB)
+    """
+                    |> hasFull ":type_a"
         ]
 
 

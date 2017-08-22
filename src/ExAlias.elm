@@ -1,5 +1,6 @@
 module ExAlias exposing (..)
 
+import Helpers exposing ((=>))
 import List exposing (..)
 import Ast.Statement exposing (..)
 import Dict exposing (Dict)
@@ -21,47 +22,78 @@ getAliases c list =
 registerAlias : Statement -> Context -> Context
 registerAlias s c =
     case s of
-        TypeDeclaration (TypeConstructor [ name ] arguments) types ->
-            c
-                |> ExContext.addAlias c.mod
-                    name
-                    (Alias c.mod
-                        (length arguments)
-                        ExContext.Type
-                        (TypeVariable ("@" ++ name))
-                        (\_ -> (TypeVariable ("@" ++ name)))
-                    )
-                |> flip
-                    (foldl
-                        (\t context ->
-                            case t of
-                                TypeConstructor [ name ] args ->
-                                    ExContext.addType c.mod
-                                        name
-                                        (length args)
-                                        context
+        TypeAliasDeclaration tc t ->
+            registerTypeAlias c tc t
 
-                                any ->
-                                    Debug.crash "Type can only start with a tag"
-                        )
-                    )
-                    types
-
-        (TypeDeclaration _ _) as ts ->
-            Debug.crash ("Wrong type declaration " ++ toString ts)
-
-        TypeAliasDeclaration (TypeConstructor [ name ] arguments) a ->
-            -- We need to register every type argument as an alias in the
-            ExContext.addAlias c.mod
-                name
-                (Alias c.mod (length arguments) ExContext.TypeAlias a (replaceAliasArgs name arguments a))
-                c
-
-        (TypeAliasDeclaration _ _) as ts ->
-            Debug.crash ("Wrong type alias declaration " ++ toString ts)
+        TypeDeclaration tc types ->
+            registerUnionType c tc types
 
         _ ->
             c
+
+
+registerTypeAlias : Context -> Type -> Type -> Context
+registerTypeAlias c tc t =
+    case tc of
+        TypeConstructor [ name ] arguments ->
+            let
+                arity =
+                    length arguments
+
+                typeBody =
+                    replaceAliasArgs name arguments t
+
+                ali =
+                    Alias c.mod arity ExContext.TypeAlias t typeBody []
+            in
+                ExContext.addAlias c.mod name ali c
+
+        ts ->
+            Debug.crash <| "Wrong type alias declaration " ++ toString ts
+
+
+registerUnionType : Context -> Type -> List Type -> Context
+registerUnionType c tc types =
+    case tc of
+        TypeConstructor [ name ] arguments ->
+            let
+                typeVar =
+                    TypeVariable <| "@" ++ name
+
+                typeBody =
+                    always typeVar
+
+                arity =
+                    length arguments
+
+                ( names, newC ) =
+                    registerTypes types c
+
+                ali =
+                    Alias c.mod arity ExContext.Type typeVar typeBody names
+            in
+                ExContext.addAlias c.mod name ali newC
+
+        ts ->
+            Debug.crash <| "Wrong type declaration " ++ toString ts
+
+
+registerTypes : List Type -> Context -> ( List String, Context )
+registerTypes types c =
+    let
+        addType t ( names, context ) =
+            case t of
+                TypeConstructor [ name ] args ->
+                    (name :: names)
+                        => ExContext.addType c.mod
+                            name
+                            (length args)
+                            context
+
+                any ->
+                    Debug.crash "Type can only start with a tag"
+    in
+        List.foldl addType ( [], c ) types
 
 
 replaceAliasArgs : String -> List Type -> Type -> (List Type -> Type)
@@ -90,11 +122,10 @@ resolveTypes expected given return =
                     name
 
                 other ->
-                    Debug.crash
-                        ("type can only take variables. "
+                    Debug.crash <|
+                        "type can only take variables. "
                             ++ toString other
                             ++ "is incorrect"
-                        )
 
         paramsWithResolution =
             map2 (,) (map expectedName expected) given
