@@ -234,7 +234,7 @@ generateArguments_ str n =
 
 unescape : String -> String
 unescape s =
-    Regex.replace All (regex "\\\\\\\\") (always "\\") s
+    Regex.replace All (regex "\\\\.") (\a -> "\\" ++ (Debug.log "Match" a.match |> String.dropLeft 2)) s
 
 
 escape : String -> String

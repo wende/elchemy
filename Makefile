@@ -50,5 +50,6 @@ install-sysconf:
 	cd .. && rm -rf libsysconfcpus
 
 compile-elixir:
-	time ( ./elchemy compile src/ elchemy_ex/lib/ ; notify )
+	make compile
+	time ( ./elchemy compile src/ elchemy_ex/lib/ )
 	cd elchemy_ex && mix compile

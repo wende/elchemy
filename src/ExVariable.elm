@@ -3,18 +3,21 @@ module ExVariable exposing (..)
 import Ast.Expression exposing (..)
 import ExContext exposing (Context, inArgs)
 import Set
+import Helpers exposing (toSnakeCase)
 
 
 rememberVariables : List Expression -> Context -> Context
 rememberVariables list c =
-    list
-        |> List.map (extractVariables)
-        |> List.foldr (++) []
-        |> List.foldl
-            (\var context ->
-                { context | variables = Set.insert var (context.variables) }
-            )
-            c
+    let
+        addToContext var context =
+            { context
+                | variables = Set.insert (toSnakeCase True var) (context.variables)
+            }
+    in
+        list
+            |> List.map (extractVariables)
+            |> List.foldr (++) []
+            |> List.foldl addToContext c
 
 
 varOrNah : Context -> String -> String
