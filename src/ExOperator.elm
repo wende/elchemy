@@ -40,7 +40,7 @@ elixirBinop c elixirE op l r =
                    )
 
         op ->
-            case isOperator op of
+            case operatorType op of
                 Builtin ->
                     [ "(", elixirE c l, " ", translateOperator op, " ", elixirE c r, ")" ]
                         |> String.join ""

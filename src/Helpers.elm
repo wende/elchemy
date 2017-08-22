@@ -29,7 +29,7 @@ toSnakeCase isntAtom s =
     let
         string =
             if isntAtom then
-                maybeReplaceReserved s
+                replaceReserved s
             else
                 s
     in
@@ -173,8 +173,13 @@ type Operator
     | Custom
 
 
-isOperator : String -> Operator
-isOperator name =
+isCustomOperator : String -> Bool
+isCustomOperator op =
+    operatorType op == Custom
+
+
+operatorType : String -> Operator
+operatorType name =
     let
         is_builtin =
             operators
@@ -199,10 +204,9 @@ translateOperator : String -> String
 translateOperator op =
     case Dict.get op operators of
         Just "" ->
-            Debug.crash
-                (op
+            Debug.crash <|
+                op
                     ++ " is not a valid or not implemented yet operator"
-                )
 
         Just key ->
             key
@@ -245,16 +249,17 @@ ops =
 
 modulePath : List String -> String
 modulePath list =
-    list
-        |> map
-            (\a ->
-                if isUpper a then
-                    a
-                else
-                    toSnakeCase True a
-            )
-        |> map maybeReplaceStd
-        |> String.join "."
+    let
+        snakeIfLower a =
+            if isUpper a then
+                a
+            else
+                toSnakeCase True a
+    in
+        list
+            |> map snakeIfLower
+            |> map maybeReplaceStd
+            |> String.join "."
 
 
 maybeReplaceStd : String -> String
@@ -310,8 +315,8 @@ replaceOp_ op =
             Debug.crash "Illegal op"
 
 
-maybeReplaceReserved : String -> String
-maybeReplaceReserved a =
+replaceReserved : String -> String
+replaceReserved a =
     if List.member a reservedWords then
         a ++ "__"
     else

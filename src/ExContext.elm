@@ -3,7 +3,6 @@ module ExContext
         ( Alias
         , Aliases
         , AliasType(..)
-        , Arity
         , Context
         , Definition
         , Parser
@@ -24,14 +23,12 @@ module ExContext
         , mergeTypes
         )
 
+import Ast.Statement exposing (Type(..), Statement, ExportSet(..))
 import Ast.Expression exposing (Expression)
-import Ast.Statement exposing (ExportSet, Type(..), Statement, ExportSet(..))
 import Dict exposing (Dict)
 import Set exposing (Set)
 
 
-{-| Alias representing function that produces code out of Context and Ast
--}
 type alias Parser =
     Context -> Expression -> String
 
@@ -39,18 +36,19 @@ type alias Parser =
 {-| A structure containing all the essential information about Type Alias
 -}
 type alias Alias =
-    { mod : String
-    , arity : Arity
+    { parentModule : String
+    , arity : Int
     , aliasType : AliasType
     , body : Type
     , getTypeBody : List Type -> Type
+    , types : List String
     }
 
 
-{-| Amount of the arguments a funtction or type takes
--}
-type alias Arity =
-    Int
+type alias UnionType =
+    { arity : Int
+    , parentModule : String
+    }
 
 
 {-| Dict holding sets of aliases indexed by module name and alias name
@@ -62,7 +60,7 @@ type alias Aliases =
 {-| Dict holding sets of aliases indexed by module name and type name
 -}
 type alias Types =
-    Dict String (Dict String Arity)
+    Dict String (Dict String UnionType)
 
 
 {-| Type of an Alias which can be either Type or Type Alias. It's important to note
@@ -90,7 +88,7 @@ type alias Flag =
 {-| Definition of a function and its correspoint Ast.Type structure
 -}
 type alias Definition =
-    { arity : Arity, def : Ast.Statement.Type }
+    { arity : Int, def : Ast.Statement.Type }
 
 
 {-| Context containing all the necessary information about current place in a file
@@ -117,13 +115,13 @@ Shouldn't ever happen if run after elm-make
 -}
 wrongArityAlias : Int -> List Type -> String -> a
 wrongArityAlias arity list name =
-    "Expected "
-        ++ toString arity
-        ++ " arguments for "
-        ++ name
-        ++ ". But got "
-        ++ (toString <| List.length list)
-        |> Debug.crash
+    Debug.crash <|
+        "Expected "
+            ++ toString arity
+            ++ " arguments for "
+            ++ name
+            ++ ". But got "
+            ++ (toString <| List.length list)
 
 
 {-| Adds an alias definition to the context
@@ -145,10 +143,13 @@ addAlias mod name ali context =
 addType : String -> String -> Int -> Context -> Context
 addType mod name arity context =
     let
+        t =
+            { arity = arity, parentModule = mod }
+
         putType maybeMod =
             maybeMod
-                |> Maybe.map (Dict.insert name arity)
-                |> Maybe.withDefault (Dict.singleton name arity)
+                |> Maybe.map (Dict.insert name t)
+                |> Maybe.withDefault (Dict.singleton name t)
                 |> Just
     in
         { context | types = Dict.update mod putType context.types }
@@ -180,41 +181,16 @@ getAlias =
 {-| Get's a type from context based on name of a module and of a type
 Wrapped in Maybe
 -}
-getType : String -> String -> Context -> Maybe Arity
+getType : String -> String -> Context -> Maybe UnionType
 getType =
     getFromContext .types
-
-
-
---{-|
---Merges types and aliases of a given module name with current context module
----}
--- importFromContext :
---     -> String
---     -> String
---     -> Context
---     -> Context
--- importFromContext mod name context =
---     context
---         |> from
---         |> Dict.get mod
 
 
 {-| Returns empty context
 -}
 empty : String -> ExportSet -> Context
 empty name exports =
-    Context name
-        exports
-        0
-        Dict.empty
-        Dict.empty
-        []
-        Dict.empty
-        Set.empty
-        False
-        False
-        Nothing
+    Context name exports 0 Dict.empty Dict.empty [] Dict.empty Set.empty False False Nothing
 
 
 {-| Increases current indenation level of a context
@@ -279,7 +255,7 @@ isPrivate : Context -> String -> Bool
 isPrivate context name =
     case context.exports of
         SubsetExport exports ->
-            if List.any (\exp -> exp == FunctionExport name) exports then
+            if List.any ((==) (FunctionExport name)) exports then
                 False
             else
                 True
@@ -310,18 +286,21 @@ mergeTypes set mod c =
 
         getThese name f dict =
             getAll name dict
-                |> Dict.filter (\key _ -> (f key))
+                |> Dict.filter (always << f)
 
         importConflict : String -> v -> v -> Dict String v -> Dict String v
         importConflict key a b _ =
-            Debug.crash
-                ("You can't have two same imports for name "
+            Debug.crash <|
+                "You can't have two same imports for name "
                     ++ key
-                    ++ "\nFirst one is:\n"
+                    ++ "\nFirst one (from "
+                    ++ c.mod
+                    ++ ") is:\n"
                     ++ toString a
-                    ++ "\n Second one is:\n"
+                    ++ "\n Second one (from "
+                    ++ mod
+                    ++ ") is:\n"
                     ++ toString b
-                )
 
         mergeDicts : Dict String v -> Dict String v -> Dict String v
         mergeDicts left right =
@@ -331,40 +310,55 @@ mergeTypes set mod c =
         addThese name add dict =
             Dict.update
                 name
-                (\a ->
-                    Just <|
-                        case a of
-                            Just current ->
-                                mergeDicts add current
-
-                            Nothing ->
-                                add
-                )
+                (Maybe.map (mergeDicts add) >> Maybe.withDefault add >> Just)
                 dict
 
-        getTypeNames : Maybe ExportSet -> List String
-        getTypeNames subset =
+        getFunctionExportName a =
+            case a of
+                FunctionExport name ->
+                    name
+
+                _ ->
+                    Debug.crash <| "Something went wrong with " ++ toString a
+
+        getTypeNames : String -> Maybe ExportSet -> List String
+        getTypeNames aliasName subset =
             case subset of
                 Just (SubsetExport list) ->
-                    list
-                        |> List.map
-                            (\a ->
-                                case a of
-                                    FunctionExport name ->
-                                        name
+                    List.map getFunctionExportName list
 
-                                    _ ->
-                                        Debug.crash
-                                            ("Something went wrong with "
-                                                ++ toString a
-                                            )
-                            )
+                Just AllExport ->
+                    c.aliases
+                        |> Dict.get c.mod
+                        |> Maybe.andThen (Dict.get aliasName)
+                        |> Maybe.map (.types)
+                        |> Maybe.withDefault []
 
                 Nothing ->
                     []
 
                 _ ->
-                    Debug.crash ("Something went wrong with " ++ toString subset)
+                    Debug.crash <| "Something went wrong with " ++ toString subset
+
+        getAliasWithName aliasName =
+            getThese mod ((==) aliasName) c.aliases
+
+        getTypesInNames aliasName names =
+            getThese mod (flip List.member <| getTypeNames aliasName names) c.types
+
+        importOne export c =
+            case export of
+                TypeExport aliasName types ->
+                    { c
+                        | aliases = addThese c.mod (getAliasWithName aliasName) c.aliases
+                        , types = addThese c.mod (getTypesInNames aliasName types) c.types
+                    }
+
+                FunctionExport _ ->
+                    c
+
+                _ ->
+                    Debug.crash "You can't import subset of subsets"
     in
         case set of
             AllExport ->
@@ -374,35 +368,7 @@ mergeTypes set mod c =
                 }
 
             SubsetExport list ->
-                list
-                    |> List.foldl
-                        (\a c ->
-                            case a of
-                                TypeExport aliasName types ->
-                                    { c
-                                        | aliases =
-                                            (addThese
-                                                c.mod
-                                                (getThese mod ((==) aliasName) c.aliases)
-                                                c.aliases
-                                            )
-                                        , types =
-                                            (addThese c.mod
-                                                (getThese mod
-                                                    (flip List.member <| getTypeNames types)
-                                                    c.types
-                                                )
-                                                c.types
-                                            )
-                                    }
-
-                                FunctionExport _ ->
-                                    c
-
-                                _ ->
-                                    Debug.crash "You can't import subset of subsets"
-                        )
-                        c
+                List.foldl importOne c list
 
             _ ->
                 Debug.crash "You can't import something that's not a subset"

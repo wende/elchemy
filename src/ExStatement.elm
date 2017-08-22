@@ -7,7 +7,6 @@ import Ast.BinOp exposing (operators)
 import ExContext exposing (Context, Definition, indent, deindent, onlyWithoutFlag)
 import ExExpression
 import ExType
-import Helpers exposing (..)
 import List exposing (..)
 import Dict exposing (Dict)
 import Regex exposing (..)
@@ -77,30 +76,24 @@ elixirS c s =
             in
                 (,) (addTypeDefinition newC name definition) <|
                     (onlyWithoutFlag newC "nodef" name code)
-                        ++ case isOperator name of
+                        ++ case operatorType name of
                             Builtin ->
                                 -- TODO implement operator specs
                                 ""
 
                             Custom ->
-                                onlyWithoutFlag newC
-                                    "nospec"
-                                    name
-                                    ((ind newC.indent)
+                                onlyWithoutFlag newC "nospec" name <|
+                                    (ind newC.indent)
                                         ++ "@spec "
                                         ++ translateOperator name
                                         ++ (ExType.typespec newC t)
-                                    )
 
                             None ->
-                                onlyWithoutFlag newC
-                                    "nospec"
-                                    name
-                                    ((ind newC.indent)
+                                onlyWithoutFlag newC "nospec" name <|
+                                    (ind newC.indent)
                                         ++ "@spec "
                                         ++ toSnakeCase True name
                                         ++ (ExType.typespec newC t)
-                                    )
 
         (FunctionTypeDeclaration name t) as def ->
             let
@@ -114,102 +107,66 @@ elixirS c s =
             in
                 (,) (addTypeDefinition newC name definition) <|
                     code
-                        ++ case isOperator name of
+                        ++ case operatorType name of
                             Builtin ->
                                 -- TODO implement operator specs
                                 ""
 
                             Custom ->
-                                onlyWithoutFlag newC
-                                    name
-                                    "nospec"
-                                    ((ind c.indent)
+                                onlyWithoutFlag newC name "nospec" <|
+                                    (ind c.indent)
                                         ++ "@spec "
                                         ++ translateOperator name
                                         ++ (ExType.typespec newC t)
-                                    )
 
                             None ->
-                                onlyWithoutFlag newC
-                                    name
-                                    "nospec"
-                                    ((ind c.indent)
+                                onlyWithoutFlag newC name "nospec" <|
+                                    (ind c.indent)
                                         ++ "@spec "
                                         ++ toSnakeCase True name
                                         ++ (ExType.typespec newC t)
-                                    )
 
         (FunctionDeclaration name args body) as fd ->
-            (,) c <|
-                if
-                    Dict.get name c.definitions
-                        == Nothing
-                        && not (ExContext.isPrivate c name)
-                then
-                    Debug.crash
-                        ("You need to provide function type for "
-                            ++ name
-                            ++ " function in module "
-                            ++ toString c.mod
+            let
+                genFfi =
+                    ExFfi.generateFfi c ExExpression.elixirE name <|
+                        (c.definitions
+                            |> Dict.get name
+                            |> Maybe.map
+                                (.def
+                                    >> typeAplicationToList
+                                )
+                            |> Maybe.withDefault []
+                            |> map typeAplicationToList
                         )
-                else
-                    case body of
-                        (Application (Application (Variable [ "ffi" ]) _) _) as app ->
-                            ExFfi.generateFfi
-                                c
-                                ExExpression.elixirE
-                                name
-                                (c.definitions
-                                    |> Dict.get name
-                                    |> Maybe.map
-                                        (.def
-                                            >> typeAplicationToList
-                                        )
-                                    |> Maybe.withDefault []
-                                    |> map typeAplicationToList
-                                )
-                                app
+            in
+                c
+                    => if
+                        Dict.get name c.definitions
+                            == Nothing
+                            && not (ExContext.isPrivate c name)
+                       then
+                        Debug.crash <|
+                            "You need to provide function type for "
+                                ++ name
+                                ++ " function in module "
+                                ++ toString c.mod
+                       else
+                        case body of
+                            (Application (Application (Variable [ "ffi" ]) _) _) as app ->
+                                genFfi app
 
-                        (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
-                            ExFfi.generateFfi
-                                c
-                                ExExpression.elixirE
-                                name
-                                (c.definitions
-                                    |> Dict.get name
-                                    |> Maybe.map
-                                        (.def
-                                            >> typeAplicationToList
-                                        )
-                                    |> Maybe.withDefault []
-                                    |> map typeAplicationToList
-                                )
-                                app
+                            (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
+                                genFfi app
 
-                        Case vars expressions ->
-                            if ExFunction.flattenCommas vars == args then
-                                ExFunction.genOverloadedFunctionDefinition
-                                    c
-                                    ExExpression.elixirE
-                                    name
-                                    args
-                                    body
-                                    expressions
-                            else
-                                ExFunction.genFunctionDefinition
-                                    c
-                                    ExExpression.elixirE
-                                    name
-                                    args
-                                    body
+                            Case vars expressions ->
+                                if ExFunction.flattenCommas vars == args then
+                                    ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
+                                else
+                                    ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
 
-                        _ ->
-                            ExFunction.genFunctionDefinition
-                                c
-                                ExExpression.elixirE
-                                name
-                                args
-                                body
+                            _ ->
+                                ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
 
         Comment content ->
             elixirComment c content
@@ -253,6 +210,19 @@ elixirS c s =
                 notImplemented "statement" s
 
 
+verifyFlag : List String -> Maybe ( String, String )
+verifyFlag flag =
+    case flag of
+        [ k, v ] ->
+            Just ( k, v )
+
+        [ "" ] ->
+            Nothing
+
+        a ->
+            Debug.crash <| "Wrong flag format " ++ toString a
+
+
 elixirComment : Context -> String -> ( Context, String )
 elixirComment c content =
     case getCommentType content of
@@ -276,18 +246,7 @@ elixirComment c content =
                 (content
                     |> Regex.split All (regex "\\s+")
                     |> map (String.split ":+")
-                    |> filterMap
-                        (\flag ->
-                            case flag of
-                                [ k, v ] ->
-                                    Just ( k, v )
-
-                                [ "" ] ->
-                                    Nothing
-
-                                a ->
-                                    crash ("Wrong flag format " ++ toString a)
-                        )
+                    |> filterMap verifyFlag
                     |> foldl (ExContext.addFlag) c
                 )
 
@@ -362,7 +321,10 @@ subsetExport exp =
             []
 
         FunctionExport name ->
-            [ "{:'" ++ name ++ "', 0}" ]
+            if isCustomOperator name then
+                [ "{:'" ++ translateOperator name ++ "', 0}" ]
+            else
+                [ "{:'" ++ name ++ "', 0}" ]
 
         _ ->
             crash ("You can't export " ++ toString exp)
@@ -406,12 +368,7 @@ getTypeDefinition a =
 
 addTypeDefinition : Context -> String -> Definition -> Context
 addTypeDefinition c name d =
-    { c
-        | definitions =
-            Dict.insert name
-                d
-                c.definitions
-    }
+    { c | definitions = Dict.insert name d c.definitions }
 
 
 typeAplicationToList : Type -> List Type

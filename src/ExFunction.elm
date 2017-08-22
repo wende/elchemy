@@ -16,7 +16,7 @@ genElixirFunc :
     -> Expression
     -> String
 genElixirFunc c elixirE name args missingArgs body =
-    case ( isOperator name, args ) of
+    case ( operatorType name, args ) of
         ( Builtin, [ l, r ] ) ->
             [ (ind c.indent)
             , "def"
@@ -84,11 +84,7 @@ genElixirFunc c elixirE name args missingArgs body =
                   )
                 , ") do"
                 , (ind <| c.indent + 1)
-                , elixirE
-                    (indent c
-                        |> rememberVariables (args ++ missingVarargs)
-                    )
-                    body
+                , elixirE (indent c |> rememberVariables (args ++ missingVarargs)) body
                 , (missing
                     |> List.map (\a -> ".(" ++ a ++ ")")
                     |> String.join ""
@@ -119,7 +115,7 @@ functionCurry c elixirE name arity =
         ( arity, False ) ->
             let
                 resolvedName =
-                    if isOperator name == Custom then
+                    if isCustomOperator name then
                         translateOperator name
                     else
                         toSnakeCase True name
@@ -181,13 +177,7 @@ genOverloadedFunctionDefinition c elixirE name args body expressions =
                 ++ (expressions
                         |> List.map
                             (\( left, right ) ->
-                                genElixirFunc
-                                    c
-                                    elixirE
-                                    name
-                                    [ left ]
-                                    (arity - 1)
-                                    right
+                                genElixirFunc c elixirE name [ left ] (arity - 1) right
                             )
                         |> List.foldr (++) ""
                         |> flip (++) "\n"

@@ -189,18 +189,6 @@ types =
         ]
 
 
-meta : Test
-meta =
-    describe "Meta"
-        [ test "Module meta" <|
-            \() ->
-                "meta = [\"use GenServer\", \"@port 100\"]" |> has "use GenServer"
-        , test "Module meta arg" <|
-            \() ->
-                "meta = [\"use GenServer\", \"@port 100\"]" |> has "@port 100"
-        ]
-
-
 typeConstructors : Test
 typeConstructors =
     describe "Type Constructors"
@@ -354,6 +342,48 @@ a : MyType
 a = TypeA
     """
                     |> hasFull ":type_a"
+        , test "Imported all union types from another file" <|
+            \() ->
+                """
+>>>> FileA.elm
+module A exposing (..)
+type MyType = TypeA Int | TypeB Int
+
+a : MyType
+a = TypeA
+
+>>>> FileB.elm
+module B exposing (..)
+import A exposing (MyType(..))
+
+a : MyType
+a = (TypeA, TypeB)
+    """
+                    |> hasFull ":type_a"
+        , test "Doesn't import what imports imported" <|
+            \() ->
+                """
+>>>> A.elm
+module A exposing (..)
+type Invisible = Invi Int
+
+>>>> B.elm
+module B exposing (..)
+import A exposing (..)
+
+>>>> C.elm
+module C exposing (..)
+import A exposing (..)
+
+>>>> B.elm
+module D exposing (..)
+import B exposing (..)
+import C exposing (..)
+
+a : Invisible
+a = 1
+    """
+                    |> hasFull ":invisible"
         ]
 
 
@@ -370,7 +400,6 @@ all =
         , typeAliases
         , types
         , records
-        , meta
         , typeConstructors
         , doctests
         , fileImports

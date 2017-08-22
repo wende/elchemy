@@ -26,6 +26,9 @@ generateFfi c elixirE name argTypes e =
 
         flambdaArguments c =
             flambdify c elixirE argTypes
+
+        wrapAllInVar =
+            List.map <| List.singleton >> Variable
     in
         case ( typeDef, applicationToList e ) of
             ( Nothing, _ ) ->
@@ -37,17 +40,14 @@ generateFfi c elixirE name argTypes e =
                         generateArguments_ "a" def.arity
                 in
                     functionCurry c elixirE name def.arity
-                        ++ (onlyWithoutFlag c
-                                "noverify"
-                                name
-                                (ind c.indent
+                        ++ (onlyWithoutFlag c "noverify" name <|
+                                ind c.indent
                                     ++ "verify as: "
                                     ++ mod
                                     ++ "."
                                     ++ fun
                                     ++ "/"
                                     ++ toString def.arity
-                                )
                            )
                         ++ ind c.indent
                         ++ "def"
@@ -62,11 +62,7 @@ generateFfi c elixirE name argTypes e =
                         ++ "."
                         ++ fun
                         ++ "("
-                        ++ flambdaArguments
-                            (rememberVariables
-                                (List.map (List.singleton >> Variable) arguments)
-                                c
-                            )
+                        ++ flambdaArguments (rememberVariables (wrapAllInVar arguments) c)
                         ++ ")"
 
             ( Just def, [ Variable [ "tryFfi" ], String mod, String fun ] ) ->
@@ -91,11 +87,7 @@ generateFfi c elixirE name argTypes e =
                         ++ "."
                         ++ fun
                         ++ "("
-                        ++ flambdaArguments
-                            (rememberVariables
-                                (List.map (List.singleton >> Variable) arguments)
-                                c
-                            )
+                        ++ flambdaArguments (rememberVariables (wrapAllInVar arguments) c)
                         ++ ")"
                         ++ ind (c.indent + 1)
                         ++ "end"
@@ -126,12 +118,14 @@ flambdify c elixirE argTypes =
                             "a" ++ toString i
 
                         list ->
-                            resolveFfi c
-                                (Flambda
-                                    (List.length list - 1)
-                                    (Variable [ "a" ++ toString i ])
-                                )
-                                elixirE
+                            let
+                                var =
+                                    Variable [ "a" ++ toString i ]
+
+                                makeFlambda =
+                                    Flambda <| List.length list - 1
+                            in
+                                resolveFfi c elixirE (makeFlambda var)
                 )
             |> String.join ", "
 
@@ -143,8 +137,8 @@ type Ffi
     | Flambda Int Expression
 
 
-resolveFfi : Context -> Ffi -> Parser -> String
-resolveFfi c ffi elixirE =
+resolveFfi : Context -> Parser -> Ffi -> String
+resolveFfi c elixirE ffi =
     case ffi of
         TryFfi (String mod) (String fun) ((Tuple _) as args) ->
             "try_catch fn _ -> "

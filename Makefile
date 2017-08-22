@@ -48,3 +48,7 @@ install-sysconf:
 	git clone "https://github.com/obmarg/libsysconfcpus.git"
 	cd libsysconfcpus && ./configure && make && make install
 	cd .. && rm -rf libsysconfcpus
+
+compile-elixir:
+	time ( ./elchemy compile src/ elchemy_ex/lib/ ; notify )
+	cd elchemy_ex && mix compile

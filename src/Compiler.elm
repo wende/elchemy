@@ -21,7 +21,7 @@ import Regex exposing (..)
 -}
 version : String
 version =
-    "0.4.31"
+    "0.4.32"
 
 
 glueStart : String
@@ -83,7 +83,12 @@ tree m =
                             (\( i, ( name, code ) ) ->
                                 let
                                     _ =
-                                        Debug.log ("File " ++ name ++ " linked\n Left") i
+                                        flip Debug.log name <|
+                                            "Parsing "
+                                                ++ toString (count - i)
+                                                ++ "/"
+                                                ++ toString count
+                                                ++ " # "
                                 in
                                     ( name, parse name code )
                             )
@@ -111,63 +116,49 @@ tree m =
                         |> map (\( name, ctx, ast ) -> ctx.types)
                         |> getCommonImports
 
+                updateWithCommon ( name, c, ast ) =
+                    ( name, { c | aliases = commonAliases, types = commonTypes }, ast )
+
                 wTrueContexts =
-                    wContexts
-                        |> map
-                            (\( name, c, ast ) ->
-                                ( name
-                                , { c
-                                    | aliases = commonAliases
-                                    , types = commonTypes
-                                  }
-                                , ast
-                                )
-                            )
+                    map updateWithCommon wContexts
+
+                compileWithIndex ( i, ( name, c, ast ) ) =
+                    let
+                        _ =
+                            flip Debug.log name <|
+                                "Compiling "
+                                    ++ toString (count - i)
+                                    ++ "/"
+                                    ++ toString count
+                                    ++ " # "
+                    in
+                        ">>" ++ ">>" ++ name ++ "\n" ++ getCode c ast
             in
                 wTrueContexts
                     |> List.indexedMap (,)
-                    |> map
-                        (\( i, a ) ->
-                            let
-                                _ =
-                                    Debug.log (toString (i + 1) ++ " left out of") count
-                            in
-                                a
-                        )
-                    |> map
-                        (\( name, c, ast ) ->
-                            ">>" ++ ">>" ++ name ++ "\n" ++ getCode c ast
-                        )
+                    |> map compileWithIndex
                     |> String.join "\n"
 
 
 getCommonImports : List (Dict String v) -> Dict String v
 getCommonImports a =
-    foldl
-        (\aliases acc ->
-            Dict.merge
-                Dict.insert
-                typeAliasDuplicate
-                Dict.insert
-                acc
-                aliases
-                Dict.empty
-        )
-        (Dict.empty)
-        a
+    let
+        merge aliases acc =
+            Dict.merge Dict.insert typeAliasDuplicate Dict.insert acc aliases Dict.empty
+    in
+        foldl merge Dict.empty a
 
 
 typeAliasDuplicate : comparable -> a -> a -> Dict.Dict comparable a -> Dict.Dict comparable a
 typeAliasDuplicate k v v2 =
     if v /= v2 then
-        Debug.crash
-            ("You can't have two different type aliases for "
+        Debug.crash <|
+            "You can't have two different type aliases for "
                 ++ toString k
                 ++ "\nThese are: "
                 ++ toString v
                 ++ "\nand\n"
                 ++ toString v2
-            )
     else
         Dict.insert k v
 
@@ -214,8 +205,8 @@ parse fileName m =
             statements
 
         Err ( (), { input, position }, [ msg ] ) ->
-            Debug.crash
-                ("]ERR> Compilation error in:\n "
+            Debug.crash <|
+                "]ERR> Compilation error in:\n "
                     ++ fileName
                     ++ "\nat:\n "
                     ++ (input
@@ -224,7 +215,6 @@ parse fileName m =
                             |> String.join "\n"
                        )
                     ++ "\n"
-                )
 
         err ->
             Debug.crash (toString err)

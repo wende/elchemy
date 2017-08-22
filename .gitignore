@@ -7,4 +7,5 @@ example/elm.js
 .#*
 .elchemy*
 *.orig
-elixir-stuff/elchemy/lib/Elchemy/X*
+elixir-stuff/
+elchemy_ex/lib/*

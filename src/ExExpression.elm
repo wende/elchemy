@@ -152,6 +152,12 @@ elixirTypeInstances c e =
                 '\t' ->
                     "?\\t"
 
+                '\\' ->
+                    "?\\\\"
+
+                '\x00' ->
+                    "?\\0"
+
                 other ->
                     "?" ++ String.fromChar other
 
@@ -187,13 +193,12 @@ handleIfExp : Context -> Expression -> List String
 handleIfExp c e =
     case e of
         If check onTrue onFalse ->
-            (++)
-                [ ind c.indent
-                , elixirE (indent c) check
-                , " -> "
-                , elixirE (indent c) onTrue
-                ]
-                (handleIfExp c onFalse)
+            [ ind c.indent
+            , elixirE (indent c) check
+            , " -> "
+            , elixirE (indent c) onTrue
+            ]
+                ++ handleIfExp c onFalse
 
         _ ->
             [ ind c.indent
@@ -273,13 +278,13 @@ tupleOrFunction c a =
             case lastAndRest list of
                 ( Just last, _ ) ->
                     aliasFor c last rest
-                        |> Maybe.withDefault
-                            ("{"
-                                ++ elixirE c (Variable [ last ])
-                                ++ ", "
-                                ++ (map (elixirE c) rest |> String.join ", ")
-                                ++ "}"
-                            )
+                        |> (Maybe.withDefault <|
+                                "{"
+                                    ++ elixirE c (Variable [ last ])
+                                    ++ ", "
+                                    ++ (map (elixirE c) rest |> String.join ", ")
+                                    ++ "}"
+                           )
 
                 _ ->
                     Debug.crash "Won't ever happen"
@@ -290,42 +295,41 @@ tupleOrFunction c a =
 
 aliasFor : Context -> String -> List Expression -> Maybe String
 aliasFor c name rest =
-    maybeOr
-        (getAlias c name rest)
-        (getType c name rest)
+    maybeOr (getAlias c name rest) (getType c name rest)
+
+
+typeAliasOnly : ExContext.Alias -> Maybe ExContext.Alias
+typeAliasOnly ({ aliasType } as ali) =
+    case aliasType of
+        ExContext.TypeAlias ->
+            Just ali
+
+        ExContext.Type ->
+            Nothing
+
+
+restOfParams : Context -> List Expression -> String
+restOfParams c params =
+    params
+        |> map (elixirE c)
+        |> String.join ").("
+        |> (++) ").("
+        |> flip (++) ")"
 
 
 getAlias : Context -> String -> List Expression -> Maybe String
 getAlias c name rest =
     ExContext.getAlias c.mod name c
-        |> Maybe.andThen
-            (\({ aliasType } as ali) ->
-                case aliasType of
-                    ExContext.TypeAlias ->
-                        Just ali
-
-                    ExContext.Type ->
-                        Nothing
-            )
+        |> Maybe.andThen typeAliasOnly
         |> Maybe.andThen (ExType.typealiasConstructor [])
-        |> Maybe.map
-            ((elixirE c)
-                >> (++) "("
-                >> flip (++)
-                    (rest
-                        |> map (elixirE c)
-                        |> String.join ").("
-                        |> (++) ").("
-                        |> flip (++) ")"
-                    )
-            )
+        |> Maybe.map (elixirE c >> (++) "(" >> flip (++) (restOfParams c rest))
 
 
 getType : Context -> String -> List Expression -> Maybe String
 getType c name rest =
     ExContext.getType c.mod name c
         |> Maybe.map
-            (\arity ->
+            (\{ arity } ->
                 let
                     len =
                         length rest
@@ -342,34 +346,28 @@ getType c name rest =
                     if arity == 0 then
                         atomize name
                     else if dif >= 0 then
-                        arguments
+                        (arguments
                             |> map ((++) " fn ")
                             |> map (flip (++) " ->")
                             |> String.join ""
-                            |> flip (++)
-                                (" {"
+                        )
+                            ++ (" {"
                                     ++ atomize name
                                     ++ ", "
-                                    ++ (map
-                                            (c
-                                                |> rememberVariables (rest ++ varArgs)
-                                                |> elixirE
-                                            )
-                                            (rest ++ varArgs)
+                                    ++ (map (rememberVariables (rest ++ varArgs) c |> elixirE) (rest ++ varArgs)
                                             |> String.join ", "
                                        )
                                     ++ "}"
-                                )
+                               )
                             |> flip (++) (String.repeat dif " end ")
                     else
-                        Debug.crash
-                            ("Expected "
+                        Debug.crash <|
+                            "Expected "
                                 ++ toString arity
                                 ++ " arguments for '"
                                 ++ name
                                 ++ "'. Got: "
                                 ++ toString (length rest)
-                            )
             )
 
 
@@ -402,9 +400,7 @@ caseE c var body =
     "case "
         ++ elixirE c var
         ++ " do"
-        ++ (String.join ""
-                (List.map (c |> rememberVariables [ var ] |> caseInstance) body)
-           )
+        ++ (String.join "" (List.map (c |> rememberVariables [ var ] |> caseInstance) body))
         ++ ind (c.indent)
         ++ "end"
 
@@ -466,7 +462,7 @@ elixirVariable c var =
                 String.dropLeft 1 name
                     |> atomize
             else
-                case isOperator name of
+                case operatorType name of
                     Builtin ->
                         -- We need a curried version, so kernel won't work
                         if name == "<|" then
@@ -478,7 +474,7 @@ elixirVariable c var =
                         translateOperator name
 
                     None ->
-                        name |> ExVariable.varOrNah c |> toSnakeCase True
+                        name |> toSnakeCase True |> ExVariable.varOrNah c
 
         list ->
             case lastAndRest list of
@@ -486,10 +482,9 @@ elixirVariable c var =
                     elixirE c (Variable [ last ])
 
                 _ ->
-                    Debug.crash "Shouldn't ever happen"
-                        String.join
-                        "."
-                        list
+                    Debug.crash <|
+                        "Shouldn't ever happen "
+                            ++ String.join "." list
 
 
 produceLambda : Context -> List Expression -> Expression -> String
