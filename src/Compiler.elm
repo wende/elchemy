@@ -21,14 +21,12 @@ import Regex exposing (..)
 -}
 version : String
 version =
-    "0.4.32"
+    "0.4.33"
 
 
 glueStart : String
 glueStart =
-    (ind 0)
-        ++ "use Elchemy"
-        ++ "\n"
+    (ind 0) ++ "use Elchemy" ++ "\n"
 
 
 glueEnd : String

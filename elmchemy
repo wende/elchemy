@@ -1,6 +1,10 @@
 #!/bin/bash
 
-OURCE="${BASH_SOURCE[0]}"
+echo "!!! DEPRECATION NOTICE !!!"
+echo "elmchemy name is deprecated. Use elchemy (without an m) instead"
+echo "!!! DEPRECATION NOTICE !!!"
+
+SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
     DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
     SOURCE="$(readlink "$SOURCE")"

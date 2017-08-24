@@ -13301,55 +13301,68 @@ var _user$project$Helpers$isOperator = function (name) {
 
 var _user$project$ExContext$mergeTypes = F3(
 	function (set, mod, c) {
-		var getTypeNames = function (subset) {
-			var _p0 = subset;
-			if (_p0.ctor === 'Just') {
-				if (_p0._0.ctor === 'SubsetExport') {
-					return A2(
-						_elm_lang$core$List$map,
-						function (a) {
-							var _p1 = a;
-							if (_p1.ctor === 'FunctionExport') {
-								return _p1._0;
-							} else {
-								return _elm_lang$core$Native_Utils.crashCase(
-									'ExContext',
-									{
-										start: {line: 345, column: 33},
-										end: {line: 353, column: 46}
-									},
-									_p1)(
-									A2(
-										_elm_lang$core$Basics_ops['++'],
-										'Something went wrong with ',
-										_elm_lang$core$Basics$toString(a)));
-							}
-						},
-						_p0._0._0);
-				} else {
-					return _elm_lang$core$Native_Utils.crashCase(
-						'ExContext',
-						{
-							start: {line: 340, column: 13},
-							end: {line: 360, column: 82}
-						},
-						_p0)(
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							'Something went wrong with ',
-							_elm_lang$core$Basics$toString(subset)));
-				}
+		var getFunctionExportName = function (a) {
+			var _p0 = a;
+			if (_p0.ctor === 'FunctionExport') {
+				return _p0._0;
 			} else {
-				return {ctor: '[]'};
+				return _elm_lang$core$Native_Utils.crashCase(
+					'ExContext',
+					{
+						start: {line: 305, column: 13},
+						end: {line: 310, column: 78}
+					},
+					_p0)(
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						'Something went wrong with ',
+						_elm_lang$core$Basics$toString(a)));
 			}
 		};
+		var getTypeNames = F2(
+			function (aliasName, subset) {
+				var _p2 = subset;
+				if (_p2.ctor === 'Just') {
+					switch (_p2._0.ctor) {
+						case 'SubsetExport':
+							return A2(_elm_lang$core$List$map, getFunctionExportName, _p2._0._0);
+						case 'AllExport':
+							return A2(
+								_elm_lang$core$Maybe$withDefault,
+								{ctor: '[]'},
+								A2(
+									_elm_lang$core$Maybe$map,
+									function (_) {
+										return _.types;
+									},
+									A2(
+										_elm_lang$core$Maybe$andThen,
+										_elm_lang$core$Dict$get(aliasName),
+										A2(_elm_lang$core$Dict$get, c.mod, c.aliases))));
+						default:
+							return _elm_lang$core$Native_Utils.crashCase(
+								'ExContext',
+								{
+									start: {line: 314, column: 13},
+									end: {line: 329, column: 83}
+								},
+								_p2)(
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									'Something went wrong with ',
+									_elm_lang$core$Basics$toString(subset)));
+					}
+				} else {
+					return {ctor: '[]'};
+				}
+			});
 		var importConflict = F4(
 			function (key, a, b, _p4) {
 				return _elm_lang$core$Native_Utils.crash(
 					'ExContext',
 					{
-						start: {line: 310, column: 13},
-						end: {line: 310, column: 24}
+						start: {line: 285, column: 13},
+						end: {line: 285, column: 24}
 					})(
 					A2(
 						_elm_lang$core$Basics_ops['++'],
@@ -13377,16 +13390,15 @@ var _user$project$ExContext$mergeTypes = F3(
 				return A3(
 					_elm_lang$core$Dict$update,
 					name,
-					function (a) {
+					function (_p5) {
 						return _elm_lang$core$Maybe$Just(
-							function () {
-								var _p5 = a;
-								if (_p5.ctor === 'Just') {
-									return A2(mergeDicts, add, _p5._0);
-								} else {
-									return add;
-								}
-							}());
+							A2(
+								_elm_lang$core$Maybe$withDefault,
+								add,
+								A2(
+									_elm_lang$core$Maybe$map,
+									mergeDicts(add),
+									_p5)));
 					},
 					dict);
 			});
@@ -13401,14 +13413,67 @@ var _user$project$ExContext$mergeTypes = F3(
 			function (name, f, dict) {
 				return A2(
 					_elm_lang$core$Dict$filter,
-					F2(
-						function (key, _p6) {
-							return f(key);
-						}),
+					function (_p6) {
+						return _elm_lang$core$Basics$always(
+							f(_p6));
+					},
 					A2(getAll, name, dict));
 			});
-		var _p7 = set;
-		switch (_p7.ctor) {
+		var getAliasWithName = function (aliasName) {
+			return A3(
+				getThese,
+				mod,
+				F2(
+					function (x, y) {
+						return _elm_lang$core$Native_Utils.eq(x, y);
+					})(aliasName),
+				c.aliases);
+		};
+		var getTypesInNames = F2(
+			function (aliasName, names) {
+				return A3(
+					getThese,
+					mod,
+					A2(
+						_elm_lang$core$Basics$flip,
+						_elm_lang$core$List$member,
+						A2(getTypeNames, aliasName, names)),
+					c.types);
+			});
+		var importOne = F2(
+			function ($export, c) {
+				var _p7 = $export;
+				switch (_p7.ctor) {
+					case 'TypeExport':
+						var _p8 = _p7._0;
+						return _elm_lang$core$Native_Utils.update(
+							c,
+							{
+								aliases: A3(
+									addThese,
+									c.mod,
+									getAliasWithName(_p8),
+									c.aliases),
+								types: A3(
+									addThese,
+									c.mod,
+									A2(getTypesInNames, _p8, _p7._1),
+									c.types)
+							});
+					case 'FunctionExport':
+						return c;
+					default:
+						return _elm_lang$core$Native_Utils.crashCase(
+							'ExContext',
+							{
+								start: {line: 338, column: 13},
+								end: {line: 349, column: 69}
+							},
+							_p7)('You can\'t import subset of subsets');
+				}
+			});
+		var _p10 = set;
+		switch (_p10.ctor) {
 			case 'AllExport':
 				return _elm_lang$core$Native_Utils.update(
 					c,
@@ -13425,63 +13490,15 @@ var _user$project$ExContext$mergeTypes = F3(
 							c.aliases)
 					});
 			case 'SubsetExport':
-				return A3(
-					_elm_lang$core$List$foldl,
-					F2(
-						function (a, c) {
-							var _p8 = a;
-							switch (_p8.ctor) {
-								case 'TypeExport':
-									return _elm_lang$core$Native_Utils.update(
-										c,
-										{
-											aliases: A3(
-												addThese,
-												c.mod,
-												A3(
-													getThese,
-													mod,
-													F2(
-														function (x, y) {
-															return _elm_lang$core$Native_Utils.eq(x, y);
-														})(_p8._0),
-													c.aliases),
-												c.aliases),
-											types: A3(
-												addThese,
-												c.mod,
-												A3(
-													getThese,
-													mod,
-													A2(
-														_elm_lang$core$Basics$flip,
-														_elm_lang$core$List$member,
-														A3(_elm_lang$core$Debug$log, 'Types', getTypeNames, _p8._1)),
-													c.types),
-												c.types)
-										});
-								case 'FunctionExport':
-									return c;
-								default:
-									return _elm_lang$core$Native_Utils.crashCase(
-										'ExContext',
-										{
-											start: {line: 373, column: 29},
-											end: {line: 396, column: 85}
-										},
-										_p8)('You can\'t import subset of subsets');
-							}
-						}),
-					c,
-					_p7._0);
+				return A3(_elm_lang$core$List$foldl, importOne, c, _p10._0);
 			default:
 				return _elm_lang$core$Native_Utils.crashCase(
 					'ExContext',
 					{
-						start: {line: 362, column: 9},
-						end: {line: 401, column: 77}
+						start: {line: 351, column: 9},
+						end: {line: 362, column: 77}
 					},
-					_p7)('You can\'t import something that\'s not a subset');
+					_p10)('You can\'t import something that\'s not a subset');
 		}
 	});
 var _user$project$ExContext$mergeVariables = F2(
@@ -13494,27 +13511,27 @@ var _user$project$ExContext$mergeVariables = F2(
 	});
 var _user$project$ExContext$isPrivate = F2(
 	function (context, name) {
-		var _p11 = context.exports;
-		switch (_p11.ctor) {
+		var _p12 = context.exports;
+		switch (_p12.ctor) {
 			case 'SubsetExport':
 				return A2(
 					_elm_lang$core$List$any,
-					function (exp) {
-						return _elm_lang$core$Native_Utils.eq(
-							exp,
-							_Bogdanp$elm_ast$Ast_Statement$FunctionExport(name));
-					},
-					_p11._0) ? false : true;
+					F2(
+						function (x, y) {
+							return _elm_lang$core$Native_Utils.eq(x, y);
+						})(
+						_Bogdanp$elm_ast$Ast_Statement$FunctionExport(name)),
+					_p12._0) ? false : true;
 			case 'AllExport':
 				return false;
 			default:
 				return _elm_lang$core$Native_Utils.crashCase(
 					'ExContext',
 					{
-						start: {line: 273, column: 5},
-						end: {line: 284, column: 41}
+						start: {line: 248, column: 5},
+						end: {line: 259, column: 41}
 					},
-					_p11)('No such export');
+					_p12)('No such export');
 		}
 	});
 var _user$project$ExContext$inArgs = function (c) {
@@ -13540,14 +13557,14 @@ var _user$project$ExContext$getAllFlags = F2(
 			_elm_lang$core$Tuple$second,
 			A2(
 				_elm_lang$core$List$filter,
-				function (_p13) {
+				function (_p14) {
 					return A2(
 						F2(
 							function (x, y) {
 								return _elm_lang$core$Native_Utils.eq(x, y);
 							}),
 						key,
-						_elm_lang$core$Tuple$first(_p13));
+						_elm_lang$core$Tuple$first(_p14));
 				},
 				c.flags));
 	});
@@ -13632,8 +13649,8 @@ var _user$project$ExContext$wrongArityAlias = F3(
 		return _elm_lang$core$Native_Utils.crash(
 			'ExContext',
 			{
-				start: {line: 119, column: 12},
-				end: {line: 119, column: 23}
+				start: {line: 113, column: 5},
+				end: {line: 113, column: 16}
 			})(
 			A2(
 				_elm_lang$core$Basics_ops['++'],
@@ -13653,9 +13670,9 @@ var _user$project$ExContext$wrongArityAlias = F3(
 								_elm_lang$core$Basics$toString(
 									_elm_lang$core$List$length(list))))))));
 	});
-var _user$project$ExContext$Alias = F5(
-	function (a, b, c, d, e) {
-		return {mod: a, arity: b, aliasType: c, body: d, getTypeBody: e};
+var _user$project$ExContext$Alias = F6(
+	function (a, b, c, d, e, f) {
+		return {mod: a, arity: b, aliasType: c, body: d, getTypeBody: e, types: f};
 	});
 var _user$project$ExContext$Definition = F2(
 	function (a, b) {
@@ -13706,8 +13723,8 @@ var _user$project$ExAlias$resolveTypes = F3(
 				return _elm_lang$core$Native_Utils.crashCase(
 					'ExAlias',
 					{
-						start: {line: 88, column: 13},
-						end: {line: 97, column: 26}
+						start: {line: 120, column: 13},
+						end: {line: 128, column: 46}
 					},
 					_p0)(
 					A2(
@@ -13785,96 +13802,110 @@ var _user$project$ExAlias$replaceAliasArgs = F4(
 		var arity = _elm_lang$core$List$length(givenArgs);
 		return _elm_lang$core$Native_Utils.eq(arity, expected) ? A3(_user$project$ExAlias$resolveTypes, expectedArgs, givenArgs, $return) : A3(_user$project$ExContext$wrongArityAlias, expected, givenArgs, name);
 	});
+var _user$project$ExAlias$registerTypes = F2(
+	function (types, c) {
+		var addType = F2(
+			function (t, _p3) {
+				var _p4 = _p3;
+				var _p5 = t;
+				if (((_p5.ctor === 'TypeConstructor') && (_p5._0.ctor === '::')) && (_p5._0._1.ctor === '[]')) {
+					var _p6 = _p5._0._0;
+					return A2(
+						_user$project$Helpers_ops['=>'],
+						{ctor: '::', _0: _p6, _1: _p4._0},
+						A4(
+							_user$project$ExContext$addType,
+							c.mod,
+							_p6,
+							_elm_lang$core$List$length(_p5._1),
+							_p4._1));
+				} else {
+					return _elm_lang$core$Native_Utils.crashCase(
+						'ExAlias',
+						{
+							start: {line: 85, column: 13},
+							end: {line: 94, column: 65}
+						},
+						_p5)('Type can only start with a tag');
+				}
+			});
+		return A3(
+			_elm_lang$core$List$foldl,
+			addType,
+			{
+				ctor: '_Tuple2',
+				_0: {ctor: '[]'},
+				_1: c
+			},
+			types);
+	});
+var _user$project$ExAlias$registerUnionType = F3(
+	function (c, tc, types) {
+		var _p8 = tc;
+		if (((_p8.ctor === 'TypeConstructor') && (_p8._0.ctor === '::')) && (_p8._0._1.ctor === '[]')) {
+			var _p10 = _p8._0._0;
+			var _p9 = A2(_user$project$ExAlias$registerTypes, types, c);
+			var names = _p9._0;
+			var newC = _p9._1;
+			var arity = _elm_lang$core$List$length(_p8._1);
+			var typeVar = _Bogdanp$elm_ast$Ast_Statement$TypeVariable(
+				A2(_elm_lang$core$Basics_ops['++'], '@', _p10));
+			var typeBody = _elm_lang$core$Basics$always(typeVar);
+			var ali = A6(_user$project$ExContext$Alias, c.mod, arity, _user$project$ExContext$Type, typeVar, typeBody, names);
+			return A4(_user$project$ExContext$addAlias, c.mod, _p10, ali, newC);
+		} else {
+			return _elm_lang$core$Native_Utils.crashCase(
+				'ExAlias',
+				{
+					start: {line: 57, column: 5},
+					end: {line: 78, column: 68}
+				},
+				_p8)(
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					'Wrong type declaration ',
+					_elm_lang$core$Basics$toString(_p8)));
+		}
+	});
+var _user$project$ExAlias$registerTypeAlias = F3(
+	function (c, tc, t) {
+		var _p12 = tc;
+		if (((_p12.ctor === 'TypeConstructor') && (_p12._0.ctor === '::')) && (_p12._0._1.ctor === '[]')) {
+			var _p14 = _p12._0._0;
+			var _p13 = _p12._1;
+			var typeBody = A3(_user$project$ExAlias$replaceAliasArgs, _p14, _p13, t);
+			var arity = _elm_lang$core$List$length(_p13);
+			var ali = A6(
+				_user$project$ExContext$Alias,
+				c.mod,
+				arity,
+				_user$project$ExContext$TypeAlias,
+				t,
+				typeBody,
+				{ctor: '[]'});
+			return A4(_user$project$ExContext$addAlias, c.mod, _p14, ali, c);
+		} else {
+			return _elm_lang$core$Native_Utils.crashCase(
+				'ExAlias',
+				{
+					start: {line: 37, column: 5},
+					end: {line: 52, column: 74}
+				},
+				_p12)(
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					'Wrong type alias declaration ',
+					_elm_lang$core$Basics$toString(_p12)));
+		}
+	});
 var _user$project$ExAlias$registerAlias = F2(
 	function (s, c) {
-		var _p3 = s;
-		switch (_p3.ctor) {
-			case 'TypeDeclaration':
-				if (((_p3._0.ctor === 'TypeConstructor') && (_p3._0._0.ctor === '::')) && (_p3._0._0._1.ctor === '[]')) {
-					var _p7 = _p3._0._0._0;
-					return A3(
-						_elm_lang$core$Basics$flip,
-						_elm_lang$core$List$foldl(
-							F2(
-								function (t, context) {
-									var _p4 = t;
-									if (((_p4.ctor === 'TypeConstructor') && (_p4._0.ctor === '::')) && (_p4._0._1.ctor === '[]')) {
-										return A4(
-											_user$project$ExContext$addType,
-											c.mod,
-											_p4._0._0,
-											_elm_lang$core$List$length(_p4._1),
-											context);
-									} else {
-										return _elm_lang$core$Native_Utils.crashCase(
-											'ExAlias',
-											{
-												start: {line: 37, column: 29},
-												end: {line: 45, column: 81}
-											},
-											_p4)('Type can only start with a tag');
-									}
-								})),
-						_p3._1,
-						A4(
-							_user$project$ExContext$addAlias,
-							c.mod,
-							_p7,
-							A5(
-								_user$project$ExContext$Alias,
-								c.mod,
-								_elm_lang$core$List$length(_p3._0._1),
-								_user$project$ExContext$Type,
-								_Bogdanp$elm_ast$Ast_Statement$TypeVariable(
-									A2(_elm_lang$core$Basics_ops['++'], '@', _p7)),
-								function (_p6) {
-									return _Bogdanp$elm_ast$Ast_Statement$TypeVariable(
-										A2(_elm_lang$core$Basics_ops['++'], '@', _p7));
-								}),
-							c));
-				} else {
-					return _elm_lang$core$Native_Utils.crashCase(
-						'ExAlias',
-						{
-							start: {line: 23, column: 5},
-							end: {line: 64, column: 14}
-						},
-						_p3)(
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							'Wrong type declaration ',
-							_elm_lang$core$Basics$toString(_p3)));
-				}
+		var _p16 = s;
+		switch (_p16.ctor) {
 			case 'TypeAliasDeclaration':
-				if (((_p3._0.ctor === 'TypeConstructor') && (_p3._0._0.ctor === '::')) && (_p3._0._0._1.ctor === '[]')) {
-					var _p11 = _p3._0._0._0;
-					var _p10 = _p3._0._1;
-					var _p9 = _p3._1;
-					return A4(
-						_user$project$ExContext$addAlias,
-						c.mod,
-						_p11,
-						A5(
-							_user$project$ExContext$Alias,
-							c.mod,
-							_elm_lang$core$List$length(_p10),
-							_user$project$ExContext$TypeAlias,
-							_p9,
-							A3(_user$project$ExAlias$replaceAliasArgs, _p11, _p10, _p9)),
-						c);
-				} else {
-					return _elm_lang$core$Native_Utils.crashCase(
-						'ExAlias',
-						{
-							start: {line: 23, column: 5},
-							end: {line: 64, column: 14}
-						},
-						_p3)(
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							'Wrong type alias declaration ',
-							_elm_lang$core$Basics$toString(_p3)));
-				}
+				return A3(_user$project$ExAlias$registerTypeAlias, c, _p16._0, _p16._1);
+			case 'TypeDeclaration':
+				return A3(_user$project$ExAlias$registerUnionType, c, _p16._0, _p16._1);
 			default:
 				return c;
 		}
@@ -17747,8 +17778,8 @@ var _user$project$Compiler$parse = F2(
 					return _elm_lang$core$Native_Utils.crashCase(
 						'Compiler',
 						{
-							start: {line: 190, column: 5},
-							end: {line: 208, column: 39}
+							start: {line: 188, column: 5},
+							end: {line: 206, column: 39}
 						},
 						_p1)(
 						A2(
@@ -17778,8 +17809,8 @@ var _user$project$Compiler$parse = F2(
 		return _elm_lang$core$Native_Utils.crashCase(
 			'Compiler',
 			{
-				start: {line: 190, column: 5},
-				end: {line: 208, column: 39}
+				start: {line: 188, column: 5},
+				end: {line: 206, column: 39}
 			},
 			_p1)(
 			_elm_lang$core$Basics$toString(_p1));
@@ -17820,8 +17851,8 @@ var _user$project$Compiler$typeAliasDuplicate = F3(
 		return (!_elm_lang$core$Native_Utils.eq(v, v2)) ? _elm_lang$core$Native_Utils.crash(
 			'Compiler',
 			{
-				start: {line: 141, column: 9},
-				end: {line: 141, column: 20}
+				start: {line: 139, column: 9},
+				end: {line: 139, column: 20}
 			})(
 			A2(
 				_elm_lang$core$Basics_ops['++'],
@@ -17870,7 +17901,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elchemy', '\n'));
-var _user$project$Compiler$version = '0.4.32';
+var _user$project$Compiler$version = '0.4.33';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		return A2(
@@ -17911,8 +17942,8 @@ var _user$project$Compiler$tree = function (m) {
 				return _elm_lang$core$Native_Utils.crashCase(
 					'Compiler',
 					{
-						start: {line: 63, column: 25},
-						end: {line: 68, column: 44}
+						start: {line: 61, column: 25},
+						end: {line: 66, column: 44}
 					},
 					_p13)('Failed getting context');
 			} else {
