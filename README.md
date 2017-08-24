@@ -25,8 +25,8 @@ Elchemy is a project with one idea in mind: Seamless acommodation of Elm-like la
 ## Usage
 
 ### Prerequisites
-- [node](https://nodejs.org/en/)
-- [elm-lang](https://guide.elm-lang.org/install.html)
+- [node@5+](https://nodejs.org/en/)
+- [elm-lang@0.18](https://guide.elm-lang.org/install.html)
 
 ### Installation in Elixir project
 Install `elchemy` globally with
