@@ -14,7 +14,8 @@ compile:
 	sed 's/var Elm = {}/&; \
 	var fs = require(\"fs\"); \
 	var a = fs.readFileSync(process.argv[2]).toString(); \
-	console.log(_user$$project$$Compiler$$tree(a))/' compiled.js > elchemy.js
+  var output = _user$$project$$Compiler$$tree(a); \
+	fs.writeFileSync(process.argv[3], output);/' compiled.js > elchemy.js
 	rm compiled.js
 
 compile-watch:
@@ -47,3 +48,7 @@ install-sysconf:
 	git clone "https://github.com/obmarg/libsysconfcpus.git"
 	cd libsysconfcpus && ./configure && make && make install
 	cd .. && rm -rf libsysconfcpus
+
+compile-elixir:
+	make compile
+	cd elchemy_ex && ../elchemy compile ../src/ lib/ | ts %H:%M:%.S

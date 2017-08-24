@@ -7,12 +7,12 @@ import Ast.BinOp exposing (operators)
 import ExContext exposing (Context, Definition, indent, deindent, onlyWithoutFlag)
 import ExExpression
 import ExType
-import Helpers exposing (..)
 import List exposing (..)
 import Dict exposing (Dict)
 import Regex exposing (..)
 import Helpers exposing (..)
-import Debug exposing (crash)
+import ExFfi
+import ExFunction
 
 
 type ElchemyComment
@@ -35,7 +35,7 @@ moduleStatement s =
             ExContext.empty (modulePathName path) exports
 
         other ->
-            crash "First statement must be module declaration"
+            Debug.crash "First statement must be module declaration"
 
 
 elixirS : Context -> Statement -> ( Context, String )
@@ -75,30 +75,24 @@ elixirS c s =
             in
                 (,) (addTypeDefinition newC name definition) <|
                     (onlyWithoutFlag newC "nodef" name code)
-                        ++ case isOperator name of
+                        ++ case operatorType name of
                             Builtin ->
                                 -- TODO implement operator specs
                                 ""
 
                             Custom ->
-                                onlyWithoutFlag newC
-                                    "nospec"
-                                    name
-                                    ((ind newC.indent)
+                                onlyWithoutFlag newC "nospec" name <|
+                                    (ind newC.indent)
                                         ++ "@spec "
                                         ++ translateOperator name
                                         ++ (ExType.typespec newC t)
-                                    )
 
                             None ->
-                                onlyWithoutFlag newC
-                                    "nospec"
-                                    name
-                                    ((ind newC.indent)
+                                onlyWithoutFlag newC "nospec" name <|
+                                    (ind newC.indent)
                                         ++ "@spec "
                                         ++ toSnakeCase True name
                                         ++ (ExType.typespec newC t)
-                                    )
 
         (FunctionTypeDeclaration name t) as def ->
             let
@@ -112,143 +106,69 @@ elixirS c s =
             in
                 (,) (addTypeDefinition newC name definition) <|
                     code
-                        ++ case isOperator name of
+                        ++ case operatorType name of
                             Builtin ->
                                 -- TODO implement operator specs
                                 ""
 
                             Custom ->
-                                onlyWithoutFlag newC
-                                    name
-                                    "nospec"
-                                    ((ind c.indent)
+                                onlyWithoutFlag newC name "nospec" <|
+                                    (ind c.indent)
                                         ++ "@spec "
                                         ++ translateOperator name
                                         ++ (ExType.typespec newC t)
-                                    )
 
                             None ->
-                                onlyWithoutFlag newC
-                                    name
-                                    "nospec"
-                                    ((ind c.indent)
+                                onlyWithoutFlag newC name "nospec" <|
+                                    (ind c.indent)
                                         ++ "@spec "
                                         ++ toSnakeCase True name
                                         ++ (ExType.typespec newC t)
-                                    )
 
         (FunctionDeclaration name args body) as fd ->
-            (,) c <|
-                if name == "meta" && args == [] then
-                    ExExpression.generateMeta body
-                else if
-                    Dict.get name c.definitions
-                        == Nothing
-                        && not (ExContext.isPrivate c name)
-                then
-                    Debug.crash
-                        ("You need to provide function type for "
-                            ++ name
-                            ++ " function in module "
-                            ++ toString c.mod
+            let
+                genFfi =
+                    ExFfi.generateFfi c ExExpression.elixirE name <|
+                        (c.definitions
+                            |> Dict.get name
+                            |> Maybe.map
+                                (.def
+                                    >> typeAplicationToList
+                                )
+                            |> Maybe.withDefault []
+                            |> map typeAplicationToList
                         )
-                else
-                    case body of
-                        (Application (Application (Variable [ "ffi" ]) _) _) as app ->
-                            ExExpression.generateFfi
-                                c
-                                name
-                                (c.definitions
-                                    |> Dict.get name
-                                    |> Maybe.map
-                                        (.def
-                                            >> typeAplicationToList
-                                        )
-                                    |> Maybe.withDefault []
-                                    |> map typeAplicationToList
-                                )
-                                app
+            in
+                c
+                    => if
+                        Dict.get name c.definitions
+                            == Nothing
+                            && not (ExContext.isPrivate c name)
+                       then
+                        Debug.crash <|
+                            "To be able to export it, you need to provide function type for `"
+                                ++ name
+                                ++ "` function in module "
+                                ++ toString c.mod
+                       else
+                        case body of
+                            (Application (Application (Variable [ "ffi" ]) _) _) as app ->
+                                genFfi app
 
-                        (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
-                            ExExpression.generateFfi
-                                c
-                                name
-                                (c.definitions
-                                    |> Dict.get name
-                                    |> Maybe.map
-                                        (.def
-                                            >> typeAplicationToList
-                                        )
-                                    |> Maybe.withDefault []
-                                    |> map typeAplicationToList
-                                )
-                                app
+                            (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
+                                genFfi app
 
-                        Case vars expressions ->
-                            if ExExpression.flattenCommas vars == args then
-                                ExExpression.genOverloadedFunctionDefinition
-                                    c
-                                    name
-                                    args
-                                    body
-                                    expressions
-                            else
-                                ExExpression.genFunctionDefinition
-                                    c
-                                    name
-                                    args
-                                    body
+                            Case vars expressions ->
+                                if ExFunction.flattenCommas vars == args then
+                                    ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
+                                else
+                                    ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
 
-                        _ ->
-                            ExExpression.genFunctionDefinition
-                                c
-                                name
-                                args
-                                body
+                            _ ->
+                                ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
 
         Comment content ->
-            case getCommentType content of
-                Doc content ->
-                    if c.hasModuleDoc then
-                        (,) { c | lastDoc = Just content } ""
-                    else
-                        elixirDoc c ModuleDoc content
-
-                Ex content ->
-                    (,) c <|
-                        (content
-                            |> String.split "\n"
-                            |> map String.trim
-                            |> String.join "\n"
-                            |> indAll c.indent
-                        )
-
-                Flag content ->
-                    flip (,) "" <|
-                        (content
-                            |> Regex.split All (regex "\\s+")
-                            |> map (String.split ":+")
-                            |> filterMap
-                                (\flag ->
-                                    case flag of
-                                        [ k, v ] ->
-                                            Just ( k, v )
-
-                                        [ "" ] ->
-                                            Nothing
-
-                                        a ->
-                                            crash ("Wrong flag format " ++ toString a)
-                                )
-                            |> foldl (ExContext.addFlag) c
-                        )
-
-                Normal content ->
-                    (,) c <|
-                        (content
-                            |> prependAll ("# ")
-                            |> indAll c.indent
-                        )
+            elixirComment c content
 
         -- That's not a real import. In elixir it's called alias
         ImportStatement path Nothing Nothing ->
@@ -289,6 +209,54 @@ elixirS c s =
                 notImplemented "statement" s
 
 
+verifyFlag : List String -> Maybe ( String, String )
+verifyFlag flag =
+    case flag of
+        [ k, v ] ->
+            Just ( k, v )
+
+        [ "" ] ->
+            Nothing
+
+        a ->
+            Debug.crash <| "Wrong flag format " ++ toString a
+
+
+elixirComment : Context -> String -> ( Context, String )
+elixirComment c content =
+    case getCommentType content of
+        Doc content ->
+            if c.hasModuleDoc then
+                { c | lastDoc = Just content } => ""
+            else
+                elixirDoc c ModuleDoc content
+
+        Ex content ->
+            (,) c <|
+                (content
+                    |> String.split "\n"
+                    |> map String.trim
+                    |> String.join "\n"
+                    |> indAll c.indent
+                )
+
+        Flag content ->
+            flip (,) "" <|
+                (content
+                    |> Regex.split All (regex "\\s+")
+                    |> map (String.split ":+")
+                    |> filterMap verifyFlag
+                    |> foldl (ExContext.addFlag) c
+                )
+
+        Normal content ->
+            (,) c <|
+                (content
+                    |> prependAll ("# ")
+                    |> indAll c.indent
+                )
+
+
 elixirDoc : Context -> DocType -> String -> ( Context, String )
 elixirDoc c doctype content =
     let
@@ -313,6 +281,7 @@ elixirDoc c doctype content =
                         |> String.lines
                         |> map (maybeDoctest c)
                         |> map (Helpers.escape)
+                        |> map (Regex.replace All (regex "\"\"\"") (always "\\\"\\\"\\\""))
                         -- |> map trimIndentations
                         |> String.join (ind c.indent)
                     -- Drop an unnecessary \n at the end
@@ -352,10 +321,13 @@ subsetExport exp =
             []
 
         FunctionExport name ->
-            [ "{:'" ++ name ++ "', 0}" ]
+            if isCustomOperator name then
+                [ "{:'" ++ translateOperator name ++ "', 0}" ]
+            else
+                [ "{:'" ++ toSnakeCase True name ++ "', 0}" ]
 
         _ ->
-            crash ("You can't export " ++ toString exp)
+            Debug.crash ("You can't export " ++ toString exp)
 
 
 maybeDoctest : Context -> String -> String
@@ -396,12 +368,7 @@ getTypeDefinition a =
 
 addTypeDefinition : Context -> String -> Definition -> Context
 addTypeDefinition c name d =
-    { c
-        | definitions =
-            Dict.insert name
-                d
-                c.definitions
-    }
+    { c | definitions = Dict.insert name d c.definitions }
 
 
 typeAplicationToList : Type -> List Type

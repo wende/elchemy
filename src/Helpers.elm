@@ -5,6 +5,7 @@ import Tuple exposing (..)
 import List exposing (..)
 import Regex exposing (..)
 import Dict exposing (Dict)
+import Ast.Expression exposing (..)
 
 
 type MaybeUpper
@@ -28,7 +29,7 @@ toSnakeCase isntAtom s =
     let
         string =
             if isntAtom then
-                maybeReplaceReserved s
+                replaceReserved s
             else
                 s
     in
@@ -140,14 +141,12 @@ operators =
     , ( "<|", "" )
     , ( "<<", "" )
     , ( "|>", "|>" )
-    , ( "and", "and" )
-    , ( "or", "or" )
 
     -- Exception
     , ( "%", "rem" )
 
     -- Exception
-    , ( "//", "" )
+    , ( "//", "div" )
 
     -- Exception
     --, ( "rem", "rem" )
@@ -172,8 +171,13 @@ type Operator
     | Custom
 
 
-isOperator : String -> Operator
-isOperator name =
+isCustomOperator : String -> Bool
+isCustomOperator op =
+    operatorType op == Custom
+
+
+operatorType : String -> Operator
+operatorType name =
     let
         is_builtin =
             operators
@@ -198,10 +202,9 @@ translateOperator : String -> String
 translateOperator op =
     case Dict.get op operators of
         Just "" ->
-            Debug.crash
-                (op
+            Debug.crash <|
+                op
                     ++ " is not a valid or not implemented yet operator"
-                )
 
         Just key ->
             key
@@ -227,11 +230,6 @@ generateArguments_ str n =
         |> map ((++) str)
 
 
-unescape : String -> String
-unescape s =
-    Regex.replace All (regex "\\\\\\\\") (always "\\") s
-
-
 escape : String -> String
 escape s =
     Regex.replace All (regex "\\\\") (always "\\\\") s
@@ -244,16 +242,17 @@ ops =
 
 modulePath : List String -> String
 modulePath list =
-    list
-        |> map
-            (\a ->
-                if isUpper a then
-                    a
-                else
-                    toSnakeCase True a
-            )
-        |> map maybeReplaceStd
-        |> String.join "."
+    let
+        snakeIfLower a =
+            if isUpper a then
+                a
+            else
+                toSnakeCase True a
+    in
+        list
+            |> map snakeIfLower
+            |> map maybeReplaceStd
+            |> String.join "."
 
 
 maybeReplaceStd : String -> String
@@ -286,7 +285,7 @@ isStdModule a =
 
 reservedWords : List String
 reservedWords =
-    [ "fn", "do", "end", "cond", "receive" ]
+    [ "fn", "do", "end", "cond", "receive", "or", "and" ]
 
 
 replaceOp : String -> String
@@ -309,8 +308,8 @@ replaceOp_ op =
             Debug.crash "Illegal op"
 
 
-maybeReplaceReserved : String -> String
-maybeReplaceReserved a =
+replaceReserved : String -> String
+replaceReserved a =
     if List.member a reservedWords then
         a ++ "__"
     else
@@ -334,7 +333,19 @@ modulePathName =
     String.join "."
 
 
+applicationToList : Expression -> List Expression
+applicationToList application =
+    case application of
+        Application left right ->
+            (applicationToList left) ++ [ right ]
+
+        other ->
+            [ other ]
+
+
 {-| Nicer syntax for tuples
 -}
+(=>) : a -> b -> ( a, b )
 (=>) =
     (,)
+infixr 0 =>

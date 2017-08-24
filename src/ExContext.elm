@@ -3,9 +3,9 @@ module ExContext
         ( Alias
         , Aliases
         , AliasType(..)
-        , Arity
         , Context
         , Definition
+        , Parser
         , empty
         , addAlias
         , getAlias
@@ -23,16 +23,21 @@ module ExContext
         , mergeTypes
         )
 
-import Ast.Statement exposing (ExportSet, Type(..), Statement, ExportSet(..))
+import Ast.Statement exposing (Type(..), Statement, ExportSet(..))
+import Ast.Expression exposing (Expression)
 import Dict exposing (Dict)
 import Set exposing (Set)
+
+
+type alias Parser =
+    Context -> Expression -> String
 
 
 {-| A structure containing all the essential information about Type Alias
 -}
 type alias Alias =
-    { mod : String
-    , arity : Arity
+    { parentModule : String
+    , arity : Int
     , aliasType : AliasType
     , body : Type
     , getTypeBody : List Type -> Type
@@ -40,10 +45,10 @@ type alias Alias =
     }
 
 
-{-| Amount of the arguments a funtction or type takes
--}
-type alias Arity =
-    Int
+type alias UnionType =
+    { arity : Int
+    , parentModule : String
+    }
 
 
 {-| Dict holding sets of aliases indexed by module name and alias name
@@ -55,7 +60,7 @@ type alias Aliases =
 {-| Dict holding sets of aliases indexed by module name and type name
 -}
 type alias Types =
-    Dict String (Dict String Arity)
+    Dict String (Dict String UnionType)
 
 
 {-| Type of an Alias which can be either Type or Type Alias. It's important to note
@@ -83,7 +88,7 @@ type alias Flag =
 {-| Definition of a function and its correspoint Ast.Type structure
 -}
 type alias Definition =
-    { arity : Arity, def : Ast.Statement.Type }
+    { arity : Int, def : Ast.Statement.Type }
 
 
 {-| Context containing all the necessary information about current place in a file
@@ -138,10 +143,13 @@ addAlias mod name ali context =
 addType : String -> String -> Int -> Context -> Context
 addType mod name arity context =
     let
+        t =
+            { arity = arity, parentModule = mod }
+
         putType maybeMod =
             maybeMod
-                |> Maybe.map (Dict.insert name arity)
-                |> Maybe.withDefault (Dict.singleton name arity)
+                |> Maybe.map (Dict.insert name t)
+                |> Maybe.withDefault (Dict.singleton name t)
                 |> Just
     in
         { context | types = Dict.update mod putType context.types }
@@ -173,7 +181,7 @@ getAlias =
 {-| Get's a type from context based on name of a module and of a type
 Wrapped in Maybe
 -}
-getType : String -> String -> Context -> Maybe Arity
+getType : String -> String -> Context -> Maybe UnionType
 getType =
     getFromContext .types
 
@@ -285,9 +293,13 @@ mergeTypes set mod c =
             Debug.crash <|
                 "You can't have two same imports for name "
                     ++ key
-                    ++ "\nFirst one is:\n"
+                    ++ "\nFirst one (from "
+                    ++ c.mod
+                    ++ ") is:\n"
                     ++ toString a
-                    ++ "\n Second one is:\n"
+                    ++ "\n Second one (from "
+                    ++ mod
+                    ++ ") is:\n"
                     ++ toString b
 
         mergeDicts : Dict String v -> Dict String v -> Dict String v
