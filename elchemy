@@ -55,7 +55,7 @@ case "$1" in
             fi
             elm-install
         fi
-        for f in `{ find $2/../elm-stuff/packages -name "*.ex" ;}`
+        for f in `{ find elm-stuff/packages -name "*.ex" ;}`
         do
           echo "FOUND $f"
           file=$(create_file $f)
@@ -63,17 +63,17 @@ case "$1" in
           cp $f $file
         done
         i=0
-        for f in `{ find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#." ; find $2/../elm-stuff/packages -name "*.elm" | grep -v "/tests/" ;}`
+        for f in `{ find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#." ; find elm-stuff/packages -name "*.elm" | grep -v "/tests/" ;}`
         do
             if [[ ${f} == *"elm-lang"* ]] || [[ ${f} == *"Elchemy.elm"* ]]; then
                 continue
             fi
             echo "----------"
-            echo "Compiling $f"
+            echo "Type Checking $f"
             echo ">>>>$f" >> .elchemy_output
             # We don't need to typecheck deps again
             if [[ ${f} != *"elm-stuff"* ]] && ! [[ $* == *--unsafe* ]]; then
-                (echo n | elm-make $f --output .elchemy_output_tmp.js) || { echo 'Compilation failed' ; exit 1; }
+                (echo n | elm-make $f --output .elchemy_output_tmp.js) || { echo 'Type Check failed' ; exit 1; }
                 rm .elchemy_output_tmp.js
             fi
             i=$((i+1))
@@ -86,8 +86,9 @@ case "$1" in
         while IFS= read -r line; do
             if [[ $line =~ ">>>>" ]]; then
                 current_file="${line/\/\///}"
-                current_file="${current_file/>>>>$2/$3}"
+                current_file="${current_file/>>>>/}"
                 echo "Linking: $current_file"
+                current_file="${current_file/$2/$3}"
                 current_file="${current_file%%.elm}.elchemy.ex"
                 current_file=$(create_file $current_file)
                 echo "To: $current_file"

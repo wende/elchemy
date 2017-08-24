@@ -141,8 +141,6 @@ operators =
     , ( "<|", "" )
     , ( "<<", "" )
     , ( "|>", "|>" )
-    , ( "and", "and" )
-    , ( "or", "or" )
 
     -- Exception
     , ( "%", "rem" )
@@ -232,11 +230,6 @@ generateArguments_ str n =
         |> map ((++) str)
 
 
-unescape : String -> String
-unescape s =
-    Regex.replace All (regex "\\\\.") (\a -> "\\" ++ (Debug.log "Match" a.match |> String.dropLeft 2)) s
-
-
 escape : String -> String
 escape s =
     Regex.replace All (regex "\\\\") (always "\\\\") s
@@ -292,7 +285,7 @@ isStdModule a =
 
 reservedWords : List String
 reservedWords =
-    [ "fn", "do", "end", "cond", "receive" ]
+    [ "fn", "do", "end", "cond", "receive", "or", "and" ]
 
 
 replaceOp : String -> String

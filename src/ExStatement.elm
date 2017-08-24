@@ -11,7 +11,6 @@ import List exposing (..)
 import Dict exposing (Dict)
 import Regex exposing (..)
 import Helpers exposing (..)
-import Debug exposing (crash)
 import ExFfi
 import ExFunction
 
@@ -36,7 +35,7 @@ moduleStatement s =
             ExContext.empty (modulePathName path) exports
 
         other ->
-            crash "First statement must be module declaration"
+            Debug.crash "First statement must be module declaration"
 
 
 elixirS : Context -> Statement -> ( Context, String )
@@ -147,9 +146,9 @@ elixirS c s =
                             && not (ExContext.isPrivate c name)
                        then
                         Debug.crash <|
-                            "You need to provide function type for "
+                            "To be able to export it, you need to provide function type for `"
                                 ++ name
-                                ++ " function in module "
+                                ++ "` function in module "
                                 ++ toString c.mod
                        else
                         case body of
@@ -282,6 +281,7 @@ elixirDoc c doctype content =
                         |> String.lines
                         |> map (maybeDoctest c)
                         |> map (Helpers.escape)
+                        |> map (Regex.replace All (regex "\"\"\"") (always "\\\"\\\"\\\""))
                         -- |> map trimIndentations
                         |> String.join (ind c.indent)
                     -- Drop an unnecessary \n at the end
@@ -324,10 +324,10 @@ subsetExport exp =
             if isCustomOperator name then
                 [ "{:'" ++ translateOperator name ++ "', 0}" ]
             else
-                [ "{:'" ++ name ++ "', 0}" ]
+                [ "{:'" ++ toSnakeCase True name ++ "', 0}" ]
 
         _ ->
-            crash ("You can't export " ++ toString exp)
+            Debug.crash ("You can't export " ++ toString exp)
 
 
 maybeDoctest : Context -> String -> String

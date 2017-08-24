@@ -20,5 +20,4 @@ erl_crash.dump
 *.ez
 
 elm-deps
-elm-package.json
 elm-stuff

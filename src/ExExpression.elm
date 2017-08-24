@@ -84,38 +84,37 @@ elixirControlFlow c e =
 
         Let variables expression ->
             variables
-                |> foldl
-                    (\( var, exp ) ( cAcc, codeAcc ) ->
-                        (case applicationToList var of
-                            [ (Variable [ name ]) as var ] ->
-                                rememberVariables [ var ] cAcc
-                                    => toSnakeCase True name
-                                    ++ " = "
-                                    ++ elixirE (cAcc |> rememberVariables [ var ]) exp
+                |> (flip foldl ( c, "" ) <|
+                        \( var, exp ) ( cAcc, codeAcc ) ->
+                            (case applicationToList var of
+                                [ (Variable [ name ]) as var ] ->
+                                    rememberVariables [ var ] cAcc
+                                        => toSnakeCase True name
+                                        ++ " = "
+                                        ++ elixirE (cAcc |> rememberVariables [ var ]) exp
 
-                            ((Variable [ name ]) as var) :: args ->
-                                rememberVariables [ var ] cAcc
-                                    => toSnakeCase True name
-                                    ++ " = "
-                                    ++ produceLambda (cAcc |> rememberVariables [ var ]) args exp
+                                ((Variable [ name ]) as var) :: args ->
+                                    rememberVariables [ var ] cAcc
+                                        => toSnakeCase True name
+                                        ++ " = "
+                                        ++ produceLambda (cAcc |> rememberVariables [ var ]) args exp
 
-                            [ assign ] ->
-                                rememberVariables [ assign ] cAcc
-                                    => elixirE (inArgs cAcc) assign
-                                    ++ " = "
-                                    ++ elixirE cAcc exp
+                                [ assign ] ->
+                                    rememberVariables [ assign ] cAcc
+                                        => elixirE (inArgs cAcc) assign
+                                        ++ " = "
+                                        ++ elixirE cAcc exp
 
-                            _ ->
-                                Debug.crash "Impossible"
-                        )
-                            |> (\( c, string ) ->
-                                    mergeVariables c cAcc
-                                        => codeAcc
-                                        ++ string
-                                        ++ (ind c.indent)
-                               )
-                    )
-                    ( c, "" )
+                                _ ->
+                                    Debug.crash "Impossible"
+                            )
+                                |> (\( c, string ) ->
+                                        mergeVariables c cAcc
+                                            => codeAcc
+                                            ++ string
+                                            ++ (ind c.indent)
+                                   )
+                   )
                 |> (\( c, code ) -> code ++ (elixirE c expression))
 
         _ ->
@@ -162,7 +161,7 @@ elixirTypeInstances c e =
                     "?" ++ String.fromChar other
 
         String value ->
-            unescape (toString value)
+            "\"" ++ value ++ "\""
 
         List vars ->
             "["
@@ -328,47 +327,46 @@ getAlias c name rest =
 getType : Context -> String -> List Expression -> Maybe String
 getType c name rest =
     ExContext.getType c.mod name c
-        |> Maybe.map
-            (\{ arity } ->
-                let
-                    len =
-                        length rest
+        |> (Maybe.map <|
+                \{ arity } ->
+                    let
+                        len =
+                            length rest
 
-                    dif =
-                        arity - len
+                        dif =
+                            arity - len
 
-                    arguments =
-                        generateArguments dif
+                        arguments =
+                            generateArguments dif
 
-                    varArgs =
-                        map (singleton >> Variable) arguments
-                in
-                    if arity == 0 then
-                        atomize name
-                    else if dif >= 0 then
-                        (arguments
-                            |> map ((++) " fn ")
-                            |> map (flip (++) " ->")
-                            |> String.join ""
-                        )
-                            ++ (" {"
-                                    ++ atomize name
-                                    ++ ", "
-                                    ++ (map (rememberVariables (rest ++ varArgs) c |> elixirE) (rest ++ varArgs)
-                                            |> String.join ", "
-                                       )
-                                    ++ "}"
-                               )
-                            |> flip (++) (String.repeat dif " end ")
-                    else
-                        Debug.crash <|
-                            "Expected "
-                                ++ toString arity
-                                ++ " arguments for '"
-                                ++ name
-                                ++ "'. Got: "
-                                ++ toString (length rest)
-            )
+                        varArgs =
+                            map (singleton >> Variable) arguments
+                    in
+                        if arity == 0 then
+                            atomize name
+                        else if dif >= 0 then
+                            (arguments
+                                |> map ((++) " fn ")
+                                |> map (flip (++) " ->")
+                                |> String.join ""
+                            )
+                                ++ " {"
+                                ++ atomize name
+                                ++ ", "
+                                ++ (map (rememberVariables (rest ++ varArgs) c |> elixirE) (rest ++ varArgs)
+                                        |> String.join ", "
+                                   )
+                                ++ "}"
+                                |> flip (++) (String.repeat dif " end ")
+                        else
+                            Debug.crash <|
+                                "Expected "
+                                    ++ toString arity
+                                    ++ " arguments for '"
+                                    ++ name
+                                    ++ "'. Got: "
+                                    ++ toString (length rest)
+           )
 
 
 isTuple : Expression -> Bool

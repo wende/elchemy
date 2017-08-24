@@ -323,16 +323,17 @@ constructApplication list =
 aliasOr : Context -> String -> List Type -> String -> String
 aliasOr c name args default =
     ExContext.getAlias c.mod name c
-        |> Maybe.map
-            (\{ parentModule, getTypeBody, aliasType } ->
-                if parentModule == c.mod then
-                    elixirTNoFlat c (getTypeBody args)
-                else
-                    case aliasType of
-                        ExContext.Type ->
-                            parentModule ++ "." ++ elixirTNoFlat c (getTypeBody args)
+        |> (Maybe.map <|
+                \{ parentModule, getTypeBody, aliasType } ->
+                    if parentModule == c.mod then
+                        elixirTNoFlat c (getTypeBody args)
+                    else
+                        case aliasType of
+                            ExContext.Type ->
+                                parentModule ++ "." ++ elixirTNoFlat c (getTypeBody args)
 
-                        ExContext.TypeAlias ->
-                            elixirTNoFlat c (getTypeBody args)
-            )
+                            ExContext.TypeAlias ->
+                                getTypeBody args
+                                    |> elixirTNoFlat { c | mod = parentModule }
+           )
         |> Maybe.withDefault default

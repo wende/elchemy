@@ -68,27 +68,33 @@ genElixirFunc c elixirE name args missingArgs body =
                 missing =
                     generateArguments missingArgs
 
+                wrapIfMiss s =
+                    if List.length missing > 0 then
+                        s
+                    else
+                        ""
+
                 missingVarargs =
                     List.map (List.singleton >> Variable) missing
             in
-                [ (ind c.indent)
+                [ ind c.indent
                 , "def"
                 , privateOrPublic c name
                 , " "
                 , toSnakeCase True name
                 , "("
-                , (args
+                , args
                     ++ missingVarargs
                     |> List.map (c |> inArgs |> elixirE)
                     |> String.join ", "
-                  )
                 , ") do"
-                , (ind <| c.indent + 1)
+                , ind <| c.indent + 1
+                , wrapIfMiss "("
                 , elixirE (indent c |> rememberVariables (args ++ missingVarargs)) body
-                , (missing
+                , wrapIfMiss ")"
+                , missing
                     |> List.map (\a -> ".(" ++ a ++ ")")
                     |> String.join ""
-                  )
                 , ind c.indent
                 , "end"
                 ]

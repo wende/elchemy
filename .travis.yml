@@ -1,4 +1,5 @@
-sudo: false
+dist: trusty
+sudo: required
 language: elixir
 elixir:
     - 1.4.2
@@ -11,6 +12,8 @@ cache:
     - sysconfcpus
 
 before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install moreutils -y
   - if [ ${TRAVIS_OS_NAME} == "osx" ];
     then brew update; brew install nvm; mkdir ~/.nvm; export NVM_DIR=~/.nvm; source $(brew --prefix nvm)/nvm.sh;
     fi
@@ -26,8 +29,8 @@ before_install:
     fi
 
 install:
-  - nvm install stable
-  - nvm use stable
+  - nvm install 6.11.2
+  - nvm use 6.11.2
   - node --version
   - npm --version
   - npm install -g elm elm-test@0.18.0
@@ -46,6 +49,7 @@ install:
 
 script:
   - elm-test && make test-std
+  - make compile-elixir
 
 notifications:
   email: false

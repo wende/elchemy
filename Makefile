@@ -51,5 +51,5 @@ install-sysconf:
 
 compile-elixir:
 	make compile
-	time ( ./elchemy compile src/ elchemy_ex/lib/ )
+	cd elchemy_ex && ../elchemy compile ../src/ lib/ | ts %H:%M:%.S
 	cd elchemy_ex && mix compile

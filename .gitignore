@@ -9,3 +9,5 @@ example/elm.js
 *.orig
 elixir-stuff/
 elchemy_ex/lib/*
+*un~
+elchemy-*.ez
