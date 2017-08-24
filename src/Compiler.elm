@@ -26,9 +26,7 @@ version =
 
 glueStart : String
 glueStart =
-    (ind 0)
-        ++ "use Elchemy"
-        ++ "\n"
+    (ind 0) ++ "use Elchemy" ++ "\n"
 
 
 glueEnd : String
