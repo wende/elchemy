@@ -17928,7 +17928,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elchemy', '\n'));
-var _user$project$Compiler$version = '0.4.34';
+var _user$project$Compiler$version = '0.4.35';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		return A2(
