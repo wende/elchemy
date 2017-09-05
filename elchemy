@@ -88,7 +88,7 @@ case "$1" in
                 current_file="${line/\/\///}"
                 current_file="${current_file/>>>>/}"
                 echo "Linking: $current_file"
-                current_file="${current_file/$2/$3}"
+                current_file="${current_file/$2\//$3\/}"
                 current_file="${current_file%%.elm}.elchemy.ex"
                 current_file=$(create_file $current_file)
                 echo "To: $current_file"
