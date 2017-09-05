@@ -1,5 +1,7 @@
 #!/bin/bash
 
+version="0.4.35"
+
 function create_file {
     local file=$1
     if [[ ${file} == *"elm-stuff/packages"* ]]; then
@@ -19,6 +21,9 @@ done
 SOURCE_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 case "$1" in
+    version)
+        echo "Elchemy $version"
+        ;;
     clean)
       rm -rf ./elm-deps
       rm -rf ./elm-stuff
@@ -32,12 +37,13 @@ case "$1" in
     init)
         if [ -a ./mix.exs ]
         then
-            mix archive.install https://github.com/wende/elchemy/releases/download/0.4.35/elchemy-0.4.35.ez
+
+            mix archive.install "https://github.com/wende/elchemy/releases/download/$version/elchemy-$version.ez"
             mkdir -p elm
             cp $SOURCE_DIR/templates/elm-package.json ./
             cp $SOURCE_DIR/templates/Hello.elm ./elm/
             cp $SOURCE_DIR/templates/elchemy_test.exs ./test/
-            printf  "Elchemy initialised. Make sure to add:\n\n\tcompilers: [:elchemy, :yecc, :leex, :erlang, :elixir, :app],\n\telixirc_paths: [\"lib\", \"elm-deps\"],\n\telchemy_path: \"elm\",\n\nto your mix.exs file\nThen run mix test to check if everything went fine\n"
+            printf  "Elchemy $version initialised. Make sure to add:\n\n\tcompilers: [:elchemy, :yecc, :leex, :erlang, :elixir, :app],\n\telixirc_paths: [\"lib\", \"elm-deps\"],\n\telchemy_path: \"elm\",\n\nto your mix.exs file\nThen run mix test to check if everything went fine\n"
             printf "\nelm-deps" >> .gitignore
             printf "\nelm-package.json" >> .gitignore
             printf "\nelm-stuff" >> .gitignore
