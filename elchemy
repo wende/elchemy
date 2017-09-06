@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version="0.4.36"
+version="0.4.37"
 
 function create_file {
     local file=$1
@@ -57,7 +57,7 @@ case "$1" in
         if ! [[ $* == *--unsafe* ]]; then
             if ! hash elm-github-install 2>/dev/null; then
                 echo "No elm-github-install found. Installing..."
-                npm i -g elm-github-install@1.2.0
+                npm i -g elm-github-install@0.4.37
             fi
             elm-install
         fi
