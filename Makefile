@@ -30,7 +30,7 @@ test-std:
 compile-std:
 	make compile
 	rm -rf elchemy-core/lib/Elchemy/*
-	cd elchemy-core && ../elchemy compile elm/ lib/
+	cd elchemy-core && ../elchemy compile elm lib
 
 compile-std-watch:
 	find elchemy-core -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr make compile-std
@@ -51,4 +51,4 @@ install-sysconf:
 
 compile-elixir:
 	make compile
-	cd elchemy_ex && ../elchemy compile ../src/ lib/ | ts %H:%M:%.S
+	cd elchemy_ex && ../elchemy compile ../src lib | ts %H:%M:%.S
