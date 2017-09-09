@@ -1,10 +1,10 @@
 module ExExpression exposing (elixirE)
 
 import ExType
-import Helpers
 import ExOperator
 import ExVariable exposing (rememberVariables)
 import Ast.Expression exposing (Expression(..))
+import Helpers
     exposing
         ( toSnakeCase
         , modulePath

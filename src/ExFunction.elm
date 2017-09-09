@@ -7,10 +7,10 @@ module ExFunction
         )
 
 import Dict
-import Helpers
 import ExVariable exposing (rememberVariables)
 import Ast.Expression exposing (Expression(..))
 import ExContext exposing (Context, Parser, inArgs, indent)
+import Helpers
     exposing
         ( operatorType
         , translateOperator

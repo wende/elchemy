@@ -1,9 +1,9 @@
 module ExType exposing (typeAliasConstructor, typespec, uniontype)
 
-import Helpers
 import Ast.Statement exposing (Type(..))
 import ExContext exposing (Context, indent)
 import Ast.Expression exposing (Expression(..))
+import Helpers
     exposing
         ( typeApplicationToList
         , toSnakeCase
