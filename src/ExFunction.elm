@@ -1,12 +1,54 @@
-module ExFunction exposing (..)
+module ExFunction
+    exposing
+        ( privateOrPublic
+        , functionCurry
+        , genFunctionDefinition
+        , genOverloadedFunctionDefinition
+        )
 
-import Ast.Expression exposing (..)
-import ExContext exposing (Context, Parser, inArgs, indent)
 import Dict
-import Helpers exposing (..)
 import ExVariable exposing (rememberVariables)
+import Ast.Expression exposing (Expression(..))
+import ExContext exposing (Context, Parser, inArgs, indent)
+import Helpers
+    exposing
+        ( operatorType
+        , translateOperator
+        , ind
+        , Operator(..)
+        , isCustomOperator
+        , generateArguments
+        , toSnakeCase
+        )
 
 
+{-| Encodes a function defintion with all decorations like curry and type spec
+-}
+genFunctionDefinition :
+    Context
+    -> Parser
+    -> String
+    -> List Expression
+    -> Expression
+    -> String
+genFunctionDefinition c elixirE name args body =
+    let
+        typeDef =
+            c.definitions |> Dict.get name
+
+        arity =
+            typeDef |> Maybe.map .arity |> Maybe.withDefault 0
+    in
+        if ExContext.hasFlag "nodef" name c then
+            functionCurry c elixirE name arity
+        else
+            functionCurry c elixirE name arity
+                ++ genElixirFunc c elixirE name args (arity - List.length args) body
+                ++ "\n"
+
+
+{-| Encodes a function defintion based on given params
+-}
 genElixirFunc :
     Context
     -> Parser
@@ -101,6 +143,8 @@ genElixirFunc c elixirE name args missingArgs body =
                     |> String.join ""
 
 
+{-| Returns "p" if a function is private. Else returns empty string
+-}
 privateOrPublic : Context -> String -> String
 privateOrPublic context name =
     if ExContext.isPrivate context name then
@@ -109,6 +153,8 @@ privateOrPublic context name =
         ""
 
 
+{-| Encodes a curry macro for the function
+-}
 functionCurry : Context -> Parser -> String -> Int -> String
 functionCurry c elixirE name arity =
     case ( arity, ExContext.hasFlag "nocurry" name c ) of
@@ -137,29 +183,8 @@ functionCurry c elixirE name arity =
                     |> String.join ""
 
 
-genFunctionDefinition :
-    Context
-    -> Parser
-    -> String
-    -> List Expression
-    -> Expression
-    -> String
-genFunctionDefinition c elixirE name args body =
-    let
-        typeDef =
-            c.definitions |> Dict.get name
-
-        arity =
-            typeDef |> Maybe.map .arity |> Maybe.withDefault 0
-    in
-        if ExContext.hasFlag "nodef" name c then
-            functionCurry c elixirE name arity
-        else
-            functionCurry c elixirE name arity
-                ++ genElixirFunc c elixirE name args (arity - List.length args) body
-                ++ "\n"
-
-
+{-| Generates an overloaded function defintion when body is matched on case
+-}
 genOverloadedFunctionDefinition :
     Context
     -> Parser
@@ -188,20 +213,3 @@ genOverloadedFunctionDefinition c elixirE name args body expressions =
                         |> List.foldr (++) ""
                         |> flip (++) "\n"
                    )
-
-
-combineComas : Context -> Parser -> Expression -> String
-combineComas c elixirE e =
-    flattenCommas e
-        |> List.map (elixirE c)
-        |> String.join ", "
-
-
-flattenCommas : Expression -> List Expression
-flattenCommas e =
-    case e of
-        Tuple kvs ->
-            kvs
-
-        a ->
-            [ a ]

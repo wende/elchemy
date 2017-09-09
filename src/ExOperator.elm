@@ -1,10 +1,12 @@
-module ExOperator exposing (..)
+module ExOperator exposing (elixirBinop)
 
-import Ast.Expression exposing (Expression(..))
 import ExContext exposing (Context, Parser)
-import Helpers exposing (..)
+import Ast.Expression exposing (Expression(..))
+import Helpers exposing (ind, operatorType, Operator(..), translateOperator)
 
 
+{-| Encode binary operator inlcuding the researved ones
+-}
 elixirBinop : Context -> Parser -> String -> Expression -> Expression -> String
 elixirBinop c elixirE op l r =
     case op of
@@ -57,6 +59,8 @@ elixirBinop c elixirE op l r =
                     Debug.crash ("Illegal operator " ++ op)
 
 
+{-| Flattens pipes into a list of expressions
+-}
 flattenPipes : Expression -> List Expression
 flattenPipes e =
     case e of
