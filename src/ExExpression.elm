@@ -96,7 +96,9 @@ elixirControlFlow c e =
                                 ((Variable [ name ]) as var) :: args ->
                                     rememberVariables [ var ] cAcc
                                         => toSnakeCase True name
-                                        ++ " = "
+                                        ++ " = rec "
+                                        ++ name
+                                        ++ ", "
                                         ++ produceLambda (cAcc |> rememberVariables [ var ]) args exp
 
                                 [ assign ] ->

@@ -84,6 +84,9 @@ functions =
         , test "function calls are snakecased" <|
             \() ->
                 "a = camelCase 1" |> has "camel_case().(1)"
+        , test "Can call function recursively" <|
+            \() ->
+                "a = let f a = f (a - 1) in f" |> has "f = rec f, fn(a) ->"
         ]
 
 
