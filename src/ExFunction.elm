@@ -188,20 +188,3 @@ genOverloadedFunctionDefinition c elixirE name args body expressions =
                         |> List.foldr (++) ""
                         |> flip (++) "\n"
                    )
-
-
-combineComas : Context -> Parser -> Expression -> String
-combineComas c elixirE e =
-    flattenCommas e
-        |> List.map (elixirE c)
-        |> String.join ", "
-
-
-flattenCommas : Expression -> List Expression
-flattenCommas e =
-    case e of
-        Tuple kvs ->
-            kvs
-
-        a ->
-            [ a ]

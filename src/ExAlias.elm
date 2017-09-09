@@ -1,8 +1,7 @@
-module ExAlias exposing (..)
+module ExAlias exposing (getAliases)
 
 import Helpers exposing ((=>))
-import List exposing (..)
-import Ast.Statement exposing (..)
+import Ast.Statement exposing (Statement(..), Type(..))
 import Dict exposing (Dict)
 import ExContext
     exposing
@@ -16,7 +15,7 @@ import ExContext
 
 getAliases : Context -> List Statement -> Context
 getAliases c list =
-    foldl registerAlias c list
+    List.foldl registerAlias c list
 
 
 registerAlias : Statement -> Context -> Context
@@ -38,7 +37,7 @@ registerTypeAlias c tc t =
         TypeConstructor [ name ] arguments ->
             let
                 arity =
-                    length arguments
+                    List.length arguments
 
                 typeBody =
                     replaceAliasArgs name arguments t
@@ -64,7 +63,7 @@ registerUnionType c tc types =
                     always typeVar
 
                 arity =
-                    length arguments
+                    List.length arguments
 
                 ( names, newC ) =
                     registerTypes types c
@@ -87,7 +86,7 @@ registerTypes types c =
                     (name :: names)
                         => ExContext.addType c.mod
                             name
-                            (length args)
+                            (List.length args)
                             context
 
                 any ->
@@ -101,10 +100,10 @@ replaceAliasArgs name expectedArgs return =
     (\givenArgs ->
         let
             arity =
-                length givenArgs
+                List.length givenArgs
 
             expected =
-                length expectedArgs
+                List.length expectedArgs
         in
             if arity == expected then
                 resolveTypes expectedArgs givenArgs return
@@ -128,8 +127,8 @@ resolveTypes expected given return =
                             ++ "is incorrect"
 
         paramsWithResolution =
-            map2 (,) (map expectedName expected) given
-                |> foldl (uncurry Dict.insert) Dict.empty
+            List.map2 (,) (List.map expectedName expected) given
+                |> List.foldl (uncurry Dict.insert) Dict.empty
 
         replace t =
             case t of
@@ -138,20 +137,24 @@ resolveTypes expected given return =
                         |> Maybe.withDefault default
 
                 TypeConstructor names args ->
-                    TypeConstructor names (map replace args)
+                    TypeConstructor names (List.map replace args)
 
                 TypeRecordConstructor name args ->
-                    TypeRecordConstructor (replace name) (map (Tuple.mapSecond replace) args)
+                    args
+                        |> List.map (Tuple.mapSecond replace)
+                        |> TypeRecordConstructor (replace name)
 
                 -- AST eror workaround
                 TypeTuple [ arg ] ->
                     replace arg
 
                 TypeTuple args ->
-                    TypeTuple (map replace args)
+                    TypeTuple (List.map replace args)
 
                 TypeRecord args ->
-                    TypeRecord (map (Tuple.mapSecond replace) args)
+                    args
+                        |> List.map (Tuple.mapSecond replace)
+                        |> TypeRecord
 
                 TypeApplication l r ->
                     TypeApplication (replace l) (replace r)

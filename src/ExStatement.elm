@@ -158,8 +158,8 @@ elixirS c s =
                             (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
                                 genFfi app
 
-                            Case vars expressions ->
-                                if ExFunction.flattenCommas vars == args then
+                            Case (Tuple vars) expressions ->
+                                if vars == args then
                                     ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
                                 else
                                     ExFunction.genFunctionDefinition c ExExpression.elixirE name args body

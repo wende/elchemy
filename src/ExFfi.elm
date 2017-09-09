@@ -1,11 +1,18 @@
-module ExFfi exposing (..)
+module ExFfi exposing (generateFfi)
 
 import Ast.Statement exposing (Type)
-import Ast.Expression exposing (..)
+import Ast.Expression exposing (Expression(..))
 import ExContext exposing (Context, Parser, onlyWithoutFlag)
 import Dict
-import Helpers exposing (..)
-import ExFunction exposing (..)
+import Helpers
+    exposing
+        ( applicationToList
+        , generateArguments
+        , generateArguments_
+        , ind
+        , toSnakeCase
+        )
+import ExFunction
 import ExVariable exposing (rememberVariables)
 
 
@@ -39,7 +46,7 @@ generateFfi c elixirE name argTypes e =
                     arguments =
                         generateArguments_ "a" def.arity
                 in
-                    functionCurry c elixirE name def.arity
+                    ExFunction.functionCurry c elixirE name def.arity
                         ++ (onlyWithoutFlag c "noverify" name <|
                                 ind c.indent
                                     ++ "verify as: "
@@ -51,7 +58,7 @@ generateFfi c elixirE name argTypes e =
                            )
                         ++ ind c.indent
                         ++ "def"
-                        ++ privateOrPublic c name
+                        ++ ExFunction.privateOrPublic c name
                         ++ " "
                         ++ toSnakeCase True name
                         ++ "("
@@ -70,10 +77,10 @@ generateFfi c elixirE name argTypes e =
                     arguments =
                         generateArguments_ "a" def.arity
                 in
-                    functionCurry c elixirE name def.arity
+                    ExFunction.functionCurry c elixirE name def.arity
                         ++ ind c.indent
                         ++ "def"
-                        ++ privateOrPublic c name
+                        ++ ExFunction.privateOrPublic c name
                         ++ " "
                         ++ toSnakeCase True name
                         ++ "("
@@ -137,59 +144,65 @@ type Ffi
     | Flambda Int Expression
 
 
+{-| encodes an ffi based on context and a parser
+-}
 resolveFfi : Context -> Parser -> Ffi -> String
 resolveFfi c elixirE ffi =
-    case ffi of
-        TryFfi (String mod) (String fun) ((Tuple _) as args) ->
-            "try_catch fn _ -> "
-                ++ mod
-                ++ "."
-                ++ fun
-                ++ "("
-                ++ combineComas c elixirE args
-                ++ ")"
-                ++ " end"
-
-        -- One or many arg fun
-        TryFfi (String mod) (String fun) any ->
-            "try_catch fn _ -> "
-                ++ mod
-                ++ "."
-                ++ fun
-                ++ "("
-                ++ elixirE c any
-                ++ ")"
-                ++ " end"
-
-        -- Elchemy hack
-        Ffi (String mod) (String fun) ((Tuple _) as args) ->
-            mod ++ "." ++ fun ++ "(" ++ combineComas c elixirE args ++ ")"
-
-        -- One or many arg fun
-        Ffi (String mod) (String fun) any ->
-            mod ++ "." ++ fun ++ "(" ++ elixirE c any ++ ")"
-
-        -- Elchemy hack
-        Lffi (String fun) ((Tuple _) as args) ->
-            fun ++ "(" ++ combineComas c elixirE args ++ ")"
-
-        -- One arg fun
-        Lffi (String fun) any ->
-            fun ++ "(" ++ elixirE c any ++ ")"
-
-        Flambda arity fun ->
-            let
-                args =
-                    generateArguments arity
-            in
-                "fn ("
-                    ++ String.join "," args
-                    ++ ") -> "
-                    ++ elixirE c fun
-                    ++ (List.map (\a -> ".(" ++ a ++ ")") args
-                            |> String.join ""
-                       )
+    let
+        combineComas args =
+            (args |> List.map (elixirE c) |> String.join ",")
+    in
+        case ffi of
+            TryFfi (String mod) (String fun) (Tuple args) ->
+                "try_catch fn _ -> "
+                    ++ mod
+                    ++ "."
+                    ++ fun
+                    ++ "("
+                    ++ combineComas args
+                    ++ ")"
                     ++ " end"
 
-        _ ->
-            Debug.crash "Wrong ffi call"
+            -- One or many arg fun
+            TryFfi (String mod) (String fun) any ->
+                "try_catch fn _ -> "
+                    ++ mod
+                    ++ "."
+                    ++ fun
+                    ++ "("
+                    ++ elixirE c any
+                    ++ ")"
+                    ++ " end"
+
+            -- Elchemy hack
+            Ffi (String mod) (String fun) (Tuple args) ->
+                mod ++ "." ++ fun ++ "(" ++ combineComas args ++ ")"
+
+            -- One or many arg fun
+            Ffi (String mod) (String fun) any ->
+                mod ++ "." ++ fun ++ "(" ++ elixirE c any ++ ")"
+
+            -- Elchemy hack
+            Lffi (String fun) (Tuple args) ->
+                fun ++ "(" ++ combineComas args ++ ")"
+
+            -- One arg fun
+            Lffi (String fun) any ->
+                fun ++ "(" ++ elixirE c any ++ ")"
+
+            Flambda arity fun ->
+                let
+                    args =
+                        generateArguments arity
+                in
+                    "fn ("
+                        ++ String.join "," args
+                        ++ ") -> "
+                        ++ elixirE c fun
+                        ++ (List.map (\a -> ".(" ++ a ++ ")") args
+                                |> String.join ""
+                           )
+                        ++ " end"
+
+            _ ->
+                Debug.crash "Wrong ffi call"
