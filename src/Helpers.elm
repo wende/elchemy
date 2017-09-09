@@ -1,11 +1,10 @@
 module Helpers exposing (..)
 
 import Char
-import Tuple exposing (..)
-import List exposing (..)
-import Regex exposing (..)
 import Dict exposing (Dict)
-import Ast.Expression exposing (..)
+import Ast.Statement exposing (Type(..))
+import Ast.Expression exposing (Expression(..))
+import Regex exposing (Regex(..), HowMany(..), regex)
 
 
 type MaybeUpper
@@ -13,6 +12,8 @@ type MaybeUpper
     | Lower String
 
 
+{-| Throw a nice error saying that this feature is not implemented yet
+-}
 notImplemented : String -> a -> String
 notImplemented feature value =
     " ## ERROR: No "
@@ -24,6 +25,8 @@ notImplemented feature value =
         |> Debug.crash
 
 
+{-| Convert string to snakecase, if the flag is set to true then it won't replace reserved words
+-}
 toSnakeCase : Bool -> String -> String
 toSnakeCase isntAtom s =
     let
@@ -42,20 +45,10 @@ toSnakeCase isntAtom s =
                 |> String.toLower
 
 
-isUpper : String -> Bool
-isUpper string =
-    case String.uncons string of
-        Just ( start, rest ) ->
-            Char.isUpper start
-
-        Nothing ->
-            False
-
-
 capitalize : String -> String
 capitalize s =
     String.uncons s
-        |> Maybe.map (\a -> String.cons (Char.toUpper (first a)) (second a))
+        |> Maybe.map (Tuple.mapFirst Char.toUpper >> uncurry String.cons)
         |> Maybe.withDefault ""
 
 
@@ -64,10 +57,12 @@ atomize s =
     ":" ++ toSnakeCase False s
 
 
+{-| Returns if string start with uppercase
+-}
 isCapitilzed : String -> Bool
 isCapitilzed s =
     String.uncons s
-        |> Maybe.map (\a -> a |> first |> Char.isUpper)
+        |> Maybe.map (Tuple.first >> Char.isUpper)
         |> Maybe.withDefault False
 
 
@@ -84,7 +79,7 @@ ind i =
 prependAll : String -> String -> String
 prependAll with target =
     String.lines target
-        |> map
+        |> List.map
             (\line ->
                 if String.trim line == "" then
                     line
@@ -226,8 +221,8 @@ generateArguments =
 generateArguments_ : String -> Int -> List String
 generateArguments_ str n =
     List.range 1 n
-        |> map toString
-        |> map ((++) str)
+        |> List.map toString
+        |> List.map ((++) str)
 
 
 escape : String -> String
@@ -244,14 +239,14 @@ modulePath : List String -> String
 modulePath list =
     let
         snakeIfLower a =
-            if isUpper a then
+            if isCapitilzed a then
                 a
             else
                 toSnakeCase True a
     in
         list
-            |> map snakeIfLower
-            |> map maybeReplaceStd
+            |> List.map snakeIfLower
+            |> List.map maybeReplaceStd
             |> String.join "."
 
 
@@ -316,16 +311,6 @@ replaceReserved a =
         a
 
 
-maybeOr : Maybe a -> Maybe a -> Maybe a
-maybeOr m1 m2 =
-    case m1 of
-        Just a ->
-            m1
-
-        Nothing ->
-            m2
-
-
 {-| Gives a String representation of module path
 -}
 modulePathName : List String -> String
@@ -333,6 +318,8 @@ modulePathName =
     String.join "."
 
 
+{-| Change application into a list of expressions
+-}
 applicationToList : Expression -> List Expression
 applicationToList application =
     case application of
@@ -343,9 +330,74 @@ applicationToList application =
             [ other ]
 
 
+{-| Change type application into a list of expressions
+-}
+typeApplicationToList : Type -> List Type
+typeApplicationToList application =
+    case application of
+        TypeApplication left right ->
+            left :: typeApplicationToList right
+
+        other ->
+            [ other ]
+
+
+{-| Construct application, rever of applicationToList function
+-}
+constructApplication : List String -> List Expression
+constructApplication list =
+    case list of
+        [] ->
+            Debug.crash "Wrong application"
+
+        [ one ] ->
+            [ Variable [ one ] ]
+
+        head :: tail ->
+            [ List.foldl (\a acc -> Application acc (Variable [ a ])) (Variable [ head ]) tail ]
+
+
 {-| Nicer syntax for tuples
 -}
 (=>) : a -> b -> ( a, b )
 (=>) =
     (,)
 infixr 0 =>
+
+
+{-| Take left maybe, or right maybe if Nothing
+-}
+maybeOr : Maybe a -> Maybe a -> Maybe a
+maybeOr m1 m2 =
+    case m1 of
+        Just a ->
+            m1
+
+        Nothing ->
+            m2
+
+
+{-| Filter Maybe based on a predicate
+-}
+filterMaybe : (a -> Bool) -> Maybe a -> Maybe a
+filterMaybe f m =
+    flip Maybe.andThen m <|
+        (\a ->
+            if f a then
+                Just a
+            else
+                Nothing
+        )
+
+
+{-| Finds a value in a list
+-}
+findInList : (a -> Bool) -> List a -> Maybe a
+findInList f =
+    flip List.foldl Nothing <|
+        (\a acc ->
+            if f a then
+                Just a
+            else
+                acc
+        )

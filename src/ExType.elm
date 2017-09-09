@@ -1,54 +1,21 @@
-module ExType exposing (..)
+module ExType exposing (typeAliasConstructor, typespec, uniontype)
 
-import Ast.Statement exposing (..)
-import Ast.Expression exposing (..)
-import Helpers exposing (..)
-import List exposing (..)
+import Ast.Statement exposing (Type(..))
 import ExContext exposing (Context, indent)
-
-
-flattenTypeApplication : Type -> List Type
-flattenTypeApplication application =
-    case application of
-        TypeApplication left right ->
-            left :: flattenTypeApplication right
-
-        other ->
-            [ other ]
-
-
-elixirTFlat : Context -> Type -> String
-elixirTFlat =
-    elixirT True
-
-
-elixirTNoFlat : Context -> Type -> String
-elixirTNoFlat =
-    elixirT False
-
-
-find : (a -> Bool) -> List a -> Maybe a
-find f =
-    flip foldl Nothing <|
-        (\a acc ->
-            if f a then
-                Just a
-            else
-                acc
+import Ast.Expression exposing (Expression(..))
+import Helpers
+    exposing
+        ( typeApplicationToList
+        , toSnakeCase
+        , lastAndRest
+        , filterMaybe
+        , ind
+        , atomize
         )
 
 
-filterMaybe : (a -> Bool) -> Maybe a -> Maybe a
-filterMaybe f m =
-    flip Maybe.andThen m <|
-        (\a ->
-            if f a then
-                Just a
-            else
-                Nothing
-        )
-
-
+{-| Enocde any elm type
+-}
 elixirT : Bool -> Context -> Type -> String
 elixirT flatten c t =
     case t of
@@ -60,7 +27,7 @@ elixirT flatten c t =
 
         TypeTuple ((a :: rest) as list) ->
             "{"
-                ++ (map (elixirT flatten c) list |> String.join ", ")
+                ++ (List.map (elixirT flatten c) list |> String.join ", ")
                 ++ "}"
 
         TypeVariable "number" ->
@@ -75,7 +42,7 @@ elixirT flatten c t =
                     "any"
 
         TypeConstructor [ t ] any ->
-            elixirTypeConstructor flatten c t any
+            elixirType flatten c t any
 
         TypeConstructor t args ->
             case lastAndRest t of
@@ -97,7 +64,7 @@ elixirT flatten c t =
             "%{"
                 ++ ind (c.indent + 1)
                 ++ (fields
-                        |> map (\( k, v ) -> k ++ ": " ++ elixirT flatten (indent c) v)
+                        |> List.map (\( k, v ) -> k ++ ": " ++ elixirT flatten (indent c) v)
                         |> String.join ("," ++ ind (c.indent + 1))
                    )
                 ++ ind (c.indent)
@@ -114,15 +81,20 @@ elixirT flatten c t =
 
         TypeApplication l r ->
             if flatten then
-                "("
-                    ++ (flattenTypeApplication r
-                            |> lastAndRest
-                            |> \( last, rest ) ->
-                                (map (elixirT flatten (indent c)) (l :: rest) |> String.join ", ")
-                                    ++ " -> "
-                                    ++ (Maybe.map (elixirT flatten c) last |> Maybe.withDefault "")
-                       )
-                    ++ ")"
+                typeApplicationToList r
+                    |> lastAndRest
+                    |> \( last, rest ) ->
+                        "("
+                            ++ ((l :: rest)
+                                    |> List.map (elixirT flatten (indent c))
+                                    |> String.join ", "
+                               )
+                            ++ " -> "
+                            ++ (last
+                                    |> Maybe.map (elixirT flatten c)
+                                    |> Maybe.withDefault ""
+                               )
+                            ++ ")"
             else
                 "("
                     ++ elixirT flatten c l
@@ -131,6 +103,22 @@ elixirT flatten c t =
                     ++ ")"
 
 
+{-| alias for elixirT with flatting of type application
+-}
+elixirTFlat : Context -> Type -> String
+elixirTFlat =
+    elixirT True
+
+
+{-| alias for elixirT without flatting of type application
+-}
+elixirTNoFlat : Context -> Type -> String
+elixirTNoFlat =
+    elixirT False
+
+
+{-| Return fieilds of type record as a list of string key value pairs
+-}
 typeRecordFields : Context -> Bool -> Type -> List String
 typeRecordFields c flatten t =
     let
@@ -145,31 +133,33 @@ typeRecordFields c flatten t =
                             |> Maybe.map (\{ getTypeBody } -> getTypeBody args)
                             |> Maybe.map (typeRecordFields c flatten)
                 in
-                    map keyValuePair fields
+                    List.map keyValuePair fields
                         ++ (Maybe.withDefault [ "" ] inherited)
 
             TypeRecordConstructor (TypeRecord inherited) fields ->
-                map keyValuePair <| fields ++ inherited
+                List.map keyValuePair <| fields ++ inherited
 
             TypeRecordConstructor (TypeVariable _) fields ->
-                map keyValuePair fields
+                List.map keyValuePair fields
 
             TypeRecordConstructor (TypeTuple [ a ]) fields ->
                 typeRecordFields c flatten (TypeRecordConstructor a fields)
 
             TypeRecordConstructor ((TypeRecordConstructor _ _) as tr) fields ->
-                map keyValuePair fields
+                List.map keyValuePair fields
                     ++ typeRecordFields c flatten tr
 
             (TypeRecord fields) as tr ->
-                map keyValuePair fields
+                List.map keyValuePair fields
 
             any ->
                 Debug.crash ("Wrong type record constructor " ++ toString any)
 
 
-elixirTypeConstructor : Bool -> Context -> String -> List Type -> String
-elixirTypeConstructor flatten c name args =
+{-| Translate and encode Elm type to Elixir type
+-}
+elixirType : Bool -> Context -> String -> List Type -> String
+elixirType flatten c name args =
     case ( name, args ) of
         ( "String", [] ) ->
             "String.t"
@@ -221,21 +211,25 @@ elixirTypeConstructor flatten c name args =
                 "{"
                     ++ atomize t
                     ++ ", "
-                    ++ (map (elixirT flatten c) list |> String.join ", ")
+                    ++ (List.map (elixirT flatten c) list |> String.join ", ")
                     ++ "}"
 
 
+{-| Enocde a typespec with 0 arity
+-}
 typespec0 : Context -> Type -> String
 typespec0 c t =
     "() :: " ++ elixirTNoFlat c t
 
 
+{-| Encode a typespec
+-}
 typespec : Context -> Type -> String
 typespec c t =
-    case lastAndRest (flattenTypeApplication t) of
+    case lastAndRest (typeApplicationToList t) of
         ( Just last, args ) ->
             "("
-                ++ (map (elixirTNoFlat c) args
+                ++ (List.map (elixirTNoFlat c) args
                         |> String.join ", "
                    )
                 ++ ") :: "
@@ -245,6 +239,8 @@ typespec c t =
             Debug.crash "impossible"
 
 
+{-| Encode a union type
+-}
 uniontype : Context -> Type -> String
 uniontype c t =
     case t of
@@ -255,15 +251,17 @@ uniontype c t =
             "{"
                 ++ atomize name
                 ++ ", "
-                ++ (map (elixirTNoFlat c) list |> String.join ", ")
+                ++ (List.map (elixirTNoFlat c) list |> String.join ", ")
                 ++ "}"
 
         other ->
             Debug.crash ("I am looking for union type constructor. But got " ++ toString other)
 
 
-typealiasConstructor : List a -> ExContext.Alias -> Maybe Expression
-typealiasConstructor args ({ parentModule, aliasType, arity, body, getTypeBody } as ali) =
+{-| Change a constructor of a type alias into an expression after resolving it from contextual alias
+-}
+typeAliasConstructor : List Expression -> ExContext.Alias -> Maybe Expression
+typeAliasConstructor args ({ parentModule, aliasType, arity, body, getTypeBody } as ali) =
     case ( aliasType, body ) of
         ( ExContext.Type, _ ) ->
             Nothing
@@ -273,22 +271,25 @@ typealiasConstructor args ({ parentModule, aliasType, arity, body, getTypeBody }
 
         ( _, TypeRecord kvs ) ->
             let
-                args =
+                params =
                     List.length kvs
+                        |> (+) (0 - List.length args)
                         |> List.range 1
                         |> List.map (toString >> (++) "arg")
+                        |> List.map (List.singleton >> Variable)
 
                 varargs =
                     kvs
-                        |> List.map2 (flip (,)) args
+                        |> List.map2 (flip (,)) (args ++ params)
                         |> List.map (Tuple.mapFirst Tuple.first)
-                        |> List.map (Tuple.mapSecond (singleton >> Variable))
             in
-                Just (Lambda (map (singleton >> Variable) args) (Record varargs))
+                Record varargs
+                    |> Lambda (params)
+                    |> Just
 
         -- Error in AST. Single TypeTuple are just paren app
         ( _, TypeTuple [ app ] ) ->
-            typealiasConstructor args { ali | getTypeBody = (\_ -> app) }
+            typeAliasConstructor args { ali | getTypeBody = (\_ -> app) }
 
         ( _, TypeTuple kvs ) ->
             let
@@ -296,7 +297,7 @@ typealiasConstructor args ({ parentModule, aliasType, arity, body, getTypeBody }
                     List.length kvs
                         |> List.range 1
                         |> List.map (toString >> (++) "arg")
-                        |> map (singleton >> Variable)
+                        |> List.map (List.singleton >> Variable)
             in
                 Just (Lambda (args) (Tuple args))
 
@@ -307,19 +308,8 @@ typealiasConstructor args ({ parentModule, aliasType, arity, body, getTypeBody }
             Nothing
 
 
-constructApplication : List String -> List Expression
-constructApplication list =
-    case list of
-        [] ->
-            Debug.crash "Wrong application"
-
-        [ one ] ->
-            [ Variable [ one ] ]
-
-        head :: tail ->
-            [ foldl (\a acc -> Application acc (Variable [ a ])) (Variable [ head ]) tail ]
-
-
+{-| Apply alias, orelse return the provided default value
+-}
 aliasOr : Context -> String -> List Type -> String -> String
 aliasOr c name args default =
     ExContext.getAlias c.mod name c

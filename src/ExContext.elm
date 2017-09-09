@@ -23,10 +23,10 @@ module ExContext
         , mergeTypes
         )
 
-import Ast.Statement exposing (Type(..), Statement, ExportSet(..))
-import Ast.Expression exposing (Expression)
-import Dict exposing (Dict)
 import Set exposing (Set)
+import Dict exposing (Dict)
+import Ast.Expression exposing (Expression)
+import Ast.Statement exposing (Type(..), Statement, ExportSet(..))
 
 
 type alias Parser =

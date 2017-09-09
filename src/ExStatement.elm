@@ -1,18 +1,33 @@
-module ExStatement exposing (..)
+module ExStatement exposing (elixirS, moduleStatement)
 
 import Ast
-import Ast.Statement exposing (..)
-import Ast.Expression exposing (..)
-import Ast.BinOp exposing (operators)
-import ExContext exposing (Context, Definition, indent, deindent, onlyWithoutFlag)
-import ExExpression
-import ExType
-import List exposing (..)
-import Dict exposing (Dict)
-import Regex exposing (..)
-import Helpers exposing (..)
 import ExFfi
+import ExType
 import ExFunction
+import ExExpression
+import Dict exposing (Dict)
+import Ast.BinOp exposing (operators)
+import Ast.Expression exposing (Expression(..))
+import Regex exposing (Regex, HowMany(..), regex)
+import Ast.Statement exposing (Statement(..), Type(..), ExportSet(..))
+import ExContext exposing (Context, Definition, indent, deindent, onlyWithoutFlag)
+import Helpers
+    exposing
+        ( modulePathName
+        , ind
+        , indAll
+        , indNoNewline
+        , prependAll
+        , toSnakeCase
+        , operatorType
+        , isCustomOperator
+        , Operator(..)
+        , translateOperator
+        , (=>)
+        , modulePath
+        , notImplemented
+        , typeApplicationToList
+        )
 
 
 type ElchemyComment
@@ -28,6 +43,8 @@ type DocType
     | ModuleDoc
 
 
+{-| Make sure first statement is a module declaration
+-}
 moduleStatement : Statement -> Context
 moduleStatement s =
     case s of
@@ -38,6 +55,8 @@ moduleStatement s =
             Debug.crash "First statement must be module declaration"
 
 
+{-| Encode any statement
+-}
 elixirS : Context -> Statement -> ( Context, String )
 elixirS c s =
     case s of
@@ -57,7 +76,7 @@ elixirS c s =
                         ++ "@type "
                         ++ toSnakeCase True name
                         ++ " :: "
-                        ++ (map (ExType.uniontype c) types |> String.join " | ")
+                        ++ (List.map (ExType.uniontype c) types |> String.join " | ")
                         ++ "\n"
 
         TypeAliasDeclaration _ _ ->
@@ -133,10 +152,10 @@ elixirS c s =
                             |> Dict.get name
                             |> Maybe.map
                                 (.def
-                                    >> typeAplicationToList
+                                    >> typeApplicationToList
                                 )
                             |> Maybe.withDefault []
-                            |> map typeAplicationToList
+                            |> List.map typeApplicationToList
                         )
             in
                 c
@@ -158,8 +177,8 @@ elixirS c s =
                             (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
                                 genFfi app
 
-                            Case vars expressions ->
-                                if ExFunction.flattenCommas vars == args then
+                            Case (Tuple vars) expressions ->
+                                if vars == args then
                                     ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
                                 else
                                     ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
@@ -191,7 +210,7 @@ elixirS c s =
                 ++ "import "
                 ++ modulePath path
                 ++ ", only: ["
-                ++ (map subsetExport exports |> foldr (++) [] |> String.join ",")
+                ++ (List.map subsetExport exports |> List.foldr (++) [] |> String.join ",")
                 ++ "]"
 
         -- Suppresses the compiler warning
@@ -209,6 +228,8 @@ elixirS c s =
                 notImplemented "statement" s
 
 
+{-| Verify correct flag format
+-}
 verifyFlag : List String -> Maybe ( String, String )
 verifyFlag flag =
     case flag of
@@ -222,6 +243,8 @@ verifyFlag flag =
             Debug.crash <| "Wrong flag format " ++ toString a
 
 
+{-| Encode elixir comment and return a context with updated last doc
+-}
 elixirComment : Context -> String -> ( Context, String )
 elixirComment c content =
     case getCommentType content of
@@ -235,7 +258,7 @@ elixirComment c content =
             (,) c <|
                 (content
                     |> String.split "\n"
-                    |> map String.trim
+                    |> List.map String.trim
                     |> String.join "\n"
                     |> indAll c.indent
                 )
@@ -244,9 +267,9 @@ elixirComment c content =
             flip (,) "" <|
                 (content
                     |> Regex.split All (regex "\\s+")
-                    |> map (String.split ":+")
-                    |> filterMap verifyFlag
-                    |> foldl (ExContext.addFlag) c
+                    |> List.map (String.split ":+")
+                    |> List.filterMap verifyFlag
+                    |> List.foldl (ExContext.addFlag) c
                 )
 
         Normal content ->
@@ -257,6 +280,8 @@ elixirComment c content =
                 )
 
 
+{-| Enocode a doc and return new context
+-}
 elixirDoc : Context -> DocType -> String -> ( Context, String )
 elixirDoc c doctype content =
     let
@@ -279,9 +304,9 @@ elixirDoc c doctype content =
                 ++ " \"\"\"\n "
                 ++ (content
                         |> String.lines
-                        |> map (maybeDoctest c)
-                        |> map (Helpers.escape)
-                        |> map (Regex.replace All (regex "\"\"\"") (always "\\\"\\\"\\\""))
+                        |> List.map (maybeDoctest c)
+                        |> List.map (Helpers.escape)
+                        |> List.map (Regex.replace All (regex "\"\"\"") (always "\\\"\\\"\\\""))
                         -- |> map trimIndentations
                         |> String.join (ind c.indent)
                     -- Drop an unnecessary \n at the end
@@ -290,30 +315,33 @@ elixirDoc c doctype content =
                 ++ "\"\"\""
 
 
+{-| Get a type of the comment by it's content
+-}
 getCommentType : String -> ElchemyComment
 getCommentType comment =
-    [ ( "^\\sex\\b", (Ex) )
-    , ( "^\\|", (Doc) )
-    , ( "^\\sflag\\b", (Flag) )
-    ]
-        |> List.map (\( a, b ) -> ( Regex.regex a, b ))
-        |> List.foldl (uncurry findCommentType) (Normal comment)
+    let
+        findCommentType regex commentType acc =
+            case acc of
+                Normal content ->
+                    if Regex.contains regex content then
+                        commentType <|
+                            Regex.replace (Regex.AtMost 1) regex (always "") content
+                    else
+                        Normal content
+
+                other ->
+                    other
+    in
+        [ ( "^\\sex\\b", (Ex) )
+        , ( "^\\|", (Doc) )
+        , ( "^\\sflag\\b", (Flag) )
+        ]
+            |> List.map (\( a, b ) -> ( Regex.regex a, b ))
+            |> List.foldl (uncurry findCommentType) (Normal comment)
 
 
-findCommentType : Regex.Regex -> (String -> ElchemyComment) -> ElchemyComment -> ElchemyComment
-findCommentType regex commentType acc =
-    case acc of
-        Normal content ->
-            if Regex.contains regex content then
-                commentType <|
-                    Regex.replace (Regex.AtMost 1) regex (always "") content
-            else
-                Normal content
-
-        other ->
-            other
-
-
+{-| Encode all exports from a module
+-}
 subsetExport : ExportSet -> List String
 subsetExport exp =
     case exp of
@@ -330,6 +358,8 @@ subsetExport exp =
             Debug.crash ("You can't export " ++ toString exp)
 
 
+{-| Replace a function doc with a doctest if in correct format
+-}
 maybeDoctest : Context -> String -> String
 maybeDoctest c line =
     if String.startsWith (ind (c.indent + 1)) ("\n" ++ line) then
@@ -352,13 +382,15 @@ maybeDoctest c line =
         line
 
 
+{-| Get a definition of a type to store it in context
+-}
 getTypeDefinition : Statement -> Definition
 getTypeDefinition a =
     case a of
         FunctionTypeDeclaration name t ->
             let
                 arity =
-                    typeAplicationToList t |> length
+                    typeApplicationToList t |> List.length
             in
                 Definition (arity - 1) t
 
@@ -366,16 +398,8 @@ getTypeDefinition a =
             Debug.crash "It's not a type declaration"
 
 
+{-| Add type definition into context
+-}
 addTypeDefinition : Context -> String -> Definition -> Context
 addTypeDefinition c name d =
     { c | definitions = Dict.insert name d c.definitions }
-
-
-typeAplicationToList : Type -> List Type
-typeAplicationToList application =
-    case application of
-        TypeApplication left right ->
-            [ left ] ++ typeAplicationToList right
-
-        other ->
-            [ other ]

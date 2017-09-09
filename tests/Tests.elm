@@ -86,7 +86,7 @@ functions =
                 "a = camelCase 1" |> has "camel_case().(1)"
         , test "Can call function recursively" <|
             \() ->
-                "a = let f a = f (a - 1) in f" |> has "f = rec f, fn(a) ->"
+                "a = let f a = f (a - 1) in f" |> has "f = rec f, fn a ->"
         ]
 
 
@@ -164,7 +164,17 @@ types =
             \() ->
                 "type alias A = {a : Int, b: Int, c: Int}"
                     |++ "a = A 1 2 3"
-                    |> has "fn(arg1) -> fn(arg2) -> fn(arg3) -> %{a: arg1, b: arg2, c: arg3}"
+                    |> has "%{a: 1, b: 2, c: 3}"
+        , test "Type alias application" <|
+            \() ->
+                "type alias A = {a : Int, b : Int}"
+                    |++ "a = A 10"
+                    |> has "fn arg1 -> %{a: 10, b: arg1} end"
+        , test "Types work when applied incompletely" <|
+            \() ->
+                "type Focus = A Int Int | B Int Int Int"
+                    |++ "a = B 1 1"
+                    |> has "fn x1 -> {:b, 1, 1, x1} end"
         , test "TypeTuple" <|
             \() ->
                 "type alias A = (Int, Int, Int)"
@@ -184,11 +194,6 @@ types =
                 "type Focus big small = Focus { get : big -> small }"
                     |++ "a = Focus { get = get, update = update }"
                     |> has "{:focus, %{get: get, update: update}}"
-        , test "Types work when applied incompletely" <|
-            \() ->
-                "type Focus = A Int Int | B Int Int Int"
-                    |++ "a = B 1 1"
-                    |> has "fn x1 -> {:b, 1, 1, x1} end"
         ]
 
 

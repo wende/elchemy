@@ -1,11 +1,13 @@
-module ExVariable exposing (..)
+module ExVariable exposing (varOrNah, rememberVariables)
 
-import Ast.Expression exposing (..)
-import ExContext exposing (Context, inArgs)
 import Set
+import Ast.Expression exposing (..)
 import Helpers exposing (toSnakeCase)
+import ExContext exposing (Context, inArgs)
 
 
+{-| Put variables into context so they are treated like variables in future
+-}
 rememberVariables : List Expression -> Context -> Context
 rememberVariables list c =
     let
@@ -20,6 +22,8 @@ rememberVariables list c =
             |> List.foldl addToContext c
 
 
+{-| Check if a string is a variable or no, based on remembered variables
+-}
 varOrNah : Context -> String -> String
 varOrNah c var =
     if Set.member var c.variables || c.inArgs then
@@ -28,6 +32,8 @@ varOrNah c var =
         var ++ "()"
 
 
+{-| Extract variables from an expression
+-}
 extractVariables : Expression -> List String
 extractVariables exp =
     let

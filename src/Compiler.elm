@@ -7,14 +7,13 @@ module Compiler exposing (version, tree)
 -}
 
 import Ast
-import Ast.Statement exposing (Statement)
-import List exposing (..)
-import Helpers exposing (..)
-import ExContext exposing (Context, Aliases)
 import ExAlias
 import ExStatement
 import Dict exposing (Dict)
-import Regex exposing (..)
+import Helpers exposing (ind)
+import Ast.Statement exposing (Statement)
+import ExContext exposing (Context, Aliases)
+import Regex exposing (Regex, HowMany(..), regex)
 
 
 {-| Returns current version
@@ -75,9 +74,9 @@ tree m =
 
                 files =
                     multiple
-                        |> map getName
-                        |> indexedMap (,)
-                        |> map
+                        |> List.map getName
+                        |> List.indexedMap (,)
+                        |> List.map
                             (\( i, ( name, code ) ) ->
                                 let
                                     _ =
@@ -93,8 +92,8 @@ tree m =
 
                 wContexts =
                     files
-                        |> map (\( name, ast ) -> ( name, getContext ast ))
-                        |> filterMap
+                        |> List.map (\( name, ast ) -> ( name, getContext ast ))
+                        |> List.filterMap
                             (\a ->
                                 case a of
                                     ( _, ( Nothing, _ ) ) ->
@@ -106,19 +105,19 @@ tree m =
 
                 commonAliases =
                     wContexts
-                        |> map (\( name, ctx, ast ) -> ctx.aliases)
+                        |> List.map (\( name, ctx, ast ) -> ctx.aliases)
                         |> getCommonImports
 
                 commonTypes =
                     wContexts
-                        |> map (\( name, ctx, ast ) -> ctx.types)
+                        |> List.map (\( name, ctx, ast ) -> ctx.types)
                         |> getCommonImports
 
                 updateWithCommon ( name, c, ast ) =
                     ( name, { c | aliases = commonAliases, types = commonTypes }, ast )
 
                 wTrueContexts =
-                    map updateWithCommon wContexts
+                    List.map updateWithCommon wContexts
 
                 compileWithIndex ( i, ( name, c, ast ) ) =
                     let
@@ -134,7 +133,7 @@ tree m =
             in
                 wTrueContexts
                     |> List.indexedMap (,)
-                    |> map compileWithIndex
+                    |> List.map compileWithIndex
                     |> String.join "\n"
 
 
@@ -144,7 +143,7 @@ getCommonImports a =
         merge aliases acc =
             Dict.merge Dict.insert typeAliasDuplicate Dict.insert acc aliases Dict.empty
     in
-        foldl merge Dict.empty a
+        List.foldl merge Dict.empty a
 
 
 typeAliasDuplicate : comparable -> a -> a -> Dict.Dict comparable a -> Dict.Dict comparable a
@@ -235,6 +234,6 @@ crunchSplitLines =
     Regex.replace All (regex "(?:({-(?:\\n|.)*?-})|([\\w\\])}\"][\\t ]*)\\n[\\t ]+((?!.*\\s->\\s)(?!.*=)(?!.*\\bin\\b)[\\w[({\"]))") <|
         \m ->
             m.submatches
-                |> map (Maybe.map (flip (++) " "))
-                |> filterMap identity
+                |> List.map (Maybe.map (flip (++) " "))
+                |> List.filterMap identity
                 |> String.join " "
