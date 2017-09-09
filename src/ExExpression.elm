@@ -118,7 +118,7 @@ elixirControlFlow c e =
                                         ++ " = rec "
                                         ++ name
                                         ++ ", "
-                                        ++ lambda (cAcc |> rememberVariables [ var ]) args exp
+                                        ++ lambda cAcc args exp
 
                                 [ assign ] ->
                                     rememberVariables [ assign ] cAcc
