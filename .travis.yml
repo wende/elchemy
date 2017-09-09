@@ -50,6 +50,7 @@ install:
 script:
   - elm-test && make test-std
   - make compile-elixir
+  - mix new test_project && cd test_project && (yes | ../elchemy init) && ../elchemy compile elm lib && mv elm-deps lib/elm-deps && mix test
 
 notifications:
   email: false
