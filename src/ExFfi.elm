@@ -1,10 +1,12 @@
 module ExFfi exposing (generateFfi)
 
-import Ast.Statement exposing (Type)
-import Ast.Expression exposing (Expression(..))
-import ExContext exposing (Context, Parser, onlyWithoutFlag)
 import Dict
 import Helpers
+import ExFunction
+import Ast.Statement exposing (Type)
+import ExVariable exposing (rememberVariables)
+import Ast.Expression exposing (Expression(..))
+import ExContext exposing (Context, Parser, onlyWithoutFlag)
     exposing
         ( applicationToList
         , generateArguments
@@ -12,10 +14,10 @@ import Helpers
         , ind
         , toSnakeCase
         )
-import ExFunction
-import ExVariable exposing (rememberVariables)
 
 
+{-| Encodes and inlines a foreign function interface macro
+-}
 generateFfi :
     Context
     -> Parser
@@ -31,8 +33,8 @@ generateFfi c elixirE name argTypes e =
         appList =
             applicationToList e
 
-        flambdaArguments c =
-            flambdify c elixirE argTypes
+        uncurryArguments c =
+            uncurrify c elixirE argTypes
 
         wrapAllInVar =
             List.map <| List.singleton >> Variable
@@ -69,7 +71,7 @@ generateFfi c elixirE name argTypes e =
                         ++ "."
                         ++ fun
                         ++ "("
-                        ++ flambdaArguments (rememberVariables (wrapAllInVar arguments) c)
+                        ++ uncurryArguments (rememberVariables (wrapAllInVar arguments) c)
                         ++ ")"
 
             ( Just def, [ Variable [ "tryFfi" ], String mod, String fun ] ) ->
@@ -94,7 +96,7 @@ generateFfi c elixirE name argTypes e =
                         ++ "."
                         ++ fun
                         ++ "("
-                        ++ flambdaArguments (rememberVariables (wrapAllInVar arguments) c)
+                        ++ uncurryArguments (rememberVariables (wrapAllInVar arguments) c)
                         ++ ")"
                         ++ ind (c.indent + 1)
                         ++ "end"
@@ -105,8 +107,10 @@ generateFfi c elixirE name argTypes e =
                 Debug.crash "Wrong ffi definition"
 
 
-flambdify : Context -> Parser -> List (List Type) -> String
-flambdify c elixirE argTypes =
+{-| Walk through function definition and uncurry all of the multi argument functions
+-}
+uncurrify : Context -> Parser -> List (List Type) -> String
+uncurrify c elixirE argTypes =
     let
         arity =
             List.length argTypes - 1

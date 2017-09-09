@@ -1,9 +1,9 @@
 module ExAlias exposing (getAliases)
 
+import ExContext
+import Dict exposing (Dict)
 import Helpers exposing ((=>))
 import Ast.Statement exposing (Statement(..), Type(..))
-import Dict exposing (Dict)
-import ExContext
     exposing
         ( Context
         , Alias

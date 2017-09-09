@@ -1,10 +1,10 @@
 module Helpers exposing (..)
 
 import Char
-import Regex exposing (Regex(..), HowMany(..), regex)
 import Dict exposing (Dict)
-import Ast.Expression exposing (Expression(..))
 import Ast.Statement exposing (Type(..))
+import Ast.Expression exposing (Expression(..))
+import Regex exposing (Regex(..), HowMany(..), regex)
 
 
 type MaybeUpper

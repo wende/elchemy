@@ -1,7 +1,10 @@
 module ExExpression exposing (elixirE)
 
-import Ast.Expression exposing (Expression(..))
+import ExType
 import Helpers
+import ExOperator
+import ExVariable exposing (rememberVariables)
+import Ast.Expression exposing (Expression(..))
     exposing
         ( toSnakeCase
         , modulePath
@@ -27,9 +30,6 @@ import ExContext
         , inArgs
         , mergeVariables
         )
-import ExType
-import ExVariable exposing (rememberVariables)
-import ExOperator
 
 
 {-| Encode any given expression

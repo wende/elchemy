@@ -1,8 +1,9 @@
 module ExType exposing (typeAliasConstructor, typespec, uniontype)
 
-import Ast.Statement exposing (Type(..))
-import Ast.Expression exposing (Expression(..))
 import Helpers
+import Ast.Statement exposing (Type(..))
+import ExContext exposing (Context, indent)
+import Ast.Expression exposing (Expression(..))
     exposing
         ( typeApplicationToList
         , toSnakeCase
@@ -11,7 +12,6 @@ import Helpers
         , ind
         , atomize
         )
-import ExContext exposing (Context, indent)
 
 
 {-| Enocde any elm type
