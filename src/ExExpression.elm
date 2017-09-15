@@ -116,7 +116,7 @@ elixirControlFlow c e =
                                     rememberVariables [ var ] cAcc
                                         => toSnakeCase True name
                                         ++ " = rec "
-                                        ++ name
+                                        ++ toSnakeCase True name
                                         ++ ", "
                                         ++ lambda cAcc args exp
 
