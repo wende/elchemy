@@ -38,7 +38,7 @@ if git diff-index --quiet HEAD --; then
 
     token=`git config --get github.oauth-token`
 
-    ./upload-github-release-asset.sh github_api_token=TOKEN owner=wende repo=elchemy tag="$VER" filename="./elchemy-$VER.ez"
+    ./upload-github-release-asset.sh github_api_token="$token" owner=wende repo=elchemy tag="$VER" filename="./elchemy-$VER.ez"
 else
     echo "Git directory must be clean"
     exit 1
