@@ -16277,7 +16277,7 @@ var _user$project$ExExpression$elixirControlFlow = F2(
 																	' = rec ',
 																	A2(
 																		_elm_lang$core$Basics_ops['++'],
-																		_p25,
+																		A2(_user$project$Helpers$toSnakeCase, true, _p25),
 																		A2(
 																			_elm_lang$core$Basics_ops['++'],
 																			', ',
@@ -17816,7 +17816,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elchemy', '\n'));
-var _user$project$Compiler$version = '0.4.40';
+var _user$project$Compiler$version = '0.4.42';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		return A2(
