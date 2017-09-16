@@ -36,7 +36,7 @@ if git diff-index --quiet HEAD --; then
     git tag $VER
     git push origin master $VER
 
-    hub release create -a elchemy-$VER.ez $VER -m "$VER"
+    hub release create -a -p elchemy-$VER.ez $VER -m "$VER"
 else
     echo "Git directory must be clean"
     exit 1
