@@ -36,9 +36,7 @@ if git diff-index --quiet HEAD --; then
     git tag $VER
     git push origin master $VER
 
-    token=`git config --get github.oauth-token`
-
-    ./upload-github-release-asset.sh github_api_token="$token" owner=wende repo=elchemy tag="$VER" filename="./elchemy-$VER.ez"
+    hub release create -a elchemy-$VER.ez $VER -m "$VER"
 else
     echo "Git directory must be clean"
     exit 1
