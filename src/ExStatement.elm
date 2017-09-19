@@ -216,24 +216,29 @@ elixirS c s =
 
                 only =
                     if imports == [] then
-                        ""
+                        []
                     else
-                        "only: ["
+                        [ "only: ["
                             ++ String.join "," (elixirExportList imports)
                             ++ "]"
+                        ]
 
                 except =
                     if excepts == [] then
-                        ""
+                        []
                     else
-                        "except: ["
+                        [ "except: ["
                             ++ String.join "," (elixirExportList excepts)
                             ++ "]"
+                        ]
             in
                 ExContext.mergeTypes subset (modulePathName path) c
                     => (ind c.indent)
                     ++ "import "
-                    ++ ([ modulePath path, only, except ] |> String.join ", ")
+                    ++ ([ [ modulePath path ], only, except ]
+                            |> List.foldr (++) []
+                            |> String.join ", "
+                       )
 
         -- Suppresses the compiler warning
         ImportStatement [ "Elchemy" ] Nothing (Just AllExport) ->
@@ -255,16 +260,20 @@ elixirS c s =
 
                 except =
                     if excepts == [] then
-                        ""
+                        []
                     else
-                        "except: ["
+                        [ "except: ["
                             ++ String.join "," (elixirExportList excepts)
                             ++ "]"
+                        ]
             in
                 ExContext.mergeTypes AllExport (modulePathName path) c
                     => (ind c.indent)
                     ++ "import "
-                    ++ ([ modulePath path, except ] |> String.join ", ")
+                    ++ ([ [ modulePath path ], except ]
+                            |> List.foldr (++) []
+                            |> String.join ", "
+                       )
 
         s ->
             (,) c <|
