@@ -203,23 +203,68 @@ elixirS c s =
                 ++ asName
 
         ImportStatement path Nothing (Just ((SubsetExport exports) as subset)) ->
-            ExContext.mergeTypes subset (modulePathName path) c
-                => (ind c.indent)
-                ++ "import "
-                ++ modulePath path
-                ++ ", only: ["
-                ++ (List.map subsetExport exports |> List.foldr (++) [] |> String.join ",")
-                ++ "]"
+            let
+                imports =
+                    List.map exportSetToList exports
+                        |> List.foldr (++) []
+
+                excepts =
+                    c.modules
+                        |> Dict.get c.mod
+                        |> Maybe.map (.definitions >> Dict.keys >> duplicates imports)
+                        |> Maybe.withDefault []
+
+                only =
+                    if imports == [] then
+                        ""
+                    else
+                        "only: ["
+                            ++ String.join "," (elixirExportList imports)
+                            ++ "]"
+
+                except =
+                    if excepts == [] then
+                        ""
+                    else
+                        "except: ["
+                            ++ String.join "," (elixirExportList excepts)
+                            ++ "]"
+            in
+                ExContext.mergeTypes subset (modulePathName path) c
+                    => (ind c.indent)
+                    ++ "import "
+                    ++ ([ modulePath path, only, except ] |> String.join ", ")
 
         -- Suppresses the compiler warning
         ImportStatement [ "Elchemy" ] Nothing (Just AllExport) ->
             ( c, "" )
 
         ImportStatement path Nothing (Just AllExport) ->
-            ExContext.mergeTypes AllExport (modulePathName path) c
-                => (ind c.indent)
-                ++ "import "
-                ++ modulePath path
+            let
+                exports =
+                    c.modules
+                        |> Dict.get (path |> String.join ".")
+                        |> Maybe.map (.definitions >> Dict.keys)
+                        |> Maybe.withDefault []
+
+                excepts =
+                    c.modules
+                        |> Dict.get c.mod
+                        |> Maybe.map (.definitions >> Dict.keys >> duplicates exports)
+                        |> Maybe.withDefault []
+
+                except =
+                    if excepts == [] then
+                        ""
+                    else
+                        "except: ["
+                            ++ String.join "," (elixirExportList excepts)
+                            ++ "]"
+            in
+                ExContext.mergeTypes AllExport (modulePathName path) c
+                    => (ind c.indent)
+                    ++ "import "
+                    ++ ([ modulePath path, except ] |> String.join ", ")
 
         s ->
             (,) c <|
@@ -340,20 +385,34 @@ getCommentType comment =
 
 {-| Encode all exports from a module
 -}
-subsetExport : ExportSet -> List String
-subsetExport exp =
+exportSetToList : ExportSet -> List String
+exportSetToList exp =
     case exp of
         TypeExport _ _ ->
             []
 
         FunctionExport name ->
-            if isCustomOperator name then
-                [ "{:'" ++ translateOperator name ++ "', 0}" ]
-            else
-                [ "{:'" ++ toSnakeCase True name ++ "', 0}" ]
+            [ name ]
 
         _ ->
             Debug.crash ("You can't export " ++ toString exp)
+
+
+elixirExportList : List String -> List String
+elixirExportList list =
+    let
+        wrap name =
+            if isCustomOperator name then
+                "{:'" ++ translateOperator name ++ "', 0}"
+            else
+                "{:'" ++ toSnakeCase True name ++ "', 0}"
+    in
+        List.map wrap list
+
+
+duplicates : List a -> List a -> List a
+duplicates listA listB =
+    List.filter (flip List.member listB) listA
 
 
 {-| Replace a function doc with a doctest if in correct format
