@@ -52,4 +52,4 @@ install-sysconf:
 compile-elixir:
 	make compile
 	cd elchemy_ex && ../elchemy compile ../src lib | ts %H:%M:%.S
-  cd elchemy_ex && mix compile
+	cd elchemy_ex && mix compile
