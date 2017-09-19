@@ -28,7 +28,9 @@ generateFfi :
 generateFfi c elixirE name argTypes e =
     let
         typeDef =
-            c.definitions |> Dict.get name
+            c.modules
+                |> Dict.get c.mod
+                |> Maybe.andThen (.definitions >> Dict.get name)
 
         appList =
             applicationToList e

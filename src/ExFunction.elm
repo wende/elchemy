@@ -34,7 +34,9 @@ genFunctionDefinition :
 genFunctionDefinition c elixirE name args body =
     let
         typeDef =
-            c.definitions |> Dict.get name
+            c.modules
+                |> Dict.get c.mod
+                |> Maybe.andThen (.definitions >> Dict.get name)
 
         arity =
             typeDef |> Maybe.map .arity |> Maybe.withDefault 0
@@ -196,7 +198,9 @@ genOverloadedFunctionDefinition :
 genOverloadedFunctionDefinition c elixirE name args body expressions =
     let
         typeDef =
-            c.definitions |> Dict.get name
+            c.modules
+                |> Dict.get c.mod
+                |> Maybe.andThen (.definitions >> Dict.get name)
 
         arity =
             typeDef |> Maybe.map .arity |> Maybe.withDefault 0

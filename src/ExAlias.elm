@@ -8,7 +8,6 @@ import ExContext
         ( Context
         , Alias
         , AliasType
-        , Aliases
         , wrongArityAlias
         )
 
@@ -26,6 +25,9 @@ registerAlias s c =
 
         TypeDeclaration tc types ->
             registerUnionType c tc types
+
+        FunctionTypeDeclaration name t ->
+            registerFunctionDefinition c name t
 
         _ ->
             c
@@ -66,7 +68,7 @@ registerUnionType c tc types =
                     List.length arguments
 
                 ( names, newC ) =
-                    registerTypes types c
+                    registerTypes types name c
 
                 ali =
                     Alias c.mod arity ExContext.Type typeVar typeBody names
@@ -77,17 +79,23 @@ registerUnionType c tc types =
             Debug.crash <| "Wrong type declaration " ++ toString ts
 
 
-registerTypes : List Type -> Context -> ( List String, Context )
-registerTypes types c =
+registerFunctionDefinition : Context -> String -> Type -> Context
+registerFunctionDefinition c name t =
+    let
+        arity =
+            Helpers.typeApplicationToList t |> List.length
+    in
+        ExContext.addDefinition c name (ExContext.Definition (arity - 1) t)
+
+
+registerTypes : List Type -> String -> Context -> ( List String, Context )
+registerTypes types parentAlias c =
     let
         addType t ( names, context ) =
             case t of
                 TypeConstructor [ name ] args ->
                     (name :: names)
-                        => ExContext.addType c.mod
-                            name
-                            (List.length args)
-                            context
+                        => ExContext.addType c.mod parentAlias name (List.length args) context
 
                 any ->
                     Debug.crash "Type can only start with a tag"

@@ -12,7 +12,7 @@ import ExStatement
 import Dict exposing (Dict)
 import Helpers exposing (ind)
 import Ast.Statement exposing (Statement)
-import ExContext exposing (Context, Aliases)
+import ExContext exposing (Context)
 import Regex exposing (Regex, HowMany(..), regex)
 
 
@@ -103,21 +103,14 @@ tree m =
                                         Just ( name, c, ast )
                             )
 
-                commonAliases =
+                commonModules =
                     wContexts
-                        |> List.map (\( name, ctx, ast ) -> ctx.aliases)
+                        |> List.map (\( name, ctx, ast ) -> ctx.modules)
                         |> getCommonImports
-
-                commonTypes =
-                    wContexts
-                        |> List.map (\( name, ctx, ast ) -> ctx.types)
-                        |> getCommonImports
-
-                updateWithCommon ( name, c, ast ) =
-                    ( name, { c | aliases = commonAliases, types = commonTypes }, ast )
 
                 wTrueContexts =
-                    List.map updateWithCommon wContexts
+                    wContexts
+                        |> List.map (\( name, c, ast ) -> ( name, { c | modules = commonModules }, ast ))
 
                 compileWithIndex ( i, ( name, c, ast ) ) =
                     let

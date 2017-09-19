@@ -392,6 +392,20 @@ a : Invisible
 a = 1
     """
                     |> hasFull ":invisible"
+        , test "Qualified imports work too" <|
+            \() ->
+                """
+>>>> a.elm
+module A exposing (A)
+type As a = Tag a
+
+>>>> b.elm
+module B exposing (..)
+import A exposing (As)
+a : As a
+a = Tag
+       """
+                    |> hasFull "fn x1 -> {:tag, x1} end"
         ]
 
 

@@ -1,7 +1,6 @@
 module ExContext
     exposing
         ( Alias
-        , Aliases
         , AliasType(..)
         , Context
         , Definition
@@ -12,6 +11,7 @@ module ExContext
         , wrongArityAlias
         , addType
         , getType
+        , addDefinition
         , indent
         , deindent
         , mergeVariables
@@ -21,6 +21,7 @@ module ExContext
         , addFlag
         , isPrivate
         , mergeTypes
+        , putIntoModule
         )
 
 import Set exposing (Set)
@@ -48,19 +49,8 @@ type alias Alias =
 type alias UnionType =
     { arity : Int
     , parentModule : String
+    , parentAlias : String
     }
-
-
-{-| Dict holding sets of aliases indexed by module name and alias name
--}
-type alias Aliases =
-    Dict String (Dict String Alias)
-
-
-{-| Dict holding sets of aliases indexed by module name and type name
--}
-type alias Types =
-    Dict String (Dict String UnionType)
 
 
 {-| Type of an Alias which can be either Type or Type Alias. It's important to note
@@ -91,6 +81,15 @@ type alias Definition =
     { arity : Int, def : Ast.Statement.Type }
 
 
+{-| Dict holding information about defined modules
+-}
+type alias Module =
+    { aliases : Dict String Alias
+    , types : Dict String UnionType
+    , definitions : Dict String Definition
+    }
+
+
 {-| Context containing all the necessary information about current place in a file
 like what's the name of a module, what aliases, types and variables are currently defined,
 what flags were set for the compiler, what functions were defined and if it is in definition mode.
@@ -99,14 +98,12 @@ type alias Context =
     { mod : String
     , exports : ExportSet
     , indent : Int
-    , aliases : Aliases
-    , types : Types
     , flags : List Flag
-    , definitions : Dict String Definition
     , variables : Set String
     , inArgs : Bool
     , hasModuleDoc : Bool
     , lastDoc : Maybe String
+    , modules : Dict String Module
     }
 
 
@@ -124,49 +121,72 @@ wrongArityAlias arity list name =
             ++ (toString <| List.length list)
 
 
+{-| Puts something into module
+Usage:
+
+    putIntoModule "Module" "name" .aliases (x -> { c | aliases = x }) ali c
+
+-}
+putIntoModule :
+    String
+    -> String
+    -> (Module -> Dict String a)
+    -> (Module -> Dict String a -> Module)
+    -> a
+    -> Context
+    -> Context
+putIntoModule mod name getter setter thing c =
+    let
+        updateMod : Maybe Module -> Maybe Module
+        updateMod maybeMod =
+            maybeMod
+                |> Maybe.map getter
+                |> Maybe.withDefault Dict.empty
+                |> Dict.update name (always <| Just thing)
+                |> setter (maybeMod |> Maybe.withDefault emptyModule)
+                |> Just
+    in
+        { c | modules = c.modules |> Dict.update mod updateMod }
+
+
 {-| Adds an alias definition to the context
 -}
 addAlias : String -> String -> Alias -> Context -> Context
-addAlias mod name ali context =
-    let
-        putAlias maybeMod =
-            maybeMod
-                |> Maybe.map (Dict.insert name ali)
-                |> Maybe.withDefault (Dict.singleton name ali)
-                |> Just
-    in
-        { context | aliases = Dict.update mod putAlias context.aliases }
+addAlias mod name =
+    putIntoModule mod name .aliases (\m x -> { m | aliases = x })
 
 
 {-| Adds a type definition to the context
 -}
-addType : String -> String -> Int -> Context -> Context
-addType mod name arity context =
+addType : String -> String -> String -> Int -> Context -> Context
+addType mod parentAlias name arity =
     let
         t =
-            { arity = arity, parentModule = mod }
-
-        putType maybeMod =
-            maybeMod
-                |> Maybe.map (Dict.insert name t)
-                |> Maybe.withDefault (Dict.singleton name t)
-                |> Just
+            { arity = arity, parentModule = mod, parentAlias = parentAlias }
     in
-        { context | types = Dict.update mod putType context.types }
+        putIntoModule mod name .types (\m x -> { m | types = x }) t
+
+
+{-| Add type definition into context
+-}
+addDefinition : Context -> String -> Definition -> Context
+addDefinition c name d =
+    putIntoModule c.mod name .definitions (\m x -> { m | definitions = x }) d c
 
 
 {-| Get's either alias or type from context based on `from` accessor
 -}
 getFromContext :
-    (Context -> Dict String (Dict String a))
+    (Module -> Dict String a)
     -> String
     -> String
     -> Context
     -> Maybe a
 getFromContext from mod name context =
     context
-        |> from
+        |> .modules
         |> Dict.get mod
+        |> Maybe.map from
         |> Maybe.andThen (Dict.get name)
 
 
@@ -190,7 +210,14 @@ getType =
 -}
 empty : String -> ExportSet -> Context
 empty name exports =
-    Context name exports 0 Dict.empty Dict.empty [] Dict.empty Set.empty False False Nothing
+    Context name exports 0 [] Set.empty False False Nothing Dict.empty
+
+
+{-| Returns empty module record
+-}
+emptyModule : Module
+emptyModule =
+    Module Dict.empty Dict.empty Dict.empty
 
 
 {-| Increases current indenation level of a context
@@ -280,14 +307,6 @@ on given export set value
 mergeTypes : ExportSet -> String -> Context -> Context
 mergeTypes set mod c =
     let
-        getAll name dict =
-            Dict.get name dict
-                |> Maybe.withDefault Dict.empty
-
-        getThese name f dict =
-            getAll name dict
-                |> Dict.filter (always << f)
-
         importConflict : String -> v -> v -> Dict String v -> Dict String v
         importConflict key a b _ =
             Debug.crash <|
@@ -306,13 +325,6 @@ mergeTypes set mod c =
         mergeDicts left right =
             Dict.merge Dict.insert importConflict Dict.insert left right Dict.empty
 
-        addThese : String -> Dict String v -> Dict String (Dict String v) -> Dict String (Dict String v)
-        addThese name add dict =
-            Dict.update
-                name
-                (Maybe.map (mergeDicts add) >> Maybe.withDefault add >> Just)
-                dict
-
         getFunctionExportName a =
             case a of
                 FunctionExport name ->
@@ -328,8 +340,9 @@ mergeTypes set mod c =
                     List.map getFunctionExportName list
 
                 Just AllExport ->
-                    c.aliases
-                        |> Dict.get c.mod
+                    c.modules
+                        |> Dict.get mod
+                        |> Maybe.map .aliases
                         |> Maybe.andThen (Dict.get aliasName)
                         |> Maybe.map (.types)
                         |> Maybe.withDefault []
@@ -340,20 +353,36 @@ mergeTypes set mod c =
                 _ ->
                     Debug.crash <| "Something went wrong with " ++ toString subset
 
-        getAliasWithName aliasName =
-            getThese mod ((==) aliasName) c.aliases
+        getAll getter mod =
+            c.modules
+                |> Dict.get mod
+                |> Maybe.map getter
+                |> Maybe.withDefault (Dict.empty)
 
-        getTypesInNames aliasName names =
-            getThese mod (flip List.member <| getTypeNames aliasName names) c.types
+        getAlias : String -> Dict String Alias
+        getAlias aliasName =
+            getAll .aliases mod
+                |> Dict.filter (\k _ -> k == aliasName)
+
+        getTypes : String -> Maybe ExportSet -> Dict String UnionType
+        getTypes aliasName maybeExportSet =
+            getAll .types mod
+                |> Dict.filter (\k { parentAlias } -> parentAlias == aliasName)
+
+        putAllLocal getter setter dict c =
+            Dict.foldl (\key value acc -> putIntoModule c.mod key getter setter value acc) c dict
 
         importOne export c =
             case export of
                 TypeExport aliasName types ->
-                    { c
-                        | aliases = addThese c.mod (getAliasWithName aliasName) c.aliases
-                        , types = addThese c.mod (getTypesInNames aliasName types) c.types
-                    }
+                    c
+                        |> putAllLocal .aliases (\m x -> { m | aliases = x }) (getAlias aliasName)
+                        |> putAllLocal .types (\m x -> { m | types = x }) (getTypes aliasName types)
 
+                -- { c
+                --     | aliases = addThese c.mod (getLocalAlias aliasName) c.aliases
+                --     , types = addThese c.mod (getLocalTypesInNames aliasName types) c.types
+                -- }
                 FunctionExport _ ->
                     c
 
@@ -362,10 +391,9 @@ mergeTypes set mod c =
     in
         case set of
             AllExport ->
-                { c
-                    | types = addThese c.mod (getAll mod c.types) c.types
-                    , aliases = addThese c.mod (getAll mod c.aliases) c.aliases
-                }
+                c
+                    |> putAllLocal .aliases (\m x -> { m | aliases = x }) (getAll .aliases mod)
+                    |> putAllLocal .types (\m x -> { m | types = x }) (getAll .types mod)
 
             SubsetExport list ->
                 List.foldl importOne c list

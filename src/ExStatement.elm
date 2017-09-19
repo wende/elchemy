@@ -84,15 +84,12 @@ elixirS c s =
 
         (FunctionTypeDeclaration name ((TypeApplication _ _) as t)) as def ->
             let
-                definition =
-                    getTypeDefinition def
-
                 ( newC, code ) =
                     c.lastDoc
                         |> Maybe.map (elixirDoc c Fundoc)
                         |> Maybe.withDefault ( c, "" )
             in
-                (,) (addTypeDefinition newC name definition) <|
+                (,) newC <|
                     (onlyWithoutFlag newC "nodef" name code)
                         ++ case operatorType name of
                             Builtin ->
@@ -115,15 +112,12 @@ elixirS c s =
 
         (FunctionTypeDeclaration name t) as def ->
             let
-                definition =
-                    getTypeDefinition def
-
                 ( newC, code ) =
                     c.lastDoc
                         |> Maybe.map (elixirDoc c Fundoc)
                         |> Maybe.withDefault ( c, "" )
             in
-                (,) (addTypeDefinition newC name definition) <|
+                (,) newC <|
                     code
                         ++ case operatorType name of
                             Builtin ->
@@ -148,8 +142,9 @@ elixirS c s =
             let
                 genFfi =
                     ExFfi.generateFfi c ExExpression.elixirE name <|
-                        (c.definitions
-                            |> Dict.get name
+                        (c.modules
+                            |> Dict.get c.mod
+                            |> Maybe.andThen (.definitions >> Dict.get name)
                             |> Maybe.map
                                 (.def
                                     >> typeApplicationToList
@@ -157,13 +152,16 @@ elixirS c s =
                             |> Maybe.withDefault []
                             |> List.map typeApplicationToList
                         )
+
+                definitionExists =
+                    c.modules
+                        |> Dict.get c.mod
+                        |> Maybe.andThen (.definitions >> Dict.get name)
+                        |> (==) Nothing
+                        |> (&&) (not (ExContext.isPrivate c name))
             in
                 c
-                    => if
-                        Dict.get name c.definitions
-                            == Nothing
-                            && not (ExContext.isPrivate c name)
-                       then
+                    => if definitionExists then
                         Debug.crash <|
                             "To be able to export it, you need to provide function type for `"
                                 ++ name
@@ -380,26 +378,3 @@ maybeDoctest c line =
                 line
     else
         line
-
-
-{-| Get a definition of a type to store it in context
--}
-getTypeDefinition : Statement -> Definition
-getTypeDefinition a =
-    case a of
-        FunctionTypeDeclaration name t ->
-            let
-                arity =
-                    typeApplicationToList t |> List.length
-            in
-                Definition (arity - 1) t
-
-        _ ->
-            Debug.crash "It's not a type declaration"
-
-
-{-| Add type definition into context
--}
-addTypeDefinition : Context -> String -> Definition -> Context
-addTypeDefinition c name d =
-    { c | definitions = Dict.insert name d c.definitions }
