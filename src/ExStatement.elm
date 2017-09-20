@@ -13,8 +13,7 @@ import Ast.Statement exposing (Statement(..), Type(..), ExportSet(..))
 import ExContext exposing (Context, Definition, indent, deindent, onlyWithoutFlag)
 import Helpers
     exposing
-        ( modulePathName
-        , ind
+        ( ind
         , indAll
         , indNoNewline
         , prependAll
@@ -49,7 +48,7 @@ moduleStatement : Statement -> Context
 moduleStatement s =
     case s of
         ModuleDeclaration path exports ->
-            ExContext.empty (modulePathName path) exports
+            ExContext.empty (modulePath path) exports
 
         other ->
             Debug.crash "First statement must be module declaration"
@@ -145,10 +144,7 @@ elixirS c s =
                         (c.modules
                             |> Dict.get c.mod
                             |> Maybe.andThen (.definitions >> Dict.get name)
-                            |> Maybe.map
-                                (.def
-                                    >> typeApplicationToList
-                                )
+                            |> Maybe.map (.def >> typeApplicationToList)
                             |> Maybe.withDefault []
                             |> List.map typeApplicationToList
                         )
@@ -219,7 +215,7 @@ elixirS c s =
                         []
                     else
                         [ "only: ["
-                            ++ String.join "," (elixirExportList imports)
+                            ++ String.join ", " (elixirExportList imports)
                             ++ "]"
                         ]
 
@@ -228,13 +224,19 @@ elixirS c s =
                         []
                     else
                         [ "except: ["
-                            ++ String.join "," (elixirExportList excepts)
+                            ++ String.join ", " (elixirExportList excepts)
                             ++ "]"
                         ]
+
+                importOrAlias =
+                    if imports == [] && excepts == [] then
+                        "alias "
+                    else
+                        "import "
             in
-                ExContext.mergeTypes subset (modulePathName path) c
+                ExContext.mergeTypes subset (modulePath path) c
                     => (ind c.indent)
-                    ++ "import "
+                    ++ importOrAlias
                     ++ ([ [ modulePath path ], only, except ]
                             |> List.foldr (++) []
                             |> String.join ", "
@@ -244,11 +246,14 @@ elixirS c s =
         ImportStatement [ "Elchemy" ] Nothing (Just AllExport) ->
             ( c, "" )
 
-        ImportStatement path Nothing (Just AllExport) ->
+        ImportStatement modPath Nothing (Just AllExport) ->
             let
+                mod =
+                    modulePath modPath
+
                 exports =
                     c.modules
-                        |> Dict.get (path |> String.join ".")
+                        |> Dict.get mod
                         |> Maybe.map (.definitions >> Dict.keys)
                         |> Maybe.withDefault []
 
@@ -267,10 +272,10 @@ elixirS c s =
                             ++ "]"
                         ]
             in
-                ExContext.mergeTypes AllExport (modulePathName path) c
+                ExContext.mergeTypes AllExport mod c
                     => (ind c.indent)
                     ++ "import "
-                    ++ ([ [ modulePath path ], except ]
+                    ++ ([ [ mod ], except ]
                             |> List.foldr (++) []
                             |> String.join ", "
                        )
@@ -412,7 +417,11 @@ elixirExportList list =
     let
         wrap name =
             if isCustomOperator name then
-                "{:'" ++ translateOperator name ++ "', 0}"
+                "{:'"
+                    ++ translateOperator name
+                    ++ "', 0}, {:'"
+                    ++ translateOperator name
+                    ++ "', 2}"
             else
                 "{:'" ++ toSnakeCase True name ++ "', 0}"
     in

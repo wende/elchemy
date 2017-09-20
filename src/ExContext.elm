@@ -379,10 +379,6 @@ mergeTypes set mod c =
                         |> putAllLocal .aliases (\m x -> { m | aliases = x }) (getAlias aliasName)
                         |> putAllLocal .types (\m x -> { m | types = x }) (getTypes aliasName types)
 
-                -- { c
-                --     | aliases = addThese c.mod (getLocalAlias aliasName) c.aliases
-                --     , types = addThese c.mod (getLocalTypesInNames aliasName types) c.types
-                -- }
                 FunctionExport _ ->
                     c
 

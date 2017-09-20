@@ -63,8 +63,8 @@ extractVariables exp =
             List vars ->
                 many vars
 
-            Application _ right ->
-                many [ right ]
+            Application left right ->
+                many [ left, right ]
 
             BinOp (Variable [ "::" ]) x xs ->
                 many [ x, xs ]
