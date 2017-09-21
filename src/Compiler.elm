@@ -198,10 +198,13 @@ getCode context statements =
                 |> Maybe.map (makeExcept reserved >> List.singleton)
                 |> Maybe.withDefault []
 
+        reserved =
+            Helpers.reservedBasicFunctions
+                |> List.concatMap findReserved
+
         shadowsBasics =
-            if context.mod /= "Elchemy.XBasics" then
-                Helpers.reservedBasicFunctions
-                    |> List.concatMap findReserved
+            if context.mod /= "Elchemy.XBasics" && reserved /= [] then
+                reserved
                     |> String.join ", "
                     |> (++) "import Elchemy.XBasics, except: ["
                     |> flip (++) "]\n"

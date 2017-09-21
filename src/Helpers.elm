@@ -248,8 +248,8 @@ modulePath list =
     in
         list
             |> List.map snakeIfLower
-            |> List.map maybeReplaceStd
             |> String.join "."
+            |> maybeReplaceStd
 
 
 maybeReplaceStd : String -> String
