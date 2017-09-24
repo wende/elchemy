@@ -72,8 +72,8 @@ extractVariables exp =
             BinOp (Variable [ "as" ]) ((Variable _) as v1) ((Variable _) as v2) ->
                 many [ v1, v2 ]
 
-            BinOp (Variable [ "as" ]) _ (Variable [ name ]) ->
-                one name
+            BinOp (Variable [ "as" ]) l ((Variable [ _ ]) as r) ->
+                many [ l, r ]
 
             _ ->
                 none

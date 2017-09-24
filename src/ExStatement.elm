@@ -26,6 +26,7 @@ import Helpers
         , modulePath
         , notImplemented
         , typeApplicationToList
+        , filterMaybe
         )
 
 
@@ -215,7 +216,7 @@ elixirS c s =
                         []
                     else
                         [ "only: ["
-                            ++ String.join ", " (elixirExportList imports)
+                            ++ String.join ", " (elixirExportList c imports)
                             ++ "]"
                         ]
 
@@ -224,7 +225,7 @@ elixirS c s =
                         []
                     else
                         [ "except: ["
-                            ++ String.join ", " (elixirExportList excepts)
+                            ++ String.join ", " (elixirExportList c excepts)
                             ++ "]"
                         ]
 
@@ -268,7 +269,7 @@ elixirS c s =
                         []
                     else
                         [ "except: ["
-                            ++ String.join "," (elixirExportList excepts)
+                            ++ String.join ", " (elixirExportList c excepts)
                             ++ "]"
                         ]
             in
@@ -412,18 +413,33 @@ exportSetToList exp =
             Debug.crash ("You can't export " ++ toString exp)
 
 
-elixirExportList : List String -> List String
-elixirExportList list =
+elixirExportList : Context -> List String -> List String
+elixirExportList c list =
     let
+        defineFor name arity =
+            "{:'"
+                ++ name
+                ++ "', "
+                ++ toString arity
+                ++ "}"
+
         wrap name =
             if isCustomOperator name then
-                "{:'"
-                    ++ translateOperator name
-                    ++ "', 0}, {:'"
-                    ++ translateOperator name
-                    ++ "', 2}"
+                defineFor (translateOperator name) 0
+                    ++ ", "
+                    ++ defineFor (translateOperator name) 2
             else
-                "{:'" ++ toSnakeCase True name ++ "', 0}"
+                defineFor (toSnakeCase True name) 0
+                    ++ (c.modules
+                            |> Dict.get c.mod
+                            |> Maybe.map .definitions
+                            |> Maybe.andThen (Dict.get name)
+                            |> Maybe.map (.arity)
+                            |> filterMaybe ((/=) 0)
+                            |> Maybe.map (defineFor (toSnakeCase True name))
+                            |> Maybe.map ((++) ", ")
+                            |> Maybe.withDefault ""
+                       )
     in
         List.map wrap list
 

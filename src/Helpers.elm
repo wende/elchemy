@@ -287,7 +287,7 @@ reservedWords =
 
 reservedBasicFunctions : List String
 reservedBasicFunctions =
-    [ "toString", "toFloat" ]
+    [ "toString", "toFloat", "cons" ]
 
 
 replaceOp : String -> String
