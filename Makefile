@@ -53,4 +53,7 @@ compile-elixir:
 	make compile
 	rm -rf elchemy_ex/elm-deps
 	cd elchemy_ex && ../elchemy compile ../src lib | ts %H:%M:%.S
+
+compile-test-elixir:
+	make compile-elixir
 	cd elchemy_ex && mix compile
