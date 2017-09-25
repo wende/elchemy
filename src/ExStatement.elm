@@ -13,8 +13,7 @@ import Ast.Statement exposing (Statement(..), Type(..), ExportSet(..))
 import ExContext exposing (Context, Definition, indent, deindent, onlyWithoutFlag)
 import Helpers
     exposing
-        ( modulePathName
-        , ind
+        ( ind
         , indAll
         , indNoNewline
         , prependAll
@@ -27,6 +26,7 @@ import Helpers
         , modulePath
         , notImplemented
         , typeApplicationToList
+        , filterMaybe
         )
 
 
@@ -49,7 +49,7 @@ moduleStatement : Statement -> Context
 moduleStatement s =
     case s of
         ModuleDeclaration path exports ->
-            ExContext.empty (modulePathName path) exports
+            ExContext.empty (modulePath path) exports
 
         other ->
             Debug.crash "First statement must be module declaration"
@@ -84,15 +84,12 @@ elixirS c s =
 
         (FunctionTypeDeclaration name ((TypeApplication _ _) as t)) as def ->
             let
-                definition =
-                    getTypeDefinition def
-
                 ( newC, code ) =
                     c.lastDoc
                         |> Maybe.map (elixirDoc c Fundoc)
                         |> Maybe.withDefault ( c, "" )
             in
-                (,) (addTypeDefinition newC name definition) <|
+                (,) newC <|
                     (onlyWithoutFlag newC "nodef" name code)
                         ++ case operatorType name of
                             Builtin ->
@@ -115,15 +112,12 @@ elixirS c s =
 
         (FunctionTypeDeclaration name t) as def ->
             let
-                definition =
-                    getTypeDefinition def
-
                 ( newC, code ) =
                     c.lastDoc
                         |> Maybe.map (elixirDoc c Fundoc)
                         |> Maybe.withDefault ( c, "" )
             in
-                (,) (addTypeDefinition newC name definition) <|
+                (,) newC <|
                     code
                         ++ case operatorType name of
                             Builtin ->
@@ -148,22 +142,23 @@ elixirS c s =
             let
                 genFfi =
                     ExFfi.generateFfi c ExExpression.elixirE name <|
-                        (c.definitions
-                            |> Dict.get name
-                            |> Maybe.map
-                                (.def
-                                    >> typeApplicationToList
-                                )
+                        (c.modules
+                            |> Dict.get c.mod
+                            |> Maybe.andThen (.definitions >> Dict.get name)
+                            |> Maybe.map (.def >> typeApplicationToList)
                             |> Maybe.withDefault []
                             |> List.map typeApplicationToList
                         )
+
+                definitionExists =
+                    c.modules
+                        |> Dict.get c.mod
+                        |> Maybe.andThen (.definitions >> Dict.get name)
+                        |> (==) Nothing
+                        |> (&&) (not (ExContext.isPrivate c name))
             in
                 c
-                    => if
-                        Dict.get name c.definitions
-                            == Nothing
-                            && not (ExContext.isPrivate c name)
-                       then
+                    => if definitionExists then
                         Debug.crash <|
                             "To be able to export it, you need to provide function type for `"
                                 ++ name
@@ -205,23 +200,86 @@ elixirS c s =
                 ++ asName
 
         ImportStatement path Nothing (Just ((SubsetExport exports) as subset)) ->
-            ExContext.mergeTypes subset (modulePathName path) c
-                => (ind c.indent)
-                ++ "import "
-                ++ modulePath path
-                ++ ", only: ["
-                ++ (List.map subsetExport exports |> List.foldr (++) [] |> String.join ",")
-                ++ "]"
+            let
+                imports =
+                    List.map exportSetToList exports
+                        |> List.foldr (++) []
+
+                excepts =
+                    c.modules
+                        |> Dict.get c.mod
+                        |> Maybe.map (.definitions >> Dict.keys >> duplicates imports)
+                        |> Maybe.withDefault []
+
+                only =
+                    if imports == [] then
+                        []
+                    else
+                        [ "only: ["
+                            ++ String.join ", " (elixirExportList c imports)
+                            ++ "]"
+                        ]
+
+                except =
+                    if excepts == [] then
+                        []
+                    else
+                        [ "except: ["
+                            ++ String.join ", " (elixirExportList c excepts)
+                            ++ "]"
+                        ]
+
+                importOrAlias =
+                    if imports == [] && excepts == [] then
+                        "alias "
+                    else
+                        "import "
+            in
+                ExContext.mergeTypes subset (modulePath path) c
+                    => (ind c.indent)
+                    ++ importOrAlias
+                    ++ ([ [ modulePath path ], only, except ]
+                            |> List.foldr (++) []
+                            |> String.join ", "
+                       )
 
         -- Suppresses the compiler warning
         ImportStatement [ "Elchemy" ] Nothing (Just AllExport) ->
             ( c, "" )
 
-        ImportStatement path Nothing (Just AllExport) ->
-            ExContext.mergeTypes AllExport (modulePathName path) c
-                => (ind c.indent)
-                ++ "import "
-                ++ modulePath path
+        ImportStatement modPath Nothing (Just AllExport) ->
+            let
+                mod =
+                    modulePath modPath
+
+                exports =
+                    c.modules
+                        |> Dict.get mod
+                        |> Maybe.map (.definitions >> Dict.keys)
+                        |> Maybe.withDefault []
+
+                excepts =
+                    c.modules
+                        |> Dict.get c.mod
+                        |> Maybe.map (.definitions >> Dict.keys >> duplicates exports)
+                        |> Maybe.withDefault []
+
+                except =
+                    if excepts == [] then
+                        []
+                    else
+                        [ "except: ["
+                            ++ String.join ", " (elixirExportList c excepts)
+                            ++ "]"
+                        ]
+            in
+                ExContext.mergeTypes AllExport mod c
+                    => (ind c.indent)
+                    ++ "import "
+                    ++ ([ [ mod ], except ]
+                            |> List.foldr (++) []
+                            |> String.join ", "
+                       )
 
         s ->
             (,) c <|
@@ -342,20 +400,53 @@ getCommentType comment =
 
 {-| Encode all exports from a module
 -}
-subsetExport : ExportSet -> List String
-subsetExport exp =
+exportSetToList : ExportSet -> List String
+exportSetToList exp =
     case exp of
         TypeExport _ _ ->
             []
 
         FunctionExport name ->
-            if isCustomOperator name then
-                [ "{:'" ++ translateOperator name ++ "', 0}" ]
-            else
-                [ "{:'" ++ toSnakeCase True name ++ "', 0}" ]
+            [ name ]
 
         _ ->
             Debug.crash ("You can't export " ++ toString exp)
+
+
+elixirExportList : Context -> List String -> List String
+elixirExportList c list =
+    let
+        defineFor name arity =
+            "{:'"
+                ++ name
+                ++ "', "
+                ++ toString arity
+                ++ "}"
+
+        wrap name =
+            if isCustomOperator name then
+                defineFor (translateOperator name) 0
+                    ++ ", "
+                    ++ defineFor (translateOperator name) 2
+            else
+                defineFor (toSnakeCase True name) 0
+                    ++ (c.modules
+                            |> Dict.get c.mod
+                            |> Maybe.map .definitions
+                            |> Maybe.andThen (Dict.get name)
+                            |> Maybe.map (.arity)
+                            |> filterMaybe ((/=) 0)
+                            |> Maybe.map (defineFor (toSnakeCase True name))
+                            |> Maybe.map ((++) ", ")
+                            |> Maybe.withDefault ""
+                       )
+    in
+        List.map wrap list
+
+
+duplicates : List a -> List a -> List a
+duplicates listA listB =
+    List.filter (flip List.member listB) listA
 
 
 {-| Replace a function doc with a doctest if in correct format
@@ -380,26 +471,3 @@ maybeDoctest c line =
                 line
     else
         line
-
-
-{-| Get a definition of a type to store it in context
--}
-getTypeDefinition : Statement -> Definition
-getTypeDefinition a =
-    case a of
-        FunctionTypeDeclaration name t ->
-            let
-                arity =
-                    typeApplicationToList t |> List.length
-            in
-                Definition (arity - 1) t
-
-        _ ->
-            Debug.crash "It's not a type declaration"
-
-
-{-| Add type definition into context
--}
-addTypeDefinition : Context -> String -> Definition -> Context
-addTypeDefinition c name d =
-    { c | definitions = Dict.insert name d c.definitions }

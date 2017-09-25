@@ -118,7 +118,7 @@ elixirControlFlow c e =
                                         ++ " = rec "
                                         ++ toSnakeCase True name
                                         ++ ", "
-                                        ++ lambda cAcc args exp
+                                        ++ lambda (cAcc |> rememberVariables [ var ]) args exp
 
                                 [ assign ] ->
                                     rememberVariables [ assign ] cAcc
@@ -505,7 +505,7 @@ elixirVariable c var =
                     Builtin ->
                         -- We need a curried version, so kernel won't work
                         if name == "<|" then
-                            "flip.((&|>/0).())"
+                            "flip().((&|>/0).())"
                         else
                             "(&" ++ translateOperator name ++ "/0).()"
 

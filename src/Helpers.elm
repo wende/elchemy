@@ -235,6 +235,8 @@ ops =
     [ '+', '-', '/', '*', '=', '.', '$', '<', '>', ':', '&', '|', '^', '?', '%', '#', '@', '~', '!' ] |> List.indexedMap (,)
 
 
+{-| Gives a String representation of module path
+-}
 modulePath : List String -> String
 modulePath list =
     let
@@ -246,14 +248,14 @@ modulePath list =
     in
         list
             |> List.map snakeIfLower
-            |> List.map maybeReplaceStd
             |> String.join "."
+            |> maybeReplaceStd
 
 
 maybeReplaceStd : String -> String
 maybeReplaceStd s =
     if isStdModule s then
-        "X" ++ s
+        "Elchemy.X" ++ s
     else
         s
 
@@ -283,6 +285,11 @@ reservedWords =
     [ "fn", "do", "end", "cond", "receive", "or", "and" ]
 
 
+reservedBasicFunctions : List String
+reservedBasicFunctions =
+    [ "toString", "toFloat", "cons" ]
+
+
 replaceOp : String -> String
 replaceOp op =
     String.toList op
@@ -309,13 +316,6 @@ replaceReserved a =
         a ++ "__"
     else
         a
-
-
-{-| Gives a String representation of module path
--}
-modulePathName : List String -> String
-modulePathName =
-    String.join "."
 
 
 {-| Change application into a list of expressions

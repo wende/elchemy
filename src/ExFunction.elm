@@ -34,7 +34,9 @@ genFunctionDefinition :
 genFunctionDefinition c elixirE name args body =
     let
         typeDef =
-            c.definitions |> Dict.get name
+            c.modules
+                |> Dict.get c.mod
+                |> Maybe.andThen (.definitions >> Dict.get name)
 
         arity =
             typeDef |> Maybe.map .arity |> Maybe.withDefault 0
@@ -196,7 +198,9 @@ genOverloadedFunctionDefinition :
 genOverloadedFunctionDefinition c elixirE name args body expressions =
     let
         typeDef =
-            c.definitions |> Dict.get name
+            c.modules
+                |> Dict.get c.mod
+                |> Maybe.andThen (.definitions >> Dict.get name)
 
         arity =
             typeDef |> Maybe.map .arity |> Maybe.withDefault 0
@@ -208,7 +212,12 @@ genOverloadedFunctionDefinition c elixirE name args body expressions =
                 ++ (expressions
                         |> List.map
                             (\( left, right ) ->
-                                genElixirFunc c elixirE name [ left ] (arity - 1) right
+                                case left of
+                                    Tuple args ->
+                                        genElixirFunc c elixirE name args (arity - List.length args) right
+
+                                    _ ->
+                                        genElixirFunc c elixirE name [ left ] (arity - 1) right
                             )
                         |> List.foldr (++) ""
                         |> flip (++) "\n"

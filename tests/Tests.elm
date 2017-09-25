@@ -392,6 +392,35 @@ a : Invisible
 a = 1
     """
                     |> hasFull ":invisible"
+        , test "Qualified imports work too" <|
+            \() ->
+                """
+>>>> a.elm
+module A exposing (A)
+type As a = Tag a
+
+>>>> b.elm
+module B exposing (..)
+import A exposing (As)
+a : As a
+a = Tag
+       """
+                    |> hasFull "fn x1 -> {:tag, x1} end"
+        , test "Conflicted imports are excepts" <|
+            \() ->
+                """
+>>>> a.elm
+module Something.A exposing (a)
+a : a -> Int
+a _ = 1
+
+>>>> b.elm
+module Something.B exposing (..)
+import Something.A exposing (..)
+a : a -> Int
+a _ = 10
+       """
+                    |> hasFull "import Something.A, except: [{:'a', 0}, {:'a', 1}]"
         ]
 
 

@@ -10,9 +10,9 @@ import Ast
 import ExAlias
 import ExStatement
 import Dict exposing (Dict)
-import Helpers exposing (ind)
+import Helpers exposing (ind, toSnakeCase)
 import Ast.Statement exposing (Statement)
-import ExContext exposing (Context, Aliases)
+import ExContext exposing (Context)
 import Regex exposing (Regex, HowMany(..), regex)
 
 
@@ -103,21 +103,14 @@ tree m =
                                         Just ( name, c, ast )
                             )
 
-                commonAliases =
+                commonModules =
                     wContexts
-                        |> List.map (\( name, ctx, ast ) -> ctx.aliases)
+                        |> List.map (\( name, ctx, ast ) -> ctx.modules)
                         |> getCommonImports
-
-                commonTypes =
-                    wContexts
-                        |> List.map (\( name, ctx, ast ) -> ctx.types)
-                        |> getCommonImports
-
-                updateWithCommon ( name, c, ast ) =
-                    ( name, { c | aliases = commonAliases, types = commonTypes }, ast )
 
                 wTrueContexts =
-                    List.map updateWithCommon wContexts
+                    wContexts
+                        |> List.map (\( name, c, ast ) -> ( name, { c | modules = commonModules }, ast ))
 
                 compileWithIndex ( i, ( name, c, ast ) ) =
                     let
@@ -185,14 +178,49 @@ aggregateStatements s ( c, code ) =
 
 getCode : Context -> List Statement -> String
 getCode context statements =
-    ("# Compiled using Elchemy v" ++ version)
-        ++ "\n"
-        ++ ("defmodule " ++ context.mod ++ " do")
-        ++ glueStart
-        ++ ((List.foldl (aggregateStatements) ( context, "" ) statements)
-                |> Tuple.second
-           )
-        ++ glueEnd
+    let
+        definitions =
+            context.modules
+                |> Dict.get context.mod
+                |> Maybe.map (.definitions)
+                |> Maybe.withDefault Dict.empty
+
+        makeExcept name definition =
+            toSnakeCase False name
+                ++ ": 0, "
+                ++ toSnakeCase False name
+                ++ ": "
+                ++ toString definition.arity
+
+        findReserved reserved =
+            definitions
+                |> Dict.get reserved
+                |> Maybe.map (makeExcept reserved >> List.singleton)
+                |> Maybe.withDefault []
+
+        reserved =
+            Helpers.reservedBasicFunctions
+                |> List.concatMap findReserved
+
+        shadowsBasics =
+            if context.mod /= "Elchemy.XBasics" && reserved /= [] then
+                reserved
+                    |> String.join ", "
+                    |> (++) "import Elchemy.XBasics, except: ["
+                    |> flip (++) "]\n"
+            else
+                ""
+    in
+        ("# Compiled using Elchemy v" ++ version)
+            ++ "\n"
+            ++ ("defmodule " ++ context.mod ++ " do")
+            ++ glueStart
+            ++ (ind context.indent)
+            ++ shadowsBasics
+            ++ ((List.foldl (aggregateStatements) ( context, "" ) statements)
+                    |> Tuple.second
+               )
+            ++ glueEnd
 
 
 parse : String -> String -> List Statement

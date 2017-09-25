@@ -26,10 +26,10 @@ if git diff-index --quiet HEAD --; then
     make compile
     make release
 
+    sed -i "" "s/version=\"$SEMVER\"/version=\"$VER\"/g" ./elchemy
     sed -i "" "s/name\": \"elchemy\"/name\": \"elmchemy\"/g" package.json
     npm publish
     sed -i "" "s/name\": \"elmchemy\"/name\": \"elchemy\"/g" package.json
-    sed -i "" "s/version=\"$SEMVER\"/version=\"$VER\"/g" ./elchemy
     npm publish
 
     git commit -am "Release $VER"
