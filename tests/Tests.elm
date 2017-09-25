@@ -87,6 +87,9 @@ functions =
         , test "Function calls are snakecased" <|
             \() ->
                 "a = camelCase 1" |> has "camel_case().(1)"
+        , test "Uncurried function calls are snakecased" <|
+            \() ->
+                "fooBar : a -> a -> a\napp = fooBar 1 1" |> has "foo_bar(1, 2)"
         , test "Can call function recursively" <|
             \() ->
                 "a = let f a = f (a - 1) in f" |> has "f = rec f, fn a ->"
