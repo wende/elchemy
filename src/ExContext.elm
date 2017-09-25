@@ -11,6 +11,7 @@ module ExContext
         , wrongArityAlias
         , addType
         , getType
+        , getArity
         , addDefinition
         , indent
         , deindent
@@ -204,6 +205,17 @@ Wrapped in Maybe
 getType : String -> String -> Context -> Maybe UnionType
 getType =
     getFromContext .types
+
+
+{-| Get's arity of the function in the module
+-}
+getArity : String -> String -> Context -> Maybe Int
+getArity m fn ctx =
+    ctx.modules
+        |> Dict.get m
+        |> Maybe.map (.definitions)
+        |> Maybe.andThen (Dict.get fn)
+        |> Maybe.map (.arity)
 
 
 {-| Returns empty context

@@ -75,13 +75,16 @@ functions =
         [ test "Application" <|
             \() ->
                 "app = a b c d" |> has "a().(b()).(c()).(d())"
+        , test "Uncurried application when all args provided" <|
+            \() ->
+                "a : a -> a -> a -> a\napp = a b c d" |> has "a(b(), c(), d())"
         , test "ffi" <|
             \() ->
                 "upcase : String -> String\nupcase name = ffi \"String\" \"to_upper\" " |> has "String.to_upper("
-        , test "function names are snakecased" <|
+        , test "Function names are snakecased" <|
             \() ->
                 "camelCase = 1" |> has "camel_case()"
-        , test "function calls are snakecased" <|
+        , test "Function calls are snakecased" <|
             \() ->
                 "a = camelCase 1" |> has "camel_case().(1)"
         , test "Can call function recursively" <|

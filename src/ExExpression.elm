@@ -29,6 +29,7 @@ import ExContext
         , onlyWithoutFlag
         , inArgs
         , mergeVariables
+        , getArity
         )
 
 
@@ -272,13 +273,32 @@ flattenTypeApplication application =
             [ other ]
 
 
+{-| Returns uncurryied function application if arguments length is matching definition arity
+otherwise returns curried version
+-}
+functionApplication : Context -> Expression -> Expression -> String
+functionApplication c left right =
+    case applicationToList (Application left right) of
+        (Variable [ fn ]) :: args ->
+            if List.length args == Maybe.withDefault -1 (getArity c.mod fn c) then
+                fn
+                    ++ "("
+                    ++ (args |> List.map (elixirE c) |> String.join ", ")
+                    ++ ")"
+            else
+                elixirE c left ++ ".(" ++ elixirE c right ++ ")"
+
+        _ ->
+            elixirE c left ++ ".(" ++ elixirE c right ++ ")"
+
+
 {-| Returns code representation of tuple or function depending on definition
 -}
 tupleOrFunction : Context -> Expression -> String
 tupleOrFunction c a =
     case flattenTypeApplication a of
         (Application left right) :: [] ->
-            elixirE c left ++ ".(" ++ elixirE c right ++ ")"
+            functionApplication c left right
 
         (Variable [ "ffi" ]) :: rest ->
             Debug.crash "Ffi inside function body is deprecated since Elchemy 0.3"
