@@ -281,7 +281,7 @@ functionApplication c left right =
     case applicationToList (Application left right) of
         (Variable [ fn ]) :: args ->
             if List.length args == Maybe.withDefault -1 (getArity c.mod fn c) then
-                toSnakeCase True fn
+                (toSnakeCase True fn)
                     ++ "("
                     ++ (args |> List.map (elixirE c) |> String.join ", ")
                     ++ ")"
