@@ -57,7 +57,7 @@ case "$1" in
         if ! [[ $* == *--unsafe* ]]; then
             if ! hash elm-github-install 2>/dev/null; then
                 echo "No elm-github-install found. Installing..."
-                npm i -g elm-github-install@1.2.0
+                npm i -g elm-github-install@1.6.0
             fi
             elm-install
         fi
