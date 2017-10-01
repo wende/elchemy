@@ -22,7 +22,7 @@ compile-watch:
 	find . -name "*.elm" | grep -v "elm-stuff" | grep -v .# | entr make compile
 
 test:
-	elm test
+	./node_modules/.bin/elm-test
 
 test-std:
 	cd elchemy-core/ && mix test
