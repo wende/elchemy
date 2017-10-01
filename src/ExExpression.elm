@@ -279,15 +279,15 @@ otherwise returns curried version
 functionApplication : Context -> Expression -> Expression -> String
 functionApplication c left right =
     let
-        reduceArgs c args =
-            args |> List.map (elixirE c) |> String.join ", "
+        reduceArgs c args separator =
+            args |> List.map (elixirE c) |> String.join separator
     in
-        (case applicationToList (Application left right) of
+        case applicationToList (Application left right) of
             (Variable [ fn ]) :: args ->
                 if areMatchingArity c c.mod fn args then
-                    [ toSnakeCase True fn, "(", reduceArgs c args, ")" ]
+                    toSnakeCase True fn ++ "(" ++ reduceArgs c args ", " ++ ")"
                 else
-                    [ elixirE c left, ".(", elixirE c right, ")" ]
+                    elixirE c left ++ ".(" ++ elixirE c right ++ ")"
 
             (Access (Variable modules) [ fn ]) :: args ->
                 let
@@ -298,14 +298,12 @@ functionApplication c left right =
                         (toSnakeCase True fn)
                 in
                     if areMatchingArity c mod fn args then
-                        [ mod, ".", fnName, "(", reduceArgs c args, ")" ]
+                        mod ++ "." ++ fnName ++ "(" ++ reduceArgs c args ", " ++ ")"
                     else
-                        [ mod, ".", fnName, "().(", args |> List.map (elixirE c) |> String.join ").(", ")" ]
+                        mod ++ "." ++ fnName ++ "().(" ++ reduceArgs c args ").(" ++ ")"
 
             _ ->
-                [ elixirE c left, ".(", elixirE c right, ")" ]
-        )
-            |> String.join ""
+                elixirE c left ++ ".(" ++ elixirE c right ++ ")"
 
 
 {-| Returns code representation of tuple or function depending on definition
