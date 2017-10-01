@@ -29,7 +29,7 @@ import ExContext
         , onlyWithoutFlag
         , inArgs
         , mergeVariables
-        , hasMatchingArity
+        , areMatchingArity
         )
 
 
@@ -273,7 +273,7 @@ flattenTypeApplication application =
             [ other ]
 
 
-{-| Returns uncurryied function application if arguments length is matching definition arity
+{-| Returns uncurried function application if arguments length is matching definition arity
 otherwise returns curried version
 -}
 functionApplication : Context -> Expression -> Expression -> String
@@ -284,7 +284,7 @@ functionApplication c left right =
     in
         (case applicationToList (Application left right) of
             (Variable [ fn ]) :: args ->
-                if hasMatchingArity c c.mod fn args then
+                if areMatchingArity c c.mod fn args then
                     [ toSnakeCase True fn, "(", reduceArgs c args, ")" ]
                 else
                     [ elixirE c left, ".(", elixirE c right, ")" ]
@@ -297,7 +297,7 @@ functionApplication c left right =
                     fnName =
                         (toSnakeCase True fn)
                 in
-                    if hasMatchingArity c mod fn args then
+                    if areMatchingArity c mod fn args then
                         [ mod, ".", fnName, "(", reduceArgs c args, ")" ]
                     else
                         [ mod, ".", fnName, "().(", args |> List.map (elixirE c) |> String.join ").(", ")" ]
