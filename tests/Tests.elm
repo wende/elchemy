@@ -71,29 +71,49 @@ lists =
 
 functions : Test
 functions =
-    describe "Functions"
-        [ test "Application" <|
-            \() ->
-                "app = a b c d" |> has "a().(b()).(c()).(d())"
-        , test "Uncurried application when all args provided" <|
-            \() ->
-                "a : a -> a -> a -> a\napp = a b c d" |> has "a(b(), c(), d())"
-        , test "ffi" <|
-            \() ->
-                "upcase : String -> String\nupcase name = ffi \"String\" \"to_upper\" " |> has "String.to_upper("
-        , test "Function names are snakecased" <|
-            \() ->
-                "camelCase = 1" |> has "camel_case()"
-        , test "Function calls are snakecased" <|
-            \() ->
-                "a = camelCase 1" |> has "camel_case().(1)"
-        , test "Uncurried function calls are snakecased" <|
-            \() ->
-                "fooBar : a -> a -> a\napp = fooBar 1 2" |> has "foo_bar(1, 2)"
-        , test "Can call function recursively" <|
-            \() ->
-                "a = let f a = f (a - 1) in f" |> has "f = rec f, fn a ->"
-        ]
+    let
+        input =
+            """
+module B exposing(..)
+testFull : Int
+testFull = A.fun 1 2
+
+testCurried : Int
+testCurried = A.fun 1
+
+>>>> b.elm
+module A exposing(fun)
+fun : Int -> Int -> Int
+fun a b = 1
+"""
+    in
+        describe "Functions"
+            [ test "Application" <|
+                \() ->
+                    "app = a b c d" |> has "a().(b()).(c()).(d())"
+            , test "Uncurried application when all args provided" <|
+                \() ->
+                    "a : a -> a -> a -> a\napp = a b c d" |> has "a(b(), c(), d())"
+            , test "ffi" <|
+                \() ->
+                    "upcase : String -> String\nupcase name = ffi \"String\" \"to_upper\" " |> has "String.to_upper("
+            , test "Function names are snakecased" <|
+                \() ->
+                    "camelCase = 1" |> has "camel_case()"
+            , test "Function calls are snakecased" <|
+                \() ->
+                    "a = camelCase 1" |> has "camel_case().(1)"
+            , test "Uncurried function calls are snakecased" <|
+                \() ->
+                    "fooBar : a -> a -> a\napp = fooBar 1 2" |> has "foo_bar(1, 2)"
+            , test "Can call function recursively" <|
+                \() ->
+                    "a = let f a = f (a - 1) in f" |> has "f = rec f, fn a ->"
+            , test "Correct curried application from modules" <|
+                \() -> input |> has "A.fun().(1)"
+            , test "Correct full application from modules" <|
+                \() -> input |> has "A.fun(1, 2)"
+            ]
 
 
 binOps : Test

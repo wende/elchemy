@@ -39,7 +39,7 @@ compile-std-tests-watch:
 	find elchemy-core \( -name "*.elm" -or -name '*.ex' \) | grep -v "elchemy.ex" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c "make compile && make compile-std && make test-std"
 
 tests-watch:
-	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr elm-test
+	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr ./node_modules/.bin/elm-test
 
 compile-demo:
 	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c "make compile && node elchemy.js src/Example.elm  > elixir-stuff/elchemy/lib/example.ex"
