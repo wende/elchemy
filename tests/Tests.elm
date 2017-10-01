@@ -81,6 +81,9 @@ testFull = A.fun 1 2
 testCurried : Int
 testCurried = A.fun 1
 
+join : List String -> String
+join a = String.join " " a
+
 >>>> b.elm
 module A exposing(fun)
 fun : Int -> Int -> Int
@@ -113,6 +116,8 @@ fun a b = 1
                 \() -> input |> has "A.fun().(1)"
             , test "Correct full application from modules" <|
                 \() -> input |> has "A.fun(1, 2)"
+            , test "Correct curried application for undefined module" <|
+                \() -> input |> has "Elchemy.XString.join().(\" \").(a)"
             ]
 
 

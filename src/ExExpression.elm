@@ -300,7 +300,7 @@ functionApplication c left right =
                     if hasMatchingArity c mod fn args then
                         [ mod, ".", fnName, "(", reduceArgs c args, ")" ]
                     else
-                        [ mod, ".", fnName, "().(", elixirE c right, ")" ]
+                        [ mod, ".", fnName, "().(", args |> List.map (elixirE c) |> String.join ").(", ")" ]
 
             _ ->
                 [ elixirE c left, ".(", elixirE c right, ")" ]
