@@ -29,7 +29,7 @@ import ExContext
         , onlyWithoutFlag
         , inArgs
         , mergeVariables
-        , getArity
+        , hasMatchingArity
         )
 
 
@@ -43,7 +43,7 @@ elixirE c e =
 
         -- Primitive types
         (Application name arg) as application ->
-            (tupleOrFunction c application)
+            tupleOrFunction c application
 
         RecordUpdate name keyValuePairs ->
             "%{"
@@ -55,7 +55,7 @@ elixirE c e =
                 ++ "}"
 
         -- Primitive operators
-        Access ((Variable modules) as left) right ->
+        Access (Variable modules) right ->
             modulePath modules
                 ++ "."
                 ++ String.join "." (List.map (toSnakeCase True) right)
@@ -278,18 +278,34 @@ otherwise returns curried version
 -}
 functionApplication : Context -> Expression -> Expression -> String
 functionApplication c left right =
-    case applicationToList (Application left right) of
-        (Variable [ fn ]) :: args ->
-            if List.length args == Maybe.withDefault -1 (getArity c.mod fn c) then
-                (toSnakeCase True fn)
-                    ++ "("
-                    ++ (args |> List.map (elixirE c) |> String.join ", ")
-                    ++ ")"
-            else
-                elixirE c left ++ ".(" ++ elixirE c right ++ ")"
+    let
+        reduceArgs c args =
+            args |> List.map (elixirE c) |> String.join ", "
+    in
+        (case applicationToList (Application left right) of
+            (Variable [ fn ]) :: args ->
+                if hasMatchingArity c c.mod fn args then
+                    [ toSnakeCase True fn, "(", reduceArgs c args, ")" ]
+                else
+                    [ elixirE c left, ".(", elixirE c right, ")" ]
 
-        _ ->
-            elixirE c left ++ ".(" ++ elixirE c right ++ ")"
+            (Access (Variable modules) [ fn ]) :: args ->
+                let
+                    mod =
+                        modulePath modules
+
+                    fnName =
+                        (toSnakeCase True fn)
+                in
+                    if hasMatchingArity c mod fn args then
+                        [ mod, ".", fnName, "(", reduceArgs c args, ")" ]
+                    else
+                        [ mod, ".", fnName, "().(", elixirE c right, ")" ]
+
+            _ ->
+                [ elixirE c left, ".(", elixirE c right, ")" ]
+        )
+            |> String.join ""
 
 
 {-| Returns code representation of tuple or function depending on definition

@@ -12,6 +12,7 @@ module ExContext
         , addType
         , getType
         , getArity
+        , hasMatchingArity
         , addDefinition
         , indent
         , deindent
@@ -216,6 +217,11 @@ getArity m fn ctx =
         |> Maybe.map (.definitions)
         |> Maybe.andThen (Dict.get fn)
         |> Maybe.map (.arity)
+
+
+hasMatchingArity : Context -> String -> String -> List a -> Bool
+hasMatchingArity c mod fn args =
+    List.length args == Maybe.withDefault -1 (getArity mod fn c)
 
 
 {-| Returns empty context
