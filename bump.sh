@@ -5,7 +5,7 @@ fi
 if git diff-index --quiet HEAD --; then
     npm version $1
     SEMVER='[0-9][0-9]*\.[0-9][0-9]*\.[0-9]*'
-    VER=`npm ls | grep -o $SEMVER`
+    VER=`npm ls | grep -o elchemy@$SEMVER | grep -o $SEMVER`
 
     make compile-std
     cd elchemy-core
@@ -32,11 +32,13 @@ if git diff-index --quiet HEAD --; then
     sed -i "" "s/name\": \"elmchemy\"/name\": \"elchemy\"/g" package.json
     npm publish
 
-    git commit -am "Release $VER"
+    CHANGELOG=`git changelog -x --tag $VER`
+    git commit -am "$CHANGELOG"
     git tag $VER
     git push origin master $VER
 
-    hub release create -p -a "elchemy-$VER.ez" $VER -m "$VER"
+    hub release create -p -a "elchemy-$VER.ez" $VER
+
 else
     echo "Git directory must be clean"
     exit 1

@@ -20,7 +20,7 @@ import Regex exposing (Regex, HowMany(..), regex)
 -}
 version : String
 version =
-    "0.4.45"
+    "0.4.50"
 
 
 glueStart : String
@@ -224,22 +224,30 @@ getCode context statements =
 
 
 parse : String -> String -> List Statement
-parse fileName m =
-    case Ast.parse (prepare m) of
+parse fileName code =
+    case Ast.parse (prepare code) of
         Ok ( _, _, statements ) ->
             statements
 
         Err ( (), { input, position }, [ msg ] ) ->
-            Debug.crash <|
-                "]ERR> Compilation error in:\n "
-                    ++ fileName
-                    ++ "\nat:\n "
-                    ++ (input
-                            |> String.lines
-                            |> List.take 30
-                            |> String.join "\n"
-                       )
-                    ++ "\n"
+            let
+                ( line, column ) =
+                    getLinePosition position code
+            in
+                Debug.crash <|
+                    "]ERR> Compilation error in:\n "
+                        ++ fileName
+                        ++ ":"
+                        ++ toString line
+                        ++ ":"
+                        ++ toString column
+                        ++ "\nat:\n "
+                        ++ (input
+                                |> String.lines
+                                |> List.take 30
+                                |> String.join "\n"
+                           )
+                        ++ "\n"
 
         err ->
             Debug.crash (toString err)
@@ -265,3 +273,18 @@ crunchSplitLines =
                 |> List.map (Maybe.map (flip (++) " "))
                 |> List.filterMap identity
                 |> String.join " "
+
+
+getLinePosition : Int -> String -> ( Int, Int )
+getLinePosition character input =
+    let
+        lines =
+            String.slice 0 character input |> String.lines
+
+        line =
+            List.length lines
+
+        column =
+            List.reverse lines |> List.head |> Maybe.map String.length |> Maybe.withDefault 0
+    in
+        ( line, column )
