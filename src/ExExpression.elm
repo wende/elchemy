@@ -29,7 +29,7 @@ import ExContext
         , onlyWithoutFlag
         , inArgs
         , mergeVariables
-        , hasMatchingArity
+        , areMatchingArity
         )
 
 
@@ -273,21 +273,21 @@ flattenTypeApplication application =
             [ other ]
 
 
-{-| Returns uncurryied function application if arguments length is matching definition arity
+{-| Returns uncurried function application if arguments length is matching definition arity
 otherwise returns curried version
 -}
 functionApplication : Context -> Expression -> Expression -> String
 functionApplication c left right =
     let
-        reduceArgs c args =
-            args |> List.map (elixirE c) |> String.join ", "
+        reduceArgs c args separator =
+            args |> List.map (elixirE c) |> String.join separator
     in
-        (case applicationToList (Application left right) of
+        case applicationToList (Application left right) of
             (Variable [ fn ]) :: args ->
-                if hasMatchingArity c c.mod fn args then
-                    [ toSnakeCase True fn, "(", reduceArgs c args, ")" ]
+                if areMatchingArity c c.mod fn args then
+                    toSnakeCase True fn ++ "(" ++ reduceArgs c args ", " ++ ")"
                 else
-                    [ elixirE c left, ".(", elixirE c right, ")" ]
+                    elixirE c left ++ ".(" ++ elixirE c right ++ ")"
 
             (Access (Variable modules) [ fn ]) :: args ->
                 let
@@ -297,15 +297,13 @@ functionApplication c left right =
                     fnName =
                         (toSnakeCase True fn)
                 in
-                    if hasMatchingArity c mod fn args then
-                        [ mod, ".", fnName, "(", reduceArgs c args, ")" ]
+                    if areMatchingArity c mod fn args then
+                        mod ++ "." ++ fnName ++ "(" ++ reduceArgs c args ", " ++ ")"
                     else
-                        [ mod, ".", fnName, "().(", elixirE c right, ")" ]
+                        mod ++ "." ++ fnName ++ "().(" ++ reduceArgs c args ").(" ++ ")"
 
             _ ->
-                [ elixirE c left, ".(", elixirE c right, ")" ]
-        )
-            |> String.join ""
+                elixirE c left ++ ".(" ++ elixirE c right ++ ")"
 
 
 {-| Returns code representation of tuple or function depending on definition

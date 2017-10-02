@@ -12,7 +12,7 @@ module ExContext
         , addType
         , getType
         , getArity
-        , hasMatchingArity
+        , areMatchingArity
         , addDefinition
         , indent
         , deindent
@@ -208,20 +208,22 @@ getType =
     getFromContext .types
 
 
-{-| Get's arity of the function in the module
+{-| Gets arity of the function in the module
 -}
-getArity : String -> String -> Context -> Maybe Int
-getArity m fn ctx =
+getArity : Context -> String -> String -> Maybe Int
+getArity ctx m fn =
     ctx.modules
         |> Dict.get m
-        |> Maybe.map (.definitions)
+        |> Maybe.map .definitions
         |> Maybe.andThen (Dict.get fn)
-        |> Maybe.map (.arity)
+        |> Maybe.map .arity
 
 
-hasMatchingArity : Context -> String -> String -> List a -> Bool
-hasMatchingArity c mod fn args =
-    List.length args == Maybe.withDefault -1 (getArity mod fn c)
+{-| Checks if function arity stored in context is the same as arguments count
+-}
+areMatchingArity : Context -> String -> String -> List a -> Bool
+areMatchingArity c mod fn args =
+    List.length args == Maybe.withDefault -1 (getArity c mod fn)
 
 
 {-| Returns empty context

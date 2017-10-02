@@ -72,7 +72,7 @@ lists =
 functions : Test
 functions =
     let
-        input =
+        testModules =
             """
 module B exposing(..)
 testFull : Int
@@ -80,6 +80,9 @@ testFull = A.fun 1 2
 
 testCurried : Int
 testCurried = A.fun 1
+
+join : List String -> String
+join a = String.join " " a
 
 >>>> b.elm
 module A exposing(fun)
@@ -110,9 +113,11 @@ fun a b = 1
                 \() ->
                     "a = let f a = f (a - 1) in f" |> has "f = rec f, fn a ->"
             , test "Correct curried application from modules" <|
-                \() -> input |> has "A.fun().(1)"
+                \() -> testModules |> has "A.fun().(1)"
             , test "Correct full application from modules" <|
-                \() -> input |> has "A.fun(1, 2)"
+                \() -> testModules |> has "A.fun(1, 2)"
+            , test "Correct curried application for undefined module" <|
+                \() -> testModules |> has "Elchemy.XString.join().(\" \").(a)"
             ]
 
 
