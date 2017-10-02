@@ -32,12 +32,12 @@ if git diff-index --quiet HEAD --; then
     sed -i "" "s/name\": \"elmchemy\"/name\": \"elchemy\"/g" package.json
     npm publish
 
-    git commit -am "Release $VER"
+    CHANGELOG=`git changelog -x --tag $VER`
+    git commit -am "$CHANGELOG"
     git tag $VER
     git push origin master $VER
 
-    CHANGELOG=`git changelog --tag $VER`
-    hub release create -p -a "elchemy-$VER.ez" -f History.md $VER
+    hub release create -p -a "elchemy-$VER.ez" $VER
 
 else
     echo "Git directory must be clean"
