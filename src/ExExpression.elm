@@ -29,6 +29,7 @@ import ExContext
         , onlyWithoutFlag
         , inArgs
         , mergeVariables
+        , areMatchingArity
         )
 
 
@@ -42,7 +43,7 @@ elixirE c e =
 
         -- Primitive types
         (Application name arg) as application ->
-            (tupleOrFunction c application)
+            tupleOrFunction c application
 
         RecordUpdate name keyValuePairs ->
             "%{"
@@ -54,7 +55,7 @@ elixirE c e =
                 ++ "}"
 
         -- Primitive operators
-        Access ((Variable modules) as left) right ->
+        Access (Variable modules) right ->
             modulePath modules
                 ++ "."
                 ++ String.join "." (List.map (toSnakeCase True) right)
@@ -272,13 +273,46 @@ flattenTypeApplication application =
             [ other ]
 
 
+{-| Returns uncurried function application if arguments length is matching definition arity
+otherwise returns curried version
+-}
+functionApplication : Context -> Expression -> Expression -> String
+functionApplication c left right =
+    let
+        reduceArgs c args separator =
+            args |> List.map (elixirE c) |> String.join separator
+    in
+        case applicationToList (Application left right) of
+            (Variable [ fn ]) :: args ->
+                if areMatchingArity c c.mod fn args then
+                    toSnakeCase True fn ++ "(" ++ reduceArgs c args ", " ++ ")"
+                else
+                    elixirE c left ++ ".(" ++ elixirE c right ++ ")"
+
+            (Access (Variable modules) [ fn ]) :: args ->
+                let
+                    mod =
+                        modulePath modules
+
+                    fnName =
+                        (toSnakeCase True fn)
+                in
+                    if areMatchingArity c mod fn args then
+                        mod ++ "." ++ fnName ++ "(" ++ reduceArgs c args ", " ++ ")"
+                    else
+                        mod ++ "." ++ fnName ++ "().(" ++ reduceArgs c args ").(" ++ ")"
+
+            _ ->
+                elixirE c left ++ ".(" ++ elixirE c right ++ ")"
+
+
 {-| Returns code representation of tuple or function depending on definition
 -}
 tupleOrFunction : Context -> Expression -> String
 tupleOrFunction c a =
     case flattenTypeApplication a of
         (Application left right) :: [] ->
-            elixirE c left ++ ".(" ++ elixirE c right ++ ")"
+            functionApplication c left right
 
         (Variable [ "ffi" ]) :: rest ->
             Debug.crash "Ffi inside function body is deprecated since Elchemy 0.3"
