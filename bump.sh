@@ -37,7 +37,7 @@ if git diff-index --quiet HEAD --; then
     git push origin master $VER
 
     CHANGELOG=`git changelog -x --tag $VER`
-    hub release create -p -a "elchemy-$VER.ez" $VER -m "$CHANGELOG"
+    hub release create -p -a "elchemy-$VER.ez" -m "$CHANGELOG" $VER
 
 else
     echo "Git directory must be clean"
