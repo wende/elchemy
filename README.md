@@ -1,4 +1,6 @@
 # Elchemy [![Build Status](https://travis-ci.org/wende/elchemy.svg?branch=master)](https://travis-ci.org/wende/elchemy)
+
+[![Join the chat at https://gitter.im/elchemy-lang/Lobby](https://badges.gitter.im/elchemy-lang/Lobby.svg)](https://gitter.im/elchemy-lang/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 > Write Elixir code using Elm-inspired syntax (elm-make compatible)
 
 ## What is it?
