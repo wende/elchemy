@@ -17920,7 +17920,6 @@ codeMirror.on('change', (cm, change) =>
 
 window.onerror = (errorMsg, url, lineNumber) => {
   setTimeout(() => {
-    console.log(errorMsg)
     const split = errorMsg.split('The message provided by the code author is:');
     if (split.length == 2) {
       document.getElementById('error-dialog').innerText = split[1];
