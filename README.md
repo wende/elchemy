@@ -1,4 +1,3 @@
-> Write Elixir code using Elm-inspired syntax (elm-make compatible)
 ***
 <p align="center">
 <img src="https://github.com/wende/elchemy/blob/master/docs/Elchemy.png?raw=true" width="250" height="250">
@@ -13,8 +12,7 @@
 </p>
 
 ## What is it?
-Elchemy is a project with one idea in mind: Seamless acommodation of Elm-like language on Erlang VM.
-
+Elchemy lets you write simple, fast and quality type safe code while leveraging both the Elm's safety and Elixir's ecosystem
 
 ## [You can read a tutorial on using Elchemy here](https://medium.com/@krzysztof.wende/elmchemy-write-type-safe-elixir-code-with-elms-syntax-part-1-introduction-8968b76d721d)
 ## [You can read Elchemy documentation (WIP) here](https://wende.github.io/elchemy-ivy/)
