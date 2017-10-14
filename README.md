@@ -132,7 +132,7 @@ Or inline an elixir code with:
 But it's a last resort solution and shouldn't ever be abused.
 
 ## Can I define an Elixir macro in Elchemy.
-So you want to write an Elm-like code, that will manipulate Elixir code, which generates and Elixir code that manipulates Elixir code? How about no?
+So you want to write an Elm-like code, that will manipulate Elixir code, which generates an Elixir code that manipulates Elixir code? How about no?
 
 ## Do I need to have Elm installed to compile my `.elm` files with Elchemy.
 Elchemy uses Elm to typecheck your program. Although it is possible to use it without Elm on your machine it's not advised.
