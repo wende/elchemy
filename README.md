@@ -1,8 +1,16 @@
-# Elchemy [![Join the chat at https://gitter.im/elchemy-lang/Lobby](https://badges.gitter.im/elchemy-lang/Lobby.svg)](https://gitter.im/elchemy-lang/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build Status](https://travis-ci.org/wende/elchemy.svg?branch=master)](https://travis-ci.org/wende/elchemy)
-
-
-
 > Write Elixir code using Elm-inspired syntax (elm-make compatible)
+***
+<p align="center">
+<img src="https://github.com/wende/elchemy/blob/master/docs/Elchemy.png?raw=true" width="250" height="250">
+</p>
+<p align="center">
+  <a href="https://gitter.im/elchemy-lang/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge">
+    <img src="https://badges.gitter.im/elchemy-lang/Lobby.svg">
+  </a>
+  <a href="https://travis-ci.org/wende/elchemy">
+    <img src="https://travis-ci.org/wende/elchemy.svg?branch=master">
+  </a>
+</p>
 
 ## What is it?
 Elchemy is a project with one idea in mind: Seamless acommodation of Elm-like language on Erlang VM.
