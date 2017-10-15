@@ -5,11 +5,10 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-87274735-2"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'UA-87274735-2');
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'UA-87274735-2');
     </script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,7 +17,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/styles/atom-one-dark.min.css" />
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700" rel="stylesheet" />
-<link href="static/css/main-9acd2268fe53770efdd9.css" rel="stylesheet"></head>
+<link href="static/css/main.b3cf5a0d.css" rel="stylesheet"></head>
 
 <body>
 
@@ -34,23 +33,24 @@
 
     <!-- Header -->
     <header id="top" class="header">
-        <div class="navigation row">
+        <div class="navigation">
             <ul>
-                <li>
+                <!-- <li>
                     <a href="#try-online">try now</a>
-                </li>
+                </li> -->
                 <li>
                     <a href="https://wende.github.io/elchemy-ivy/">docs</a>
                 </li>
             </ul>
         </div>
-        <div class="text-vertical-center row" >
+        <div class="text-vertical-center row">
             <h1 style="margin-top:100px">
-                <span class="el">El</span><span class="chemy">chemy</span>
+                Elchemy
             </h1>
-            <div class="row top-space col-md-10 col-md-offset-1">
-                <div class="col-md-6 col-xs-12 top-code" style="font-size: 5mm; font-family: 'Hasklig';text-align: left">
-                    <pre><code>
+            <div class="row">
+                <div class="top-space col-md-10 col-md-offset-1">
+                    <div class="col-md-6 col-xs-12 top-code text-center" style="font-size: 5mm; font-family: 'Hasklig';text-align: left">
+                        <pre><code>
 <b>type</b> Language = Elixir | Elm | Both
 
 perks: Language -> String
@@ -60,29 +60,38 @@ perks language =
 &nbsp;&nbsp;&nbsp;&nbsp;Elm -> "No runtime errors!"
 &nbsp;&nbsp;&nbsp;&nbsp;Both -> "Elchemy"
                     </code></pre>
-                </div>
-                <div class="col-md-6 col-xs-12 elchemy-title"> Elchemy lets you write simple, fast and quality type safe code while leveraging both the Elm's safety and
-                    Elixir's ecosystem. </div>
-            </div>
-            <br>
-            <div class="row buttons col-md-12">
-                <a href="#try-online" class="btn btn-dark btn-lg">Try online</a>
-                <!-- <a href="#install" class="btn btn-dark btn-lg">Install</a> -->
-                <div class="github-stars">
-                    <!-- Place this tag where you want the button to render. -->
-                    <a style="margin: auto;" class="github-button" href="https://github.com/wende/elchemy" data-icon="octicon-star" data-style="mega"
-                        data-count-href="/wende/elchemy/stargazers" data-count-api="/repos/wende/elchemy#stargazers_count" data-count-aria-label="# stargazers on GitHub"
-                        aria-label="Star wende/elchemy on GitHub">Star</a>
+                    </div>
+                    <div class="col-md-6 col-xs-12 elchemy-title text-center"> Elchemy lets you write simple, fast and quality type safe code while leveraging both the Elm's safety
+                        and Elixir's ecosystem. </div>
                 </div>
             </div>
 
-            <div class="install-snippet">
-                <h4>Install</h4>
-                <pre><code>
+            <br>
+
+            <div clas="row">
+                <div class="col-md-4 col-md-offset-4 col-xs-12 buttons">
+                    <a href="#try-online" class="btn btn-dark btn-lg">Try online</a>
+                    <!-- <a href="#install" class="btn btn-dark btn-lg">Install</a> -->
+                    <div class="github-stars">
+                        <!-- Place this tag where you want the button to render. -->
+                        <a style="margin: auto;" class="github-button" href="https://github.com/wende/elchemy" data-icon="octicon-star" data-style="mega"
+                            data-count-href="/wende/elchemy/stargazers" data-count-api="/repos/wende/elchemy#stargazers_count"
+                            data-count-aria-label="# stargazers on GitHub" aria-label="Star wende/elchemy on GitHub">Star</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-xs-12 install-snippet-wrapper">
+                    <div class="install-snippet">
+                        <h4>Install</h4>
+                        <pre><code>
 npm install -g elchemy
 cd your_elixir_project
 elchemy init
                 </code></pre>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -102,18 +111,17 @@ elchemy init
                     <img src="static/img/screen2.png" />
                     <figcaption>Beautiful and fully readable output code</figcaption>
                 </figure>
-
             </div>
             <div class="row">
-            <figure class="col-md-6 col-xs-12">
-                <img src="static/img/screen3.png" />
-                <figcaption>Effortless and type-safe interoperability</figcaption>
-            </figure>
-            <figure class="col-md-6 col-xs-12">
-                <img src="static/img/screen4.png" />
-                <figcaption>Examples become doctests</figcaption>
-            </figure>
-          </div>
+                <figure class="col-md-6 col-xs-12">
+                    <img src="static/img/screen3.png" />
+                    <figcaption>Effortless and type-safe interoperability</figcaption>
+                </figure>
+                <figure class="col-md-6 col-xs-12">
+                    <img src="static/img/screen4.png" />
+                    <figcaption>Examples become doctests</figcaption>
+                </figure>
+            </div>
             <!-- /.row -->
         </div>
         <!-- /.container -->
@@ -137,8 +145,8 @@ elchemy init
                     <div id="error-dialog"></div>
                 </figure>
             </div>
-            <small style="margin: 0 auto">*Browser demo above only presents the parser and can't check type-safety.
-              To get full Elchemy experience follow installation instructions </small>
+            <small style="margin: 0 auto">*Browser demo above only presents the parser and can't check type-safety. To get full Elchemy experience follow
+                installation instructions </small>
     </section>
 
 
@@ -167,6 +175,6 @@ elchemy init
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/languages/elixir.min.js"></script>
     <script src="elm.js" crossorigin="anonymous"></script>
     <script src="index.js" crossorigin="anonymous"></script>
-<script type="text/javascript" src="static/js/main-9acd2268fe53770efdd9.js"></script></body>
+<script type="text/javascript" src="static/js/main.b3cf5a0d.js"></script></body>
 
 </html>

@@ -59,6 +59,6 @@ compile-test-elixir:
 	cd elchemy_ex && mix compile
 
 build-page:
-	cd ../elchemy-page && npm run-script build
+	cd ../elchemy-page && git checkout master && git pull && yarn && yarn build
 	rm -rf docs/*
 	cp -r ../elchemy-page/dist/* docs/
