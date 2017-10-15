@@ -1,6 +1,6 @@
 
 <p align="center">
-<img src="https://github.com/wende/elchemy/blob/master/logo.png?raw=true" width="250" height="250">
+<img src="https://github.com/wende/elchemy/blob/master/docs/Elchemy.png?raw=true" width="250" height="250">
 </p>
 <p align="center">
   <a href="https://gitter.im/elchemy-lang/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge">
