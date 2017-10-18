@@ -49,7 +49,7 @@ Elchemy lets you write simple, fast and quality type safe code while leveraging 
 ### Prerequisites
 - [node@5+](https://nodejs.org/en/)
 - [elm-lang@0.18](https://guide.elm-lang.org/install.html)
-- [elm-gihub-install@0.1.2](https://github.com/gdotdesign/elm-github-install) - Compiler will install it automatically for you, if you don't have it yet
+- [elm-github-install@0.1.2](https://github.com/gdotdesign/elm-github-install) - Compiler will install it automatically for you, if you don't have it yet
 
 ### Installation in Elixir project
 Install `elchemy` globally with
