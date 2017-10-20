@@ -179,37 +179,8 @@ aggregateStatements s ( c, code ) =
 getCode : Context -> List Statement -> String
 getCode context statements =
     let
-        definitions =
-            context.modules
-                |> Dict.get context.mod
-                |> Maybe.map (.definitions)
-                |> Maybe.withDefault Dict.empty
-
-        makeExcept name definition =
-            toSnakeCase False name
-                ++ ": 0, "
-                ++ toSnakeCase False name
-                ++ ": "
-                ++ toString definition.arity
-
-        findReserved reserved =
-            definitions
-                |> Dict.get reserved
-                |> Maybe.map (makeExcept reserved >> List.singleton)
-                |> Maybe.withDefault []
-
-        reserved =
-            Helpers.reservedBasicFunctions
-                |> List.concatMap findReserved
-
         shadowsBasics =
-            if context.mod /= "Elchemy.XBasics" && reserved /= [] then
-                reserved
-                    |> String.join ", "
-                    |> (++) "import Elchemy.XBasics, except: ["
-                    |> flip (++) "]\n"
-            else
-                ""
+            ExContext.importBasicsWithoutShadowed context
     in
         ("# Compiled using Elchemy v" ++ version)
             ++ "\n"

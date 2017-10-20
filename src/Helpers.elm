@@ -287,7 +287,36 @@ reservedWords =
 
 reservedBasicFunctions : List String
 reservedBasicFunctions =
-    [ "toString", "toFloat", "cons" ]
+    [ "cons"
+    , "compare"
+    , "xor"
+    , "negate"
+    , "sqrt"
+    , "clamp"
+    , "logBase"
+    , "e"
+    , "pi"
+    , "cos"
+    , "sin"
+    , "tan"
+    , "acos"
+    , "asin"
+    , "atan"
+    , "atan2"
+    , "round"
+    , "floor"
+    , "ceiling"
+    , "truncate"
+    , "toFloat"
+    , "toString"
+    , "identity"
+    , "always"
+    , "flip"
+    , "tuple2"
+    , "tuple3"
+    , "tuple4"
+    , "tuple5"
+    ]
 
 
 replaceOp : String -> String
