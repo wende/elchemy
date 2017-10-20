@@ -1,20 +1,38 @@
-# Elchemy [![Join the chat at https://gitter.im/elchemy-lang/Lobby](https://badges.gitter.im/elchemy-lang/Lobby.svg)](https://gitter.im/elchemy-lang/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build Status](https://travis-ci.org/wende/elchemy.svg?branch=master)](https://travis-ci.org/wende/elchemy)
 
+<p align="center">
+<img src="https://github.com/wende/elchemy/blob/master/docs/Elchemy.png?raw=true" width="250" height="250">
+</p>
+<p align="center">
+  <a href="https://gitter.im/elchemy-lang/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge">
+    <img src="https://badges.gitter.im/elchemy-lang/Lobby.svg">
+  </a>
+  <a href="https://travis-ci.org/wende/elchemy">
+    <img src="https://travis-ci.org/wende/elchemy.svg?branch=master">
+  </a>
+</p>
 
+#### Quick install
+```shell
+npm install -g elchemy
+```
 
-> Write Elixir code using Elm-inspired syntax (elm-make compatible)
-
-## What is it?
-Elchemy is a project with one idea in mind: Seamless acommodation of Elm-like language on Erlang VM.
-
+# What is it?
+Elchemy lets you write simple, fast and quality type safe code while leveraging both the Elm's safety and Elixir's ecosystem
 
 ## [You can read a tutorial on using Elchemy here](https://medium.com/@krzysztof.wende/elmchemy-write-type-safe-elixir-code-with-elms-syntax-part-1-introduction-8968b76d721d)
 ## [You can read Elchemy documentation (WIP) here](https://wende.github.io/elchemy-ivy/)
-## [You can test Elchemy online here](https://wende.github.io/elchemy/stable/)
+## [You can test Elchemy online here](https://wende.github.io/elchemy/)
 ### CAVEAT: Web version does *not* do any type checking. It only parses syntax. For full type and syntax checking run the CLI version
 ### In case of any questions about the project feel free to submit them in Issues with Q&A label
 
-## Patch Notes:
+# Features
+- **Type inference:** Powerful type inference means you rarely have to annotate types. Everything gets checked for you by the compiler
+- **Easy and type-safe interop**: You can call Elixir/Erlang without any extra boiler-plate. All the calls you make are checked in terms of type-safety as thoroughly as possible
+- **All the best of Elm and Elixir**: Elchemy inherits what's best in Elm - type safety, inference and extreme expressiveness, but also what's best in Elixir - Doc-tests, tooling and obviously the entire BEAM platform.
+- **No runtime errors** - Elchemy's type system guarantess **no runtime errors**, your entire app will be as safe as the parts written in Elixir are.
+- **Beatiful and fully readable output** - All of the code produced by Elchemy can be easily read and analyzed without taking a single look at the source code
+
+# Patch Notes:
 ### v0.4 
   - New name `Elchemy` (without 'm')
     - New repository and std lib name 
@@ -25,12 +43,13 @@ Elchemy is a project with one idea in mind: Seamless acommodation of Elm-like la
   - Type polimorhpism 
   - Advanced syntax and bugfixes
 
-## Usage
+
+# Usage
 
 ### Prerequisites
 - [node@5+](https://nodejs.org/en/)
 - [elm-lang@0.18](https://guide.elm-lang.org/install.html)
-- [elm-gihub-install@0.1.2](https://github.com/gdotdesign/elm-github-install) - Compiler will install it automatically for you, if you don't have it yet
+- [elm-github-install@0.1.2](https://github.com/gdotdesign/elm-github-install) - Compiler will install it automatically for you, if you don't have it yet
 
 ### Installation in Elixir project
 Install `elchemy` globally with
@@ -140,11 +159,12 @@ Elchemy uses Elm to typecheck your program. Although it is possible to use it wi
 
 # Progress of the project
 
-- Parser - **98%** (of Elm's syntax)
-- Compiler - **95%** (still needs some nicer solutions of code generation plus we might come out with some new nice ideas)
+- Parser - **98%** of Elm's syntax
+- Compiler - **97%** (still needs some nicer solutions of code generation plus we might come out with some new nice ideas)
 - Elchemy-core - **90** ( We have Basics, Debug, Char, String, List, Result, Tuple and Maybe) 
-- Elchemy-core for Erlang VM - **0%** (Everything for os related tasks like filesystem, OTP goodies etc has to be done)
-- Elchemy-effects - **5%** - You can't and shouldn't write anything with side-effects in Elchemy yet
-- Documentation - **50%** - There's couple of tutorials online and exemplar project. Nothing fancy yet, though
-- Interop with Elixir - **70%** - It works and it's semi-typesafe. But reliability of its type safetyness is questionable.
-- Ideology - **40%** - We only have a gist. There is so much work to do we rarely have time to sit and just think
+- Interop with Elixir - **90%** - All of the interop is mature and type-safe-verified based on specs 
+- Ideology - **60%** - We've got a pretty solid idea of where Elchemy is going 
+- Documentation - **50%** - There's couple of tutorials online and example projects. Nothing fancy yet, though
+- Elchemy-effects - **15%** - You can't and shouldn't write anything with side-effects in Elchemy yet. We're working on finding the best solution for effects that would fit both Elm's and Elixir's community
+- Elchemy-core for Erlang VM - **5%** (Everything for os related tasks like filesystem, OTP goodies etc has to be done)
+
