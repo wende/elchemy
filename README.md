@@ -100,6 +100,15 @@ To launch and test the web demo
 - Seamless and stressless interop with existing Elixir code, preferably with magically working type safety
 - Full integration with entire elm syntax for editors and compilers magic
 
+## Troubleshooting
+If anything doesn't work, try 
+```
+npm install -g elchemy
+elchemy clean
+mix test
+```
+first
+
 # FAQ
 ## Why *would* I want to use that
 - You like types
