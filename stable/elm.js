@@ -17513,7 +17513,7 @@ var _user$project$ExStatement$elixirExportList = F2(
 					A2(
 						defineFor,
 						_user$project$Helpers$translateOperator(name),
-						2))) : A2(
+						2))) : (_elm_lang$core$Native_Utils.eq(name, 'ffi') ? '' : A2(
 				_elm_lang$core$Basics_ops['++'],
 				A2(
 					defineFor,
@@ -17551,7 +17551,7 @@ var _user$project$ExStatement$elixirExportList = F2(
 											function (_) {
 												return _.definitions;
 											},
-											A2(_elm_lang$core$Dict$get, c.mod, c.modules)))))))));
+											A2(_elm_lang$core$Dict$get, c.mod, c.modules))))))))));
 		};
 		return A2(_elm_lang$core$List$map, wrap, list);
 	});
@@ -18539,7 +18539,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elchemy', '\n'));
-var _user$project$Compiler$version = '0.4.51';
+var _user$project$Compiler$version = '0.4.52';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		var shadowsBasics = _user$project$ExContext$importBasicsWithoutShadowed(context);
