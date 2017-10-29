@@ -367,8 +367,8 @@ elixirDoc c doctype name content =
                         |> List.map (Regex.replace All (regex "\"\"\"") (always "\\\"\\\"\\\""))
                         -- |> map trimIndentations
                         |> String.join (ind c.indent)
-                        -- Drop an unnecessary ammounts of \n's
-                        |> Regex.replace All (regex "\n(\n| ){3,}\n") (always "\n\n")
+                    -- Drop an unnecessary ammounts of \n's
+                    -- |> Regex.replace All (regex "\n(\n| ){3,}\n") (always "\n\n")
                    )
                 ++ ind c.indent
                 ++ "\"\"\""
@@ -429,6 +429,8 @@ elixirExportList c list =
                 defineFor (translateOperator name) 0
                     ++ ", "
                     ++ defineFor (translateOperator name) 2
+            else if name == "ffi" then
+                ""
             else
                 defineFor (toSnakeCase True name) 0
                     ++ (c.modules
