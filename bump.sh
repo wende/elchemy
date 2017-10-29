@@ -42,6 +42,7 @@ if git diff-index --quiet HEAD --; then
       npm publish
     fi
 
+    git tag -d $VER
     git commit -am "$CHANGELOG"
     git tag $VER
     if ! [[ $* == *-n* ]]; then
