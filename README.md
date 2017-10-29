@@ -105,6 +105,7 @@ If anything doesn't work, try
 ```
 npm install -g elchemy
 elchemy clean
+elchemy init
 mix test
 ```
 first
