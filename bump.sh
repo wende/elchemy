@@ -8,6 +8,7 @@ if git diff-index --quiet HEAD --; then
     VER=`npm ls | grep -o elchemy@$SEMVER | grep -o $SEMVER`
     CHANGELOG=`git changelog -x --tag $VER`
 
+
     make compile-std
     cd elchemy-core
     sed -i "" "s/$SEMVER/$VER/g" mix.exs
