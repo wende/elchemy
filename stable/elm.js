@@ -18539,7 +18539,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elchemy', '\n'));
-var _user$project$Compiler$version = '0.4.53';
+var _user$project$Compiler$version = '0.4.55';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		var shadowsBasics = _user$project$ExContext$importBasicsWithoutShadowed(context);
