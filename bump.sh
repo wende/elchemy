@@ -6,6 +6,7 @@ if git diff-index --quiet HEAD --; then
     npm version $1
     SEMVER='[0-9][0-9]*\.[0-9][0-9]*\.[0-9]*'
     VER=`npm ls | grep -o elchemy@$SEMVER | grep -o $SEMVER`
+    CHANGELOG=`git changelog -x --tag $VER`
 
     make compile-std
     cd elchemy-core
@@ -32,7 +33,6 @@ if git diff-index --quiet HEAD --; then
     sed -i "" "s/name\": \"elmchemy\"/name\": \"elchemy\"/g" package.json
     npm publish
 
-    CHANGELOG=`git changelog -x --tag $VER`
     git commit -am "$CHANGELOG"
     git tag $VER
     git push origin master $VER
