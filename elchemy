@@ -45,7 +45,6 @@ case "$1" in
             cp $SOURCE_DIR/templates/elchemy_test.exs ./test/
             printf  "Elchemy $version initialised. Make sure to add:\n\n\tcompilers: [:elchemy, :yecc, :leex, :erlang, :elixir, :app],\n\telixirc_paths: [\"lib\", \"elm-deps\"],\n\telchemy_path: \"elm\",\n\nto your mix.exs file\nThen run mix test to check if everything went fine\n"
             printf "\nelm-deps" >> .gitignore
-            printf "\nelm-package.json" >> .gitignore
             printf "\nelm-stuff" >> .gitignore
         else
             printf  "ERROR: No elixir project found. Make sure to run init in a project"

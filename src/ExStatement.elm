@@ -429,6 +429,8 @@ elixirExportList c list =
                 defineFor (translateOperator name) 0
                     ++ ", "
                     ++ defineFor (translateOperator name) 2
+            else if name == "ffi" then
+                ""
             else
                 defineFor (toSnakeCase True name) 0
                     ++ (c.modules
