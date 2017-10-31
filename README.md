@@ -152,12 +152,7 @@ Yes. You can do an `ffi` call to any function in any module. Whether it's Elixir
 In order to increase readbility it's advised no to use `ffi` calls if not necessary and always document and doctest them.
 
 ## But what about out of function macros? Like tests and `use Module`?
-Unfortunatelly you can't write any macros with `do..end` blocks yet. You can write any out of function oneliners using Module meta feature:
-```elm
-meta = 
-  [ "use GenServer" ]
-```
-Or inline an elixir code with:
+Unfortunatelly you can't write any macros with `do..end` blocks yet. You can write any out of function code using an elixir inline code with:
 ```elm
 {- ex
   code_here
