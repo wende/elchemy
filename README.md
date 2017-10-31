@@ -33,6 +33,11 @@ Elchemy lets you write simple, fast and quality type safe code while leveraging 
 - **Beatiful and fully readable output** - All of the code produced by Elchemy can be easily read and analyzed without taking a single look at the source code
 
 # Patch Notes:
+### v0.5
+  - Numerous output code quality and performance improvements
+  - Functions can be shadowed (Elm behaviour over Elixir's behaviour)
+  - Support for Elixir 1.5
+  - Elchemy can compile itself without any parsing or compiling errors. (2 out of 3 steps complete)
 ### v0.4 
   - New name `Elchemy` (without 'm')
     - New repository and std lib name 
