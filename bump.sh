@@ -31,6 +31,7 @@ if git diff-index --quiet HEAD --; then
     sed -i "" "s/$SEMVER/$VER/g" src/Compiler.elm
     make compile
     make release
+    make build-docs
 
     sed -i "" "s/version=\"$SEMVER\"/version=\"$VER\"/g" ./elchemy
     sed -i "" "s/name\": \"elchemy\"/name\": \"elmchemy\"/g" package.json
