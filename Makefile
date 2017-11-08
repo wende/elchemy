@@ -6,8 +6,8 @@ dev:
 
 release:
 	elm-make Main.elm --output=example/elm.js
-	mkdir -p stable
-	cp -r example/ stable/
+	mkdir -p docs/stable
+	cp -r example/ docs/stable/
 
 compile:
 	elm-make Main.elm --yes --output compiled.js
