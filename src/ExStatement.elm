@@ -67,7 +67,7 @@ elixirS c s =
             let
                 ( newC, code ) =
                     c.lastDoc
-                        |> Maybe.map (elixirDoc c Typedoc)
+                        |> Maybe.map (elixirDoc c Typedoc name)
                         |> Maybe.withDefault ( c, "" )
             in
                 (,) newC <|
@@ -86,7 +86,7 @@ elixirS c s =
             let
                 ( newC, code ) =
                     c.lastDoc
-                        |> Maybe.map (elixirDoc c Fundoc)
+                        |> Maybe.map (elixirDoc c Fundoc name)
                         |> Maybe.withDefault ( c, "" )
             in
                 (,) newC <|
@@ -114,7 +114,7 @@ elixirS c s =
             let
                 ( newC, code ) =
                     c.lastDoc
-                        |> Maybe.map (elixirDoc c Fundoc)
+                        |> Maybe.map (elixirDoc c Fundoc name)
                         |> Maybe.withDefault ( c, "" )
             in
                 (,) newC <|
@@ -310,7 +310,7 @@ elixirComment c content =
             if c.hasModuleDoc then
                 { c | lastDoc = Just content } => ""
             else
-                elixirDoc c ModuleDoc content
+                elixirDoc c ModuleDoc content c.mod
 
         Ex content ->
             (,) c <|
@@ -340,8 +340,8 @@ elixirComment c content =
 
 {-| Enocode a doc and return new context
 -}
-elixirDoc : Context -> DocType -> String -> ( Context, String )
-elixirDoc c doctype content =
+elixirDoc : Context -> DocType -> String -> String -> ( Context, String )
+elixirDoc c doctype name content =
     let
         prefix =
             if not c.hasModuleDoc then
@@ -362,12 +362,13 @@ elixirDoc c doctype content =
                 ++ " \"\"\"\n "
                 ++ (content
                         |> String.lines
-                        |> List.map (maybeDoctest c)
+                        |> List.map (maybeDoctest c name)
                         |> List.map (Helpers.escape)
                         |> List.map (Regex.replace All (regex "\"\"\"") (always "\\\"\\\"\\\""))
                         -- |> map trimIndentations
                         |> String.join (ind c.indent)
-                    -- Drop an unnecessary \n at the end
+                        -- Drop an unnecessary ammounts of \n's
+                        |> Regex.replace All (regex "\n(\n| ){3,}\n") (always "\n\n")
                    )
                 ++ ind c.indent
                 ++ "\"\"\""
@@ -428,6 +429,8 @@ elixirExportList c list =
                 defineFor (translateOperator name) 0
                     ++ ", "
                     ++ defineFor (translateOperator name) 2
+            else if name == "ffi" then
+                ""
             else
                 defineFor (toSnakeCase True name) 0
                     ++ (c.modules
@@ -451,21 +454,35 @@ duplicates listA listB =
 
 {-| Replace a function doc with a doctest if in correct format
 -}
-maybeDoctest : Context -> String -> String
-maybeDoctest c line =
+maybeDoctest : Context -> String -> String -> String
+maybeDoctest c forName line =
     if String.startsWith (ind (c.indent + 1)) ("\n" ++ line) then
         case Ast.parseExpression Ast.BinOp.operators (String.trim line) of
             Ok ( _, _, BinOp (Variable [ "==" ]) l r ) ->
-                --"\n"
-                indNoNewline (c.indent + 1)
-                    ++ "iex> import "
-                    ++ c.mod
-                    ++ ind (c.indent + 2)
-                    ++ "iex> "
-                    ++ ExExpression.elixirE c l
-                    ++ ind (c.indent + 2)
-                    ++ ExExpression.elixirE c r
-                    ++ "\n"
+                let
+                    shadowed =
+                        ExContext.getShadowedStdFunctions c
+                            |> List.filter (Tuple.first >> (==) forName)
+
+                    importBasics =
+                        if shadowed == [] then
+                            ""
+                        else
+                            indNoNewline (c.indent + 1)
+                                ++ "iex> "
+                                ++ ExContext.importBasicsWithoutShadowed c
+                                ++ indNoNewline 0
+                in
+                    importBasics
+                        ++ indNoNewline (c.indent + 1)
+                        ++ "iex> import "
+                        ++ c.mod
+                        ++ ind (c.indent + 2)
+                        ++ "iex> "
+                        ++ ExExpression.elixirE c l
+                        ++ ind (c.indent + 2)
+                        ++ ExExpression.elixirE c r
+                        ++ "\n"
 
             _ ->
                 line

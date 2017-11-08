@@ -25,7 +25,7 @@ has : String -> String -> Expect.Expectation
 has expected s =
     let
         result =
-            Compiler.tree ("module MyModule exposing (nothing) \n" ++ s)
+            Compiler.tree ("module MyModule exposing (nothing) \n{-| Moduledoc -}" ++ s)
                 |> Regex.replace All (regex "\\n( )+") (always "")
                 |> Regex.replace All (regex "( )+") (always " ")
     in
@@ -113,11 +113,11 @@ fun a b = 1
                 \() ->
                     "a = let f a = f (a - 1) in f" |> has "f = rec f, fn a ->"
             , test "Correct curried application from modules" <|
-                \() -> testModules |> has "A.fun().(1)"
+                \() -> testModules |> hasFull "A.fun().(1)"
             , test "Correct full application from modules" <|
-                \() -> testModules |> has "A.fun(1, 2)"
+                \() -> testModules |> hasFull "A.fun(1, 2)"
             , test "Correct curried application for undefined module" <|
-                \() -> testModules |> has "Elchemy.XString.join().(\" \").(a)"
+                \() -> testModules |> hasFull "Elchemy.XString.join().(\" \").(a)"
             ]
 
 
@@ -252,10 +252,10 @@ doctests =
         [ test "Doctests" <|
             \() ->
                 "{-| A equals 1. It just does\n"
-                    ++ "what the hell\n"
                     ++ "    a == 1\n"
                     ++ "-}\n"
-                    ++ "a = 1"
+                    ++ "a : Int\n"
+                    ++ "a = 1\n"
                     |> has "iex> a\n"
         ]
 

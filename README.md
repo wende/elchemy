@@ -33,6 +33,11 @@ Elchemy lets you write simple, fast and quality type safe code while leveraging 
 - **Beatiful and fully readable output** - All of the code produced by Elchemy can be easily read and analyzed without taking a single look at the source code
 
 # Patch Notes:
+### v0.5
+  - Numerous output code quality and performance improvements
+  - Functions can be shadowed (Elm behaviour over Elixir's behaviour)
+  - Support for Elixir 1.5
+  - Elchemy can compile itself without any parsing or compiling errors. (2 out of 3 steps complete)
 ### v0.4 
   - New name `Elchemy` (without 'm')
     - New repository and std lib name 
@@ -49,7 +54,7 @@ Elchemy lets you write simple, fast and quality type safe code while leveraging 
 ### Prerequisites
 - [node@5+](https://nodejs.org/en/)
 - [elm-lang@0.18](https://guide.elm-lang.org/install.html)
-- [elm-gihub-install@0.1.2](https://github.com/gdotdesign/elm-github-install) - Compiler will install it automatically for you, if you don't have it yet
+- [elm-github-install@0.1.2](https://github.com/gdotdesign/elm-github-install) - Compiler will install it automatically for you, if you don't have it yet
 
 ### Installation in Elixir project
 Install `elchemy` globally with
@@ -100,6 +105,16 @@ To launch and test the web demo
 - Seamless and stressless interop with existing Elixir code, preferably with magically working type safety
 - Full integration with entire elm syntax for editors and compilers magic
 
+## Troubleshooting
+If anything doesn't work, try 
+```
+npm install -g elchemy
+elchemy clean
+elchemy init
+mix test
+```
+first
+
 # FAQ
 ## Why *would* I want to use that
 - You like types
@@ -137,12 +152,7 @@ Yes. You can do an `ffi` call to any function in any module. Whether it's Elixir
 In order to increase readbility it's advised no to use `ffi` calls if not necessary and always document and doctest them.
 
 ## But what about out of function macros? Like tests and `use Module`?
-Unfortunatelly you can't write any macros with `do..end` blocks yet. You can write any out of function oneliners using Module meta feature:
-```elm
-meta = 
-  [ "use GenServer" ]
-```
-Or inline an elixir code with:
+Unfortunatelly you can't write any macros with `do..end` blocks yet. You can write any out of function code using an elixir inline code with:
 ```elm
 {- ex
   code_here
@@ -161,7 +171,7 @@ Elchemy uses Elm to typecheck your program. Although it is possible to use it wi
 
 - Parser - **98%** of Elm's syntax
 - Compiler - **97%** (still needs some nicer solutions of code generation plus we might come out with some new nice ideas)
-- Elchemy-core - **90** ( We have Basics, Debug, Char, String, List, Result, Tuple and Maybe) 
+- Elchemy-core - **93** ( We have Basics, Debug, Char, String, List, Result, Tuple, Set, Bitwise, Dict and Maybe) 
 - Interop with Elixir - **90%** - All of the interop is mature and type-safe-verified based on specs 
 - Ideology - **60%** - We've got a pretty solid idea of where Elchemy is going 
 - Documentation - **50%** - There's couple of tutorials online and example projects. Nothing fancy yet, though

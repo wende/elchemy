@@ -1,3 +1,16 @@
+### Check first
+If anything doesn't work, try
+```
+npm install -g elchemy
+elchemy clean
+elchemy init
+mix test
+```
+
+To experiment with the latest Elchemy version of the parser online go to
+https://wende.github.io/elchemy/stable/
+
+### Template: 
 Add:
 
 ## Example:

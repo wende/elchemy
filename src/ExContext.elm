@@ -23,6 +23,9 @@ module ExContext
         , addFlag
         , isPrivate
         , mergeTypes
+        , getShadowedStdFunctions
+        , listOfImports
+        , importBasicsWithoutShadowed
         , putIntoModule
         )
 
@@ -30,6 +33,7 @@ import Set exposing (Set)
 import Dict exposing (Dict)
 import Ast.Expression exposing (Expression)
 import Ast.Statement exposing (Type(..), Statement, ExportSet(..))
+import Helpers exposing (toSnakeCase)
 
 
 type alias Parser =
@@ -319,6 +323,66 @@ isPrivate context name =
 mergeVariables : Context -> Context -> Context
 mergeVariables left right =
     { left | variables = Set.union left.variables right.variables }
+
+
+{-| Finds all defined functions and all auto imported functions (XBasics) and returns
+the common subset. Return empty list for XBasics
+-}
+getShadowedStdFunctions : Context -> List ( String, Definition )
+getShadowedStdFunctions context =
+    let
+        definitions =
+            context.modules
+                |> Dict.get context.mod
+                |> Maybe.map (.definitions)
+                |> Maybe.withDefault Dict.empty
+
+        findReserved name =
+            definitions
+                |> Dict.get name
+                |> Maybe.map ((,) name >> List.singleton)
+                |> Maybe.withDefault []
+    in
+        if context.mod == "Elchemy.XBasics" then
+            []
+        else
+            Helpers.reservedBasicFunctions
+                |> List.concatMap findReserved
+
+
+{-| Changes definitions to a list of qualified imports including 0 and full arity
+-}
+listOfImports : List ( String, Definition ) -> List String
+listOfImports shadowed =
+    let
+        importTuple ( name, arity ) =
+            toSnakeCase False name
+                ++ ": 0, "
+                ++ toSnakeCase False name
+                ++ ": "
+                ++ toString arity
+    in
+        shadowed
+            |> List.map (Tuple.mapSecond .arity)
+            |> List.map importTuple
+
+
+{-| Get code representation of import XBasics with exclusion of functions defined locally
+-}
+importBasicsWithoutShadowed : Context -> String
+importBasicsWithoutShadowed c =
+    let
+        shadowed =
+            getShadowedStdFunctions c
+                |> listOfImports
+    in
+        if shadowed /= [] then
+            shadowed
+                |> String.join ", "
+                |> (++) "import Elchemy.XBasics, except: ["
+                |> flip (++) "]\n"
+        else
+            ""
 
 
 {-| Merges everything that should be imported from given module, based
