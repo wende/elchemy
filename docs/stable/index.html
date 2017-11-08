@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Main</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.25.2/theme/solarized.css" />
+	  <link rel="stylesheet" href="https://esironal.github.io/cmtouch/lib/codemirror.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/styles/atom-one-dark.min.css" />
+    <style>
+     html, body {
+         margin: 0;
+         padding: 0;
+         width: 100%;
+         height: 100%;
+     }
+     .CodeMirror {
+         height: 100%;
+     }
+     #editor {
+         width: 48%;
+         border-right: 2px #d6d6d6 solid;
+         float: left;
+     }
+     #error-dialog {
+         color: red;
+     }
+     #root {
+         box-sizing: border-box;
+         width: 50%;
+         float: right;
+     }
+     pre {
+         margin: 0;
+     }
+    </style>
+    <!-- Hotjar Tracking Code for https://wende.github.io/elchemy/stable/ -->
+    <script>
+     (function(h,o,t,j,a,r){
+         h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+         h._hjSettings={hjid:598122,hjsv:5};
+         a=o.getElementsByTagName('head')[0];
+         r=o.createElement('script');r.async=1;
+         r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+         a.appendChild(r);
+     })(window,document,'//static.hotjar.com/c/hotjar-','.js?sv=');
+    </script>
+  </head>
+  <body>
+    <div id="editor"><div id="code-editor"></div><div id="error-dialog"></div></div>
+    <div id="root"></div>
+	  <script src="https://esironal.github.io/cmtouch/lib/codemirror.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.25.2/mode/elm/elm.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/languages/elm.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/languages/elixir.min.js"></script>
+    <script src="elm.js" crossorigin="anonymous"></script>
+    <script src="index.js"></script>
+  </body>
+</html>
