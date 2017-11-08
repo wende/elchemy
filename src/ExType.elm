@@ -327,3 +327,41 @@ aliasOr c name args default =
                                     |> elixirTNoFlat { c | mod = parentModule }
            )
         |> Maybe.withDefault default
+
+
+{-| Returns true if a type definition ends with a specified type
+-}
+hasReturnedType : Type -> Type -> Bool
+hasReturnedType desired t =
+    let
+        forAll l r =
+            List.map2 (,) l r
+                |> List.all (uncurry hasReturnedType)
+    in
+        case ( desired, t ) of
+            ( TypeApplication l1 r1, TypeApplication l2 r2 ) ->
+                hasReturnedType l1 l2 && hasReturnedType r1 r2
+
+            ( TypeConstructor lnames largs, TypeConstructor rnames rargs ) ->
+                (lnames == rnames)
+                    && (List.length largs == List.length rargs)
+                    && forAll largs rargs
+
+            ( TypeVariable lname, TypeVariable rname ) ->
+                True
+
+            ( TypeTuple ltypes, TypeTuple rtypes ) ->
+                (List.length ltypes == List.length rtypes)
+                    && forAll ltypes rtypes
+
+            ( _, TypeApplication _ right ) ->
+                hasReturnedType desired right
+
+            ( TypeVariable _, _ ) ->
+                True
+
+            ( _, TypeVariable _ ) ->
+                True
+
+            ( _, _ ) ->
+                False
