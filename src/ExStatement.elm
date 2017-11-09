@@ -310,7 +310,7 @@ elixirComment c content =
             if c.hasModuleDoc then
                 { c | lastDoc = Just content } => ""
             else
-                elixirDoc c ModuleDoc content c.mod
+                elixirDoc c ModuleDoc c.mod content
 
         Ex content ->
             (,) c <|
