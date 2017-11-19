@@ -1,4 +1,4 @@
-module ExVariable exposing (varOrNah, rememberVariables)
+module ExVariable exposing (varOrNah, rememberVariables, organizeLetInVariablesOrder)
 
 import Set
 import Ast.Expression exposing (..)
@@ -30,6 +30,30 @@ varOrNah c var =
         var
     else
         var ++ "()"
+
+
+{-| Extracts name of variable used, but only the top level. All of the shadowed
+uses will be excluded
+-}
+extractVariableUses : Expression -> List String
+extractVariableUses expression =
+    let
+        withoutVars vars right =
+            List.filter (not << flip List.member vars) (extractVariableUses right)
+
+        rightWithoutLeft left right =
+            withoutVars (extractVariables left) right
+    in
+        case expression of
+            Let definitions return ->
+                List.concatMap (uncurry rightWithoutLeft) definitions
+
+            Lambda head body ->
+                body
+                    |> withoutVars (List.concatMap extractVariables head)
+
+            other ->
+                extractVariables other
 
 
 {-| Extract variables from an expression
@@ -77,3 +101,43 @@ extractVariables exp =
 
             _ ->
                 none
+
+
+{-| Organize let in variables in order based on how they use each other
+Example:
+a = b
+b = 1
+Would become:
+b = 1
+a = b
+-}
+organizeLetInVariablesOrder : List ( Expression, Expression ) -> List ( Expression, Expression )
+organizeLetInVariablesOrder expressionList =
+    let
+        compare ( leftVar, leftExp ) ( rightVar, rightExp ) =
+            if isIn leftVar rightExp then
+                LT
+            else if isIn rightVar leftExp then
+                GT
+            else
+                EQ
+    in
+        List.sortWith compare expressionList
+
+
+isIn : Expression -> Expression -> Bool
+isIn var expression =
+    let
+        extractName var =
+            case var of
+                Variable [ name ] ->
+                    name
+
+                _ ->
+                    ""
+
+        getVarName ( var, _ ) =
+            extractName var
+    in
+        extractVariableUses expression
+            |> List.member (extractName var)
