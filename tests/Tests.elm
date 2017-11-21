@@ -455,6 +455,42 @@ a _ = 10
         ]
 
 
+letIns : Test
+letIns =
+    describe "Let in constructs"
+        [ test "Allows to reffer variables in reversed order" <|
+            \() -> """
+            test = let
+              a = b
+              b = 2
+            in a
+            """ |> has "b = 2a = b"
+        , test "More advanced order" <|
+            \() -> """
+              test = let
+                a = b
+                b = 2
+                c = a
+                d = a + c
+              in d
+                """ |> has "b = 2a = bc = ad = (a + c)"
+        , test "Functions work too" <|
+            \() -> """
+              test = let
+                a = \\() -> b
+                b = 10
+              in d
+                """ |> has "b = 10a = fn {} -> b end"
+        , test "Doesn't mind shadowing" <|
+            \() -> """
+              test = let
+                a = \\b -> b
+                b = 10
+              in d
+                """ |> has "a = fn b -> b endb = 10"
+        ]
+
+
 all : Test
 all =
     describe "All"
@@ -471,4 +507,5 @@ all =
         , typeConstructors
         , doctests
         , fileImports
+        , letIns
         ]
