@@ -30,7 +30,9 @@ if git diff-index --quiet HEAD --; then
     git pull origin master
     sed -i "" "s/$SEMVER/$VER/g" src/Compiler.elm
     make compile
+    make build-docs
     make release
+    git add docs/stable
 
     sed -i "" "s/version=\"$SEMVER\"/version=\"$VER\"/g" ./elchemy
     sed -i "" "s/name\": \"elchemy\"/name\": \"elmchemy\"/g" package.json

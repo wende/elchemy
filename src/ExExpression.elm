@@ -104,6 +104,7 @@ elixirControlFlow c e =
 
         Let variables expression ->
             variables
+                |> ExVariable.organizeLetInVariablesOrder
                 |> (flip List.foldl ( c, "" ) <|
                         \( var, exp ) ( cAcc, codeAcc ) ->
                             (case applicationToList var of

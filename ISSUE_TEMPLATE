@@ -7,6 +7,9 @@ elchemy init
 mix test
 ```
 
+To experiment with the latest Elchemy version of the parser online go to
+https://wende.github.io/elchemy/stable/
+
 ### Template: 
 Add:
 

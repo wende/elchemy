@@ -6,8 +6,8 @@ dev:
 
 release:
 	elm-make Main.elm --output=example/elm.js
-	mkdir -p stable
-	cp -r example/ stable/
+	mkdir -p docs/stable
+	cp -r example/ docs/stable/
 
 compile:
 	elm-make Main.elm --yes --output compiled.js
@@ -58,7 +58,7 @@ compile-test-elixir:
 	make compile-elixir
 	cd elchemy_ex && mix compile
 
-build-page:
-	cd ../elchemy-page && npm run-script build
+build-docs:
+	cd ../elchemy-page && git checkout master && git pull && elm install && yarn && yarn build
 	rm -rf docs/*
 	cp -r ../elchemy-page/dist/* docs/
