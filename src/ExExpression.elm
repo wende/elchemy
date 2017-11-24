@@ -105,31 +105,19 @@ elixirControlFlow c e =
         Let variables expression ->
             variables
                 |> ExVariable.organizeLetInVariablesOrder
+                --|> List.map (List.singleton)
+                |> ExVariable.groupByCrossDependency
                 |> (flip List.foldl ( c, "" ) <|
-                        \( var, exp ) ( cAcc, codeAcc ) ->
-                            (case applicationToList var of
-                                [ (Variable [ name ]) as var ] ->
-                                    rememberVariables [ var ] cAcc
-                                        => toSnakeCase True name
-                                        ++ " = "
-                                        ++ elixirE (cAcc |> rememberVariables [ var ]) exp
+                        \varGroup ( cAcc, codeAcc ) ->
+                            (case varGroup of
+                                [] ->
+                                    cAcc => ""
 
-                                ((Variable [ name ]) as var) :: args ->
-                                    rememberVariables [ var ] cAcc
-                                        => toSnakeCase True name
-                                        ++ " = rec "
-                                        ++ toSnakeCase True name
-                                        ++ ", "
-                                        ++ lambda (cAcc |> rememberVariables [ var ]) args exp
+                                [ ( var, exp ) ] ->
+                                    elixirLetInBranch cAcc ( var, exp )
 
-                                [ assign ] ->
-                                    rememberVariables [ assign ] cAcc
-                                        => elixirE (inArgs cAcc) assign
-                                        ++ " = "
-                                        ++ elixirE cAcc exp
-
-                                _ ->
-                                    Debug.crash "Impossible"
+                                multiple ->
+                                    elixirLetInMutualFunctions cAcc multiple
                             )
                                 |> (\( c, string ) ->
                                         mergeVariables c cAcc
@@ -142,6 +130,84 @@ elixirControlFlow c e =
 
         _ ->
             elixirPrimitve c e
+
+
+{-| Encodes a mutual function usage into `let` macro
+-}
+elixirLetInMutualFunctions : Context -> List ( Expression, Expression ) -> ( Context, String )
+elixirLetInMutualFunctions context expressionsList =
+    let
+        vars =
+            List.map Tuple.first expressionsList
+
+        names =
+            List.map (Tuple.first >> ExVariable.extractName) expressionsList
+
+        c =
+            rememberVariables vars context
+
+        letBranchToLambda : Context -> ( Expression, Expression ) -> String
+        letBranchToLambda c ( head, body ) =
+            case applicationToList head of
+                [] ->
+                    ""
+
+                [ single ] ->
+                    elixirE c single
+
+                (Variable [ name ]) :: args ->
+                    lambda c args body
+
+                _ ->
+                    Debug.crash <| toString head ++ " is not a let in branch"
+    in
+        c
+            => "{"
+            ++ (names |> String.join ", ")
+            ++ "} = let ["
+            ++ (expressionsList
+                    |> List.map (\(( var, exp ) as v) -> ( (ExVariable.extractName var), v ))
+                    |> List.map (Tuple.mapSecond <| letBranchToLambda (indent c))
+                    |> List.map (\( name, body ) -> (ind (c.indent + 1)) ++ name ++ ": " ++ body)
+                    |> String.join ","
+               )
+            ++ ind (c.indent)
+            ++ "]"
+
+
+{-| Encodes a branch of let..in expression
+
+    let
+      {a, b} == 2 --< This is a branch
+    in
+      10
+
+-}
+elixirLetInBranch : Context -> ( Expression, Expression ) -> ( Context, String )
+elixirLetInBranch c ( var, exp ) =
+    case applicationToList var of
+        [ (Variable [ name ]) as var ] ->
+            rememberVariables [ var ] c
+                => toSnakeCase True name
+                ++ " = "
+                ++ elixirE (c |> rememberVariables [ var ]) exp
+
+        ((Variable [ name ]) as var) :: args ->
+            rememberVariables [ var ] c
+                => toSnakeCase True name
+                ++ " = rec "
+                ++ toSnakeCase True name
+                ++ ", "
+                ++ lambda (c |> rememberVariables [ var ]) args exp
+
+        [ assign ] ->
+            rememberVariables [ assign ] c
+                => elixirE (inArgs c) assign
+                ++ " = "
+                ++ elixirE (rememberVariables [ assign ] c) exp
+
+        _ ->
+            c => ""
 
 
 {-| Encode primitive value

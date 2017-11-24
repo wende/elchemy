@@ -481,6 +481,22 @@ letIns =
                 b = 10
               in d
                 """ |> has "b = 10a = fn {} -> b end"
+        , test "Sugared functions work too (with arguments)" <|
+            \() -> """
+              test = let
+                a x = x + b
+                b = 10
+                x = 1
+              in x
+                """ |> has "b = 10a = rec a, fn x -> (x + b) endx = 1xend"
+        , test "Multiple sugared functions work too" <|
+            \() -> """
+              test = let
+                a x = x + b
+                b a = a
+                x = 1
+              in x
+                """ |> has "b = rec b, fn a -> a enda = rec a, fn x -> (x + b) endx = 1xend"
         , test "Doesn't mind shadowing" <|
             \() -> """
               test = let
@@ -488,6 +504,36 @@ letIns =
                 b = 10
               in d
                 """ |> has "a = fn b -> b endb = 10"
+        , test "Doesn't mind destructuring" <|
+            \() -> """
+                test = let
+                  newX = x + 1
+                  (x, y) = (1, 2)
+                  newY = y + 1
+                in newX
+                  """ |> has "{x, y} = {1, 2}new_x = (x + 1)new_y = (y + 1)"
+        , test "Solves simple mutual recursion" <|
+            \() -> """
+              test =
+                let
+                  fx a = fy + 1
+                  fy b = fx + 1
+                in fx 10
+                  """ |> has "{fx, fy} = let [fx: fn a -> "
+        , test "Solves mutual recursion" <|
+            \() -> """
+              test =
+                let
+                  fx x = case x of
+                      0 -> 0
+                      x -> fy x - 1
+                  end
+                  fy x = case x of
+                      0 -> 0
+                      x -> fx x - 1
+                  end
+                in fx 10
+                  """ |> has "{fx, fy} = let [fx: fn x -> "
         ]
 
 
