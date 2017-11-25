@@ -56,6 +56,7 @@ compile-elixir:
 
 compile-test-elixir:
 	make compile-elixir
+	rm -rf elchemy_ex/elm-deps/Bogdanp/elm-ast/8.0.7/example
 	cd elchemy_ex && mix compile
 
 build-docs:

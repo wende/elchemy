@@ -478,10 +478,10 @@ typeApplication c name args =
                         else if dif >= 0 then
                             (arguments
                                 |> List.map ((++) " fn ")
-                                |> List.map (flip (++) " ->")
+                                |> List.map (flip (++) " -> ")
                                 |> String.join ""
                             )
-                                ++ " {"
+                                ++ "{"
                                 ++ atomize name
                                 ++ ", "
                                 ++ (List.map (rememberVariables (args ++ varArgs) c |> elixirE) (args ++ varArgs)
