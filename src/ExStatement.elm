@@ -55,6 +55,50 @@ moduleStatement s =
             Debug.crash "First statement must be module declaration"
 
 
+typeDefinition : Context -> String -> List Type -> List Type -> Bool -> ( Context, String )
+typeDefinition c name args types isUnion =
+    let
+        ( newC, code ) =
+            c.lastDoc
+                |> Maybe.map (elixirDoc c Typedoc name)
+                |> Maybe.withDefault ( c, "" )
+
+        getVariableName t =
+            case t of
+                TypeVariable name ->
+                    name
+
+                _ ->
+                    Debug.crash (toString t ++ " is not a type variable")
+
+        arguments =
+            if args == [] then
+                ""
+            else
+                "("
+                    ++ (List.map getVariableName args |> String.join ", ")
+                    ++ ")"
+    in
+        (,) newC <|
+            (onlyWithoutFlag c "notype" name) <|
+                code
+                    ++ (ind c.indent)
+                    ++ "@type "
+                    ++ toSnakeCase True name
+                    ++ arguments
+                    ++ " :: "
+                    ++ (List.map
+                            (if isUnion then
+                                ExType.uniontype { c | inTypeDefiniton = True }
+                             else
+                                ExType.elixirT False { c | inTypeDefiniton = True }
+                            )
+                            types
+                            |> String.join " | "
+                       )
+                    ++ "\n"
+
+
 {-| Encode any statement
 -}
 elixirS : Context -> Statement -> ( Context, String )
@@ -63,24 +107,11 @@ elixirS c s =
         InfixDeclaration _ _ _ ->
             ( c, "" )
 
-        TypeDeclaration (TypeConstructor [ name ] _) types ->
-            let
-                ( newC, code ) =
-                    c.lastDoc
-                        |> Maybe.map (elixirDoc c Typedoc name)
-                        |> Maybe.withDefault ( c, "" )
-            in
-                (,) newC <|
-                    code
-                        ++ (ind c.indent)
-                        ++ "@type "
-                        ++ toSnakeCase True name
-                        ++ " :: "
-                        ++ (List.map (ExType.uniontype c) types |> String.join " | ")
-                        ++ "\n"
+        TypeDeclaration (TypeConstructor [ name ] args) types ->
+            typeDefinition c name args types True
 
-        TypeAliasDeclaration _ _ ->
-            ( c, "" )
+        TypeAliasDeclaration (TypeConstructor [ name ] args) t ->
+            typeDefinition c name args [ t ] False
 
         (FunctionTypeDeclaration name ((TypeApplication _ _) as t)) as def ->
             let
@@ -150,36 +181,45 @@ elixirS c s =
                             |> List.map typeApplicationToList
                         )
 
+                isPrivate =
+                    ExContext.isPrivate c name
+
                 definitionExists =
                     c.modules
                         |> Dict.get c.mod
                         |> Maybe.andThen (.definitions >> Dict.get name)
-                        |> (==) Nothing
-                        |> (&&) (not (ExContext.isPrivate c name))
+                        |> (/=) Nothing
+
+                preCurry =
+                    if not definitionExists && args /= [] then
+                        (ind c.indent) ++ "curryp " ++ toSnakeCase True name ++ "/" ++ toString (List.length args)
+                    else
+                        ""
             in
                 c
-                    => if definitionExists then
+                    => if (not definitionExists) && (not isPrivate) then
                         Debug.crash <|
                             "To be able to export it, you need to provide function type for `"
                                 ++ name
                                 ++ "` function in module "
                                 ++ toString c.mod
                        else
-                        case body of
-                            (Application (Application (Variable [ "ffi" ]) _) _) as app ->
-                                genFfi app
+                        preCurry
+                            ++ case body of
+                                (Application (Application (Variable [ "ffi" ]) _) _) as app ->
+                                    genFfi app
 
-                            (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
-                                genFfi app
+                                (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
+                                    genFfi app
 
-                            Case (Tuple vars) expressions ->
-                                if vars == args then
-                                    ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
-                                else
+                                Case (Tuple vars) expressions ->
+                                    if vars == args then
+                                        ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
+                                    else
+                                        ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
+
+                                _ ->
                                     ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
-
-                            _ ->
-                                ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
 
         Comment content ->
             elixirComment c content
@@ -201,6 +241,9 @@ elixirS c s =
 
         ImportStatement path Nothing (Just ((SubsetExport exports) as subset)) ->
             let
+                moduleName =
+                    (path |> String.join ".")
+
                 imports =
                     List.map exportSetToList exports
                         |> List.foldr (++) []
@@ -235,7 +278,10 @@ elixirS c s =
                     else
                         "import "
             in
-                ExContext.mergeTypes subset (modulePath path) c
+                (c
+                    |> insertImportedTypes moduleName subset
+                    |> ExContext.mergeTypes subset (modulePath path)
+                )
                     => (ind c.indent)
                     ++ importOrAlias
                     ++ ([ [ modulePath path ], only, except ]
@@ -273,7 +319,9 @@ elixirS c s =
                             ++ "]"
                         ]
             in
-                ExContext.mergeTypes AllExport mod c
+                (ExContext.mergeTypes AllExport mod c
+                    |> insertImportedTypes mod AllExport
+                )
                     => (ind c.indent)
                     ++ "import "
                     ++ ([ [ mod ], except ]
@@ -284,6 +332,16 @@ elixirS c s =
         s ->
             (,) c <|
                 notImplemented "statement" s
+
+
+insertImportedTypes mod subset c =
+    let
+        exportNames =
+            ExType.getExportedTypeNames c mod subset
+    in
+        { c
+            | importedTypes = List.foldl (flip Dict.insert mod) c.importedTypes exportNames
+        }
 
 
 {-| Verify correct flag format
@@ -461,17 +519,20 @@ maybeDoctest c forName line =
             Ok ( _, _, BinOp (Variable [ "==" ]) l r ) ->
                 let
                     shadowed =
-                        ExContext.getShadowedStdFunctions c
+                        ExContext.getShadowedFunctions c Helpers.reservedBasicFunctions
+                            ++ ExContext.getShadowedFunctions c Helpers.reservedKernelFunctions
                             |> List.filter (Tuple.first >> (==) forName)
 
                     importBasics =
                         if shadowed == [] then
                             ""
                         else
-                            indNoNewline (c.indent + 1)
-                                ++ "iex> "
-                                ++ ExContext.importBasicsWithoutShadowed c
-                                ++ indNoNewline 0
+                            ExContext.importBasicsWithoutShadowed c
+                                |> String.trimRight
+                                |> String.split "\n"
+                                |> String.join (ind (c.indent + 2) ++ "iex> ")
+                                |> (++) (indNoNewline 1 ++ "iex> ")
+                                |> flip (++) (ind 0)
                 in
                     importBasics
                         ++ indNoNewline (c.indent + 1)

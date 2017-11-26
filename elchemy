@@ -70,7 +70,7 @@ case "$1" in
         done
         i=0
         # Find all elm files inside packages and compile them
-        for f in `{ find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#." ; find -L elm-stuff/packages -name "*.elm" | grep -v "/tests/" ;}`
+        for f in `{ find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#." ; find -L elm-stuff/packages -name "*.elm" | grep -v "/tests/" | grep -v "/example/" ;}`
         do
             if [[ ${f} == *"elm-lang"* ]] || [[ ${f} == *"Elchemy.elm"* ]]; then
                 continue

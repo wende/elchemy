@@ -397,10 +397,7 @@ tupleOrFunction c a =
             "{" ++ elixirE c arg ++ "}"
 
         [ Variable [ "Ok" ], arg ] ->
-            if arg == Variable [ "()" ] then
-                ":ok"
-            else
-                "{:ok, " ++ elixirE c arg ++ "}"
+            "{:ok, " ++ elixirE c arg ++ "}"
 
         [ Variable [ "Err" ], arg ] ->
             "{:error, " ++ elixirE c arg ++ "}"
@@ -608,7 +605,7 @@ elixirVariable c var =
                         if name == "<|" then
                             "flip().((&|>/0).())"
                         else
-                            "(&" ++ translateOperator name ++ "/0).()"
+                            "(&XBasics." ++ translateOperator name ++ "/0).()"
 
                     Custom ->
                         translateOperator name
