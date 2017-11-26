@@ -33,13 +33,15 @@ elixirBinop c elixirE op l r =
             elixirBinop c elixirE "|>" r l
 
         "|>" ->
-            elixirE c l
+            "("
+                ++ elixirE c l
                 ++ (flattenPipes r
                         |> List.map (elixirE c)
                         |> List.map ((++) (ind c.indent ++ "|> ("))
                         |> List.map (flip (++) ").()")
                         |> String.join ""
                    )
+                ++ ")"
 
         op ->
             case operatorType op of

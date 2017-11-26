@@ -93,6 +93,7 @@ type alias Module =
     { aliases : Dict String Alias
     , types : Dict String UnionType
     , definitions : Dict String Definition
+    , exports : ExportSet
     }
 
 
@@ -110,6 +111,8 @@ type alias Context =
     , hasModuleDoc : Bool
     , lastDoc : Maybe String
     , modules : Dict String Module
+    , inTypeDefiniton : Bool
+    , importedTypes : Dict String String
     }
 
 
@@ -234,14 +237,25 @@ areMatchingArity c mod fn args =
 -}
 empty : String -> ExportSet -> Context
 empty name exports =
-    Context name exports 0 [] Set.empty False False Nothing Dict.empty
+    { mod = name
+    , exports = exports
+    , indent = 0
+    , flags = []
+    , variables = Set.empty
+    , inArgs = False
+    , hasModuleDoc = False
+    , lastDoc = Nothing
+    , modules = Dict.singleton name (Module Dict.empty Dict.empty Dict.empty exports)
+    , inTypeDefiniton = False
+    , importedTypes = Dict.fromList [ ( "order", "Elchemy.XBasics" ) ]
+    }
 
 
 {-| Returns empty module record
 -}
 emptyModule : Module
 emptyModule =
-    Module Dict.empty Dict.empty Dict.empty
+    Module Dict.empty Dict.empty Dict.empty AllExport
 
 
 {-| Increases current indenation level of a context
@@ -391,52 +405,6 @@ on given export set value
 mergeTypes : ExportSet -> String -> Context -> Context
 mergeTypes set mod c =
     let
-        importConflict : String -> v -> v -> Dict String v -> Dict String v
-        importConflict key a b _ =
-            Debug.crash <|
-                "You can't have two same imports for name "
-                    ++ key
-                    ++ "\nFirst one (from "
-                    ++ c.mod
-                    ++ ") is:\n"
-                    ++ toString a
-                    ++ "\n Second one (from "
-                    ++ mod
-                    ++ ") is:\n"
-                    ++ toString b
-
-        mergeDicts : Dict String v -> Dict String v -> Dict String v
-        mergeDicts left right =
-            Dict.merge Dict.insert importConflict Dict.insert left right Dict.empty
-
-        getFunctionExportName a =
-            case a of
-                FunctionExport name ->
-                    name
-
-                _ ->
-                    Debug.crash <| "Something went wrong with " ++ toString a
-
-        getTypeNames : String -> Maybe ExportSet -> List String
-        getTypeNames aliasName subset =
-            case subset of
-                Just (SubsetExport list) ->
-                    List.map getFunctionExportName list
-
-                Just AllExport ->
-                    c.modules
-                        |> Dict.get mod
-                        |> Maybe.map .aliases
-                        |> Maybe.andThen (Dict.get aliasName)
-                        |> Maybe.map (.types)
-                        |> Maybe.withDefault []
-
-                Nothing ->
-                    []
-
-                _ ->
-                    Debug.crash <| "Something went wrong with " ++ toString subset
-
         getAll getter mod =
             c.modules
                 |> Dict.get mod

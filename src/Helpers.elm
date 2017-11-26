@@ -30,19 +30,20 @@ notImplemented feature value =
 toSnakeCase : Bool -> String -> String
 toSnakeCase isntAtom s =
     let
-        string =
+        safe x =
             if isntAtom then
-                replaceReserved s
+                replaceReserved x
             else
-                s
+                x
     in
-        if String.toUpper string == string then
-            String.toLower string
+        if String.toUpper s == s then
+            String.toLower s
         else
-            string
+            s
                 |> Regex.split Regex.All (Regex.regex "(?=[A-Z])")
                 |> String.join "_"
                 |> String.toLower
+                |> safe
 
 
 capitalize : String -> String
@@ -282,7 +283,7 @@ isStdModule a =
 
 reservedWords : List String
 reservedWords =
-    [ "fn", "do", "end", "cond", "receive", "or", "and" ]
+    [ "fn", "do", "end", "cond", "receive", "or", "and", "quote", "unquote", "unquote_splicing" ]
 
 
 reservedBasicFunctions : List String

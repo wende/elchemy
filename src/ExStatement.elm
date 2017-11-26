@@ -55,6 +55,50 @@ moduleStatement s =
             Debug.crash "First statement must be module declaration"
 
 
+typeDefinition : Context -> String -> List Type -> List Type -> Bool -> ( Context, String )
+typeDefinition c name args types isUnion =
+    let
+        ( newC, code ) =
+            c.lastDoc
+                |> Maybe.map (elixirDoc c Typedoc name)
+                |> Maybe.withDefault ( c, "" )
+
+        getVariableName t =
+            case t of
+                TypeVariable name ->
+                    name
+
+                _ ->
+                    Debug.crash (toString t ++ " is not a type variable")
+
+        arguments =
+            if args == [] then
+                ""
+            else
+                "("
+                    ++ (List.map getVariableName args |> String.join ", ")
+                    ++ ")"
+    in
+        (,) newC <|
+            (onlyWithoutFlag c "notype" name) <|
+                code
+                    ++ (ind c.indent)
+                    ++ "@type "
+                    ++ toSnakeCase True name
+                    ++ arguments
+                    ++ " :: "
+                    ++ (List.map
+                            (if isUnion then
+                                ExType.uniontype { c | inTypeDefiniton = True }
+                             else
+                                ExType.elixirT False { c | inTypeDefiniton = True }
+                            )
+                            types
+                            |> String.join " | "
+                       )
+                    ++ "\n"
+
+
 {-| Encode any statement
 -}
 elixirS : Context -> Statement -> ( Context, String )
@@ -63,24 +107,11 @@ elixirS c s =
         InfixDeclaration _ _ _ ->
             ( c, "" )
 
-        TypeDeclaration (TypeConstructor [ name ] _) types ->
-            let
-                ( newC, code ) =
-                    c.lastDoc
-                        |> Maybe.map (elixirDoc c Typedoc name)
-                        |> Maybe.withDefault ( c, "" )
-            in
-                (,) newC <|
-                    code
-                        ++ (ind c.indent)
-                        ++ "@type "
-                        ++ toSnakeCase True name
-                        ++ " :: "
-                        ++ (List.map (ExType.uniontype c) types |> String.join " | ")
-                        ++ "\n"
+        TypeDeclaration (TypeConstructor [ name ] args) types ->
+            typeDefinition c name args types True
 
-        TypeAliasDeclaration _ _ ->
-            ( c, "" )
+        TypeAliasDeclaration (TypeConstructor [ name ] args) t ->
+            typeDefinition c name args [ t ] False
 
         (FunctionTypeDeclaration name ((TypeApplication _ _) as t)) as def ->
             let
@@ -201,6 +232,9 @@ elixirS c s =
 
         ImportStatement path Nothing (Just ((SubsetExport exports) as subset)) ->
             let
+                moduleName =
+                    (path |> String.join ".")
+
                 imports =
                     List.map exportSetToList exports
                         |> List.foldr (++) []
@@ -235,7 +269,10 @@ elixirS c s =
                     else
                         "import "
             in
-                ExContext.mergeTypes subset (modulePath path) c
+                (c
+                    |> insertImportedTypes moduleName subset
+                    |> ExContext.mergeTypes subset (modulePath path)
+                )
                     => (ind c.indent)
                     ++ importOrAlias
                     ++ ([ [ modulePath path ], only, except ]
@@ -273,7 +310,9 @@ elixirS c s =
                             ++ "]"
                         ]
             in
-                ExContext.mergeTypes AllExport mod c
+                (ExContext.mergeTypes AllExport mod c
+                    |> insertImportedTypes mod AllExport
+                )
                     => (ind c.indent)
                     ++ "import "
                     ++ ([ [ mod ], except ]
@@ -284,6 +323,16 @@ elixirS c s =
         s ->
             (,) c <|
                 notImplemented "statement" s
+
+
+insertImportedTypes mod subset c =
+    let
+        exportNames =
+            ExType.getExportedTypeNames c mod subset
+    in
+        { c
+            | importedTypes = List.foldl (flip Dict.insert mod) c.importedTypes exportNames
+        }
 
 
 {-| Verify correct flag format

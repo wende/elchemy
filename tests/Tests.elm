@@ -219,7 +219,7 @@ types =
         , test "Types can wrap records" <|
             \() ->
                 "type Lens big small = Lens { get : big -> small }"
-                    |> has "@type lens :: {:lens, %{get: (any -> any)}}"
+                    |> has "@type lens(big, small) :: {:lens, %{get: (big -> small)}}"
         , test "Types args don't polute type application" <|
             \() ->
                 "type Focus big small = Focus { get : big -> small }"
@@ -267,7 +267,7 @@ typeAliases =
             \() ->
                 "type alias MyType a = List a"
                     |++ "test : MyType Int"
-                    |> has "@spec test() :: list("
+                    |> has "@spec test() :: my_type(integer"
         , test "Type substitution" <|
             \() ->
                 "type MyType = Wende | NieWende"
@@ -277,13 +277,13 @@ typeAliases =
             \() ->
                 "type alias MyType a = List a"
                     |++ "test : MyType Int"
-                    |> has "@spec test() :: list(integer)"
+                    |> has "@spec test() :: my_type(integer)"
         , test "TypeAlias argument substitution between types" <|
             \() ->
                 "type alias AnyKey val = (a, val)"
                     |++ "type alias Val a = AnyKey a"
                     |++ "test : Val Int"
-                    |> has "@spec test() :: {any, integer}"
+                    |> has "@spec test() :: val(integer)"
         , test "TypeAlias no argument substitution in Type" <|
             \() ->
                 "type alias MyList a = List a"
@@ -298,7 +298,7 @@ typeAliases =
                     |++ "type alias Wendable a = { a | wendify : (a -> Wende)}"
                     |++ "type alias Man = Wendable { gender: Bool }"
                     |++ "a : Man -> String "
-                    |> has "@spec a(%{wendify: (%{gender: boolean} -> wende), gender: boolean}) :: String.t"
+                    |> has "@type man :: %{wendify: (%{gender: boolean} -> wende), gender: boolean"
         , test "Multi polymorhpic record alias" <|
             \() ->
                 "type Wende = Wende"
@@ -306,7 +306,7 @@ typeAliases =
                     |++ "type alias Agable a =  { a | age: Int }"
                     |++ "type alias Man = Namable (Agable { gender : String })"
                     |++ "a : Man -> String "
-                    |> has "@spec a(%{name: String.t, age: integer, gender: String.t}) :: String.t"
+                    |> has "@type man :: %{name: String.t, age: integer, gender: String.t}"
         , test "Interface as type" <|
             \() ->
                 "type alias Namable a = { a | name : String }"
@@ -344,7 +344,7 @@ import A exposing (..)
 a : MyAlias
 a = 1
     """
-                    |> hasFull "@spec a() :: integer"
+                    |> hasFull "@spec a() :: A.my_alias"
         , test "Imported type from another file" <|
             \() ->
                 """
@@ -422,7 +422,7 @@ import C exposing (..)
 a : Invisible
 a = 1
     """
-                    |> hasFull ":invisible"
+                    |> hasFull "invisible"
         , test "Qualified imports work too" <|
             \() ->
                 """
