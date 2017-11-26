@@ -232,12 +232,12 @@ bubbleSelect f list =
                     if discarded == [] then
                         Ok <| List.reverse acc
                     else
-                        -- Trick to allow mutual recursion
-                        -- Should be (Err discarded)
-                        case findIndex discarded acc of
-                            ( l, r ) ->
-                                Ok <| l ++ (List.reverse discarded) ++ r
+                        (Err discarded)
 
+                -- Trick to allow mutual recursion
+                -- case findIndex discarded acc of
+                --     ( l, r ) ->
+                --         Ok <| l ++ (List.reverse discarded) ++ r
                 current :: tail ->
                     let
                         newlist =
