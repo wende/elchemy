@@ -527,10 +527,12 @@ maybeDoctest c forName line =
                         if shadowed == [] then
                             ""
                         else
-                            indNoNewline (c.indent + 1)
-                                ++ "iex> "
-                                ++ ExContext.importBasicsWithoutShadowed c
-                                ++ indNoNewline 0
+                            ExContext.importBasicsWithoutShadowed c
+                                |> String.trimRight
+                                |> String.split "\n"
+                                |> String.join (ind (c.indent + 2) ++ "iex> ")
+                                |> (++) (indNoNewline 1 ++ "iex> ")
+                                |> flip (++) (ind 0)
                 in
                     importBasics
                         ++ indNoNewline (c.indent + 1)
