@@ -283,12 +283,24 @@ isStdModule a =
 
 reservedWords : List String
 reservedWords =
-    [ "fn", "do", "end", "cond", "receive", "or", "and", "quote", "unquote", "unquote_splicing" ]
+    [ "fn"
+    , "do"
+    , "end"
+    , "cond"
+    , "receive"
+    , "or"
+    , "and"
+    , "quote"
+    , "unquote"
+    , "unquote_splicing"
+    , "module"
+    ]
 
 
 reservedBasicFunctions : List String
 reservedBasicFunctions =
-    [ "cons"
+    [ -- From Elchemy STD
+      "cons"
     , "compare"
     , "xor"
     , "negate"
@@ -317,6 +329,74 @@ reservedBasicFunctions =
     , "tuple3"
     , "tuple4"
     , "tuple5"
+    ]
+
+
+reservedKernelFunctions : List String
+reservedKernelFunctions =
+    [ -- From Elixir std
+      "isTuple"
+    , "abs"
+    , "apply"
+    , "apply"
+    , "binary_part"
+    , "bit_size"
+    , "byte_size"
+    , "div"
+    , "elem"
+    , "exit"
+    , "function_exported?"
+    , "get_and_update_in"
+    , "get_in"
+    , "hd"
+    , "inspect"
+    , "inspect"
+    , "is_atom"
+    , "is_binary"
+    , "is_bitstring"
+    , "is_boolean"
+    , "is_float"
+    , "is_function"
+    , "is_function"
+    , "is_integer"
+    , "is_list"
+    , "is_map"
+    , "is_number"
+    , "is_pid"
+    , "is_port"
+    , "is_reference"
+    , "is_tuple"
+    , "length"
+    , "macro_exported?"
+    , "make_ref"
+    , "map_size"
+    , "max"
+    , "min"
+    , "node"
+    , "node"
+    , "not"
+    , "pop_in"
+    , "put_elem"
+    , "put_in"
+    , "rem"
+    , "round"
+    , "self"
+    , "send"
+    , "spawn"
+    , "spawn"
+    , "spawn_link"
+    , "spawn_link"
+    , "spawn_monitor"
+    , "spawn_monitor"
+    , "struct"
+    , "struct"
+    , "struct!"
+    , "struct!"
+    , "throw"
+    , "tl"
+    , "trunc"
+    , "tuple_size"
+    , "update_in"
     ]
 
 

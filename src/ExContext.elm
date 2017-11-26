@@ -23,7 +23,7 @@ module ExContext
         , addFlag
         , isPrivate
         , mergeTypes
-        , getShadowedStdFunctions
+        , getShadowedFunctions
         , listOfImports
         , importBasicsWithoutShadowed
         , putIntoModule
@@ -247,7 +247,11 @@ empty name exports =
     , lastDoc = Nothing
     , modules = Dict.singleton name (Module Dict.empty Dict.empty Dict.empty exports)
     , inTypeDefiniton = False
-    , importedTypes = Dict.fromList [ ( "order", "Elchemy.XBasics" ) ]
+    , importedTypes =
+        Dict.fromList
+            [ ( "Order", "Elchemy.XBasics" )
+            , ( "Result", "Elchemy.XResult" )
+            ]
     }
 
 
@@ -342,8 +346,8 @@ mergeVariables left right =
 {-| Finds all defined functions and all auto imported functions (XBasics) and returns
 the common subset. Return empty list for XBasics
 -}
-getShadowedStdFunctions : Context -> List ( String, Definition )
-getShadowedStdFunctions context =
+getShadowedFunctions : Context -> List String -> List ( String, Definition )
+getShadowedFunctions context list =
     let
         definitions =
             context.modules
@@ -360,7 +364,7 @@ getShadowedStdFunctions context =
         if context.mod == "Elchemy.XBasics" then
             []
         else
-            Helpers.reservedBasicFunctions
+            list
                 |> List.concatMap findReserved
 
 
@@ -386,17 +390,25 @@ listOfImports shadowed =
 importBasicsWithoutShadowed : Context -> String
 importBasicsWithoutShadowed c =
     let
-        shadowed =
-            getShadowedStdFunctions c
+        importModule mod list =
+            if list /= [] then
+                list
+                    |> String.join ", "
+                    |> (++) ("import " ++ mod ++ ", except: [")
+                    |> flip (++) "]\n"
+            else
+                ""
+
+        shadowedBasics =
+            getShadowedFunctions c Helpers.reservedBasicFunctions
+                |> listOfImports
+
+        shadowedKernel =
+            getShadowedFunctions c Helpers.reservedKernelFunctions
                 |> listOfImports
     in
-        if shadowed /= [] then
-            shadowed
-                |> String.join ", "
-                |> (++) "import Elchemy.XBasics, except: ["
-                |> flip (++) "]\n"
-        else
-            ""
+        importModule "Elchemy.XBasics" shadowedBasics
+            ++ importModule "Kernel" shadowedKernel
 
 
 {-| Merges everything that should be imported from given module, based

@@ -1,7 +1,7 @@
 module ExType exposing (typeAliasConstructor, typespec, uniontype, elixirT, getExportedTypeNames)
 
 import Dict
-import Ast.Statement exposing (Type(..), ExportSet(AllExport, TypeExport, SubsetExport))
+import Ast.Statement exposing (Type(..), ExportSet(..))
 import ExContext exposing (Context, indent)
 import Ast.Expression exposing (Expression(..))
 import Helpers
@@ -273,8 +273,8 @@ getExportedTypeNames c mod subset =
                 |> Maybe.map (\mod -> (mod.aliases |> Dict.keys) ++ (mod.types |> Dict.keys))
                 |> Maybe.withDefault []
 
-        _ ->
-            Debug.crash <| "Something went wrong with " ++ toString subset
+        FunctionExport _ ->
+            []
 
 
 fullImportedType : Context -> String -> String

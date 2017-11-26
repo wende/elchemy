@@ -181,36 +181,45 @@ elixirS c s =
                             |> List.map typeApplicationToList
                         )
 
+                isPrivate =
+                    ExContext.isPrivate c name
+
                 definitionExists =
                     c.modules
                         |> Dict.get c.mod
                         |> Maybe.andThen (.definitions >> Dict.get name)
-                        |> (==) Nothing
-                        |> (&&) (not (ExContext.isPrivate c name))
+                        |> (/=) Nothing
+
+                preCurry =
+                    if not definitionExists && args /= [] then
+                        (ind c.indent) ++ "curryp " ++ toSnakeCase True name ++ "/" ++ toString (List.length args)
+                    else
+                        ""
             in
                 c
-                    => if definitionExists then
+                    => if (not definitionExists) && (not isPrivate) then
                         Debug.crash <|
                             "To be able to export it, you need to provide function type for `"
                                 ++ name
                                 ++ "` function in module "
                                 ++ toString c.mod
                        else
-                        case body of
-                            (Application (Application (Variable [ "ffi" ]) _) _) as app ->
-                                genFfi app
+                        preCurry
+                            ++ case body of
+                                (Application (Application (Variable [ "ffi" ]) _) _) as app ->
+                                    genFfi app
 
-                            (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
-                                genFfi app
+                                (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
+                                    genFfi app
 
-                            Case (Tuple vars) expressions ->
-                                if vars == args then
-                                    ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
-                                else
+                                Case (Tuple vars) expressions ->
+                                    if vars == args then
+                                        ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
+                                    else
+                                        ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
+
+                                _ ->
                                     ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
-
-                            _ ->
-                                ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
 
         Comment content ->
             elixirComment c content
@@ -510,7 +519,8 @@ maybeDoctest c forName line =
             Ok ( _, _, BinOp (Variable [ "==" ]) l r ) ->
                 let
                     shadowed =
-                        ExContext.getShadowedStdFunctions c
+                        ExContext.getShadowedFunctions c Helpers.reservedBasicFunctions
+                            ++ ExContext.getShadowedFunctions c Helpers.reservedKernelFunctions
                             |> List.filter (Tuple.first >> (==) forName)
 
                     importBasics =
