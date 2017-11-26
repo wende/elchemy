@@ -270,7 +270,7 @@ elixirPrimitve c e =
 
         Record keyValuePairs ->
             "%{"
-                ++ (List.map (\( a, b ) -> a ++ ": " ++ elixirE c b) keyValuePairs
+                ++ (List.map (\( a, b ) -> toSnakeCase True a ++ ": " ++ elixirE c b) keyValuePairs
                         |> String.join ", "
                    )
                 ++ "}"
