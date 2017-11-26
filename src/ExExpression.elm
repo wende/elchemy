@@ -141,7 +141,8 @@ elixirLetInMutualFunctions context expressionsList =
             List.map Tuple.first expressionsList
 
         names =
-            List.map (Tuple.first >> ExVariable.extractName) expressionsList
+            expressionsList
+                |> List.map (Tuple.first >> ExVariable.extractName >> toSnakeCase True)
 
         c =
             rememberVariables vars context
@@ -153,7 +154,7 @@ elixirLetInMutualFunctions context expressionsList =
                     ""
 
                 [ single ] ->
-                    elixirE c single
+                    elixirE c body
 
                 (Variable [ name ]) :: args ->
                     lambda c args body
@@ -168,7 +169,7 @@ elixirLetInMutualFunctions context expressionsList =
             ++ (expressionsList
                     |> List.map (\(( var, exp ) as v) -> ( (ExVariable.extractName var), v ))
                     |> List.map (Tuple.mapSecond <| letBranchToLambda (indent c))
-                    |> List.map (\( name, body ) -> (ind (c.indent + 1)) ++ name ++ ": " ++ body)
+                    |> List.map (\( name, body ) -> (ind (c.indent + 1)) ++ toSnakeCase True name ++ ": " ++ body)
                     |> String.join ","
                )
             ++ ind (c.indent)
@@ -270,7 +271,7 @@ elixirPrimitve c e =
 
         Record keyValuePairs ->
             "%{"
-                ++ (List.map (\( a, b ) -> a ++ ": " ++ elixirE c b) keyValuePairs
+                ++ (List.map (\( a, b ) -> toSnakeCase True a ++ ": " ++ elixirE c b) keyValuePairs
                         |> String.join ", "
                    )
                 ++ "}"
@@ -474,7 +475,7 @@ typeApplication c name args =
                             atomize name
                         else if dif >= 0 then
                             (arguments
-                                |> List.map ((++) " fn ")
+                                |> List.map ((++) "fn ")
                                 |> List.map (flip (++) " -> ")
                                 |> String.join ""
                             )
@@ -485,7 +486,7 @@ typeApplication c name args =
                                         |> String.join ", "
                                    )
                                 ++ "}"
-                                |> flip (++) (String.repeat dif " end ")
+                                |> flip (++) (String.repeat dif " end")
                         else
                             Debug.crash <|
                                 "Expected "

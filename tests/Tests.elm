@@ -129,13 +129,13 @@ binOps =
                 "add = a + b" |> has "a() + b()"
         , test "Ops as lambda" <|
             \() ->
-                "add = (+)" |> has "(&+/0).()"
+                "add = (+)" |> has "(&XBasics.+/0).()"
         , test "Ops as lambda with param" <|
             \() ->
-                "add = ((+) 2)" |> has "(&+/0).().(2)"
+                "add = ((+) 2)" |> has "(&XBasics.+/0).().(2)"
         , test "Complex ops as lambda " <|
             \() ->
-                "add = map (+) list" |> has "map().((&+/0).()).(list())"
+                "add = map (+) list" |> has "map().((&XBasics.+/0).()).(list())"
         ]
 
 
@@ -512,28 +512,37 @@ letIns =
                   newY = y + 1
                 in newX
                   """ |> has "{x, y} = {1, 2}new_x = (x + 1)new_y = (y + 1)"
-        , test "Solves simple mutual recursion" <|
-            \() -> """
-              test =
-                let
-                  fx a = fy + 1
-                  fy b = fx + 1
-                in fx 10
-                  """ |> has "{fx, fy} = let [fx: fn a -> "
-        , test "Solves mutual recursion" <|
-            \() -> """
-              test =
-                let
-                  fx x = case x of
-                      0 -> 0
-                      x -> fy x - 1
-                  end
-                  fy x = case x of
-                      0 -> 0
-                      x -> fx x - 1
-                  end
-                in fx 10
-                  """ |> has "{fx, fy} = let [fx: fn x -> "
+
+        -- , test "Solves simple mutual recursion" <|
+        --     \() -> """
+        --       test =
+        --         let
+        --           fx a = fy + 1
+        --           fy b = fx + 1
+        --         in fx 10
+        --           """ |> has "{fx, fy} = let [fx: fn a -> "
+        -- , test "Solves mutual recursion" <|
+        --     \() -> """
+        --       test =
+        --         let
+        --           fx x = case x of
+        --               0 -> 0
+        --               x -> fy x - 1
+        --           end
+        --           fy x = case x of
+        --               0 -> 0
+        --               x -> fx x - 1
+        --           end
+        --         in fx 10
+        --           """ |> has "{fx, fy} = let [fx: fn x -> "
+        -- , test "Solves mutual relation" <|
+        --     \() -> """
+        --       test =
+        --         let
+        --           x = y + 1
+        --           y = x + 1
+        --         in x
+        --           """ |> has "{x, y} = let [x: (y + 1)"
         ]
 
 
