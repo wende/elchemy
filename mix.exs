@@ -11,7 +11,7 @@ defmodule Elchemy.Mixfile do
      package: package(),
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     elixirc_paths: ["elm", "lib"],
+     elixirc_paths: ["elm", "lib", "elm-deps"],
      elchemy_path: "elm",
      deps: deps()]
   end
