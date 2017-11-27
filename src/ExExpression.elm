@@ -105,7 +105,6 @@ elixirControlFlow c e =
         Let variables expression ->
             variables
                 |> ExVariable.organizeLetInVariablesOrder
-                --|> List.map (List.singleton)
                 |> ExVariable.groupByCrossDependency
                 |> (flip List.foldl ( c, "" ) <|
                         \varGroup ( cAcc, codeAcc ) ->
@@ -186,29 +185,37 @@ elixirLetInMutualFunctions context expressionsList =
 -}
 elixirLetInBranch : Context -> ( Expression, Expression ) -> ( Context, String )
 elixirLetInBranch c ( var, exp ) =
-    case applicationToList var of
-        [ (Variable [ name ]) as var ] ->
-            rememberVariables [ var ] c
-                => toSnakeCase True name
-                ++ " = "
-                ++ elixirE (c |> rememberVariables [ var ]) exp
+    let
+        wrapIfNestedLet c =
+            case exp of
+                Let _ _ ->
+                    "(" ++ ind (c.indent + 1) ++ elixirE (indent c) exp ++ ind (c.indent) ++ ")"
 
-        ((Variable [ name ]) as var) :: args ->
-            rememberVariables [ var ] c
-                => toSnakeCase True name
-                ++ " = rec "
-                ++ toSnakeCase True name
-                ++ ", "
-                ++ lambda (c |> rememberVariables [ var ]) args exp
+                _ ->
+                    elixirE c exp
+    in
+        case applicationToList var of
+            -- [ (Variable [ name ]) as var ] ->
+            --     rememberVariables [ var ] c
+            --         => toSnakeCase True name
+            --         ++ " = "
+            --         ++ elixirE (c |> rememberVariables [ var ]) exp
+            [ assign ] ->
+                rememberVariables [ assign ] c
+                    => elixirE (inArgs c) assign
+                    ++ " = "
+                    ++ wrapIfNestedLet (rememberVariables [ assign ] c)
 
-        [ assign ] ->
-            rememberVariables [ assign ] c
-                => elixirE (inArgs c) assign
-                ++ " = "
-                ++ elixirE (rememberVariables [ assign ] c) exp
+            ((Variable [ name ]) as var) :: args ->
+                rememberVariables [ var ] c
+                    => toSnakeCase True name
+                    ++ " = rec "
+                    ++ toSnakeCase True name
+                    ++ ", "
+                    ++ lambda (c |> rememberVariables [ var ]) args exp
 
-        _ ->
-            c => ""
+            _ ->
+                c => ""
 
 
 {-| Encode primitive value
