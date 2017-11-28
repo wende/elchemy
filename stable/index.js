@@ -1,5 +1,6 @@
 const init = `
 module FizzBuzz exposing (fizzbuzz)
+{-| Fizbbuzz example module -}
 
 import List exposing (map, range)
 
@@ -8,11 +9,13 @@ import List exposing (map, range)
 -}
 fizzbuzz : Int -> Int -> String
 fizzbuzz from to =
-  let fizzBuzz n = case (n % 3, n % 5) of
-    (0, 0) -> "FizzBuzz"
-    (0, _) -> "Fizz"
-    (_, 0) -> "Buzz"
-    _      -> toString n
+  let
+    fizzBuzz n =
+        case (n % 3, n % 5) of
+            (0, 0) -> "FizzBuzz"
+            (0, _) -> "Fizz"
+            (_, 0) -> "Buzz"
+            _      -> toString n
   in List.range from to |> map (fizzBuzz >> toString) |> joinWords
 
 

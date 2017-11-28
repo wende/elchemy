@@ -1,0 +1,114 @@
+#!/bin/bash
+
+version="0.5.3"
+
+function create_file {
+    local file=$1
+    if [[ ${file} == *"elm-stuff/packages"* ]]; then
+        file=${file/elm-stuff\/packages/elm-deps}
+    fi
+    mkdir -p `dirname $file`
+    echo "" > $file
+    echo "$file"
+}
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+    DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+SOURCE_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+case "$1" in
+    version)
+        echo "Elchemy $version"
+        ;;
+    clean)
+      rm -rf ./elm-deps
+      rm -rf ./elm-stuff
+      rm -rf ~/.elm-install/github.com/
+      ;;
+    new)
+        mix new $2
+        cd $2
+        $SOURCE_DIR/elchemy init
+        ;;
+    init)
+        if [ -a ./mix.exs ]
+        then
+
+            mix archive.install "https://github.com/wende/elchemy/releases/download/$version/elchemy-$version.ez"
+            mkdir -p elm
+            cp $SOURCE_DIR/templates/elm-package.json ./
+            cp $SOURCE_DIR/templates/Hello.elm ./elm/
+            cp $SOURCE_DIR/templates/elchemy_test.exs ./test/
+            printf  "Elchemy $version initialised. Make sure to add:\n\n\tcompilers: [:elchemy, :yecc, :leex, :erlang, :elixir, :app],\n\telixirc_paths: [\"lib\", \"elm-deps\"],\n\telchemy_path: \"elm\",\n\nto your mix.exs file\nThen run mix test to check if everything went fine\n"
+            printf "\nelm-deps" >> .gitignore
+            printf "\nelm-stuff" >> .gitignore
+        else
+            printf  "ERROR: No elixir project found. Make sure to run init in a project"
+        fi
+    ;;
+    compile)
+        rm -rf ".elchemy"
+        echo "" > .elchemy_output
+        if ! [[ $* == *--unsafe* ]]; then
+            if ! hash elm-github-install 2>/dev/null; then
+                echo "No elm-github-install found. Installing..."
+                npm i -g elm-github-install@1.6.1
+            fi
+            elm-install
+        fi
+        # Copy all elixir files that are inside packages
+        for f in `{ find -L elm-stuff/packages -name "*.ex" | grep -v "\.elchemy\.ex" ;}`
+        do
+          echo "FOUND $f"
+          file=$(create_file $f)
+          echo "TO $file"
+          cp $f $file
+        done
+        i=0
+        # Find all elm files inside packages and compile them
+        for f in `{ find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#." ; find -L elm-stuff/packages -name "*.elm" | grep -v "/tests/" | grep -v "/example/" ;}`
+        do
+            if [[ ${f} == *"elm-lang"* ]] || [[ ${f} == *"Elchemy.elm"* ]]; then
+                continue
+            fi
+            echo "----------"
+            echo "Type Checking $f"
+            echo ">>>>$f" >> .elchemy_output
+            # We don't need to typecheck deps again
+            if [[ ${f} != *"elm-stuff"* ]] && ! [[ $* == *--unsafe* ]]; then
+                (echo n | elm-make $f --output .elchemy_output_tmp.js) || { echo 'Type Check failed' ; exit 1; }
+                rm .elchemy_output_tmp.js
+            fi
+            i=$((i+1))
+            echo "#$i"
+            cat $f >> .elchemy_output
+        done
+        echo "-- Linking files --"
+        node --max_old_space_size=8192 $SOURCE_DIR/elchemy.js .elchemy_output .elchemy_elixir_output
+        current_file=""
+        while IFS= read -r line; do
+            if [[ $line =~ ">>>>" ]]; then
+                current_file="${line/\/\///}"
+                current_file="${current_file/>>>>/}"
+                echo "Linking: $current_file"
+                current_file="${current_file/$2\//$3/}"
+                current_file="${current_file%%.elm}.elchemy.ex"
+                current_file=$(create_file $current_file)
+                echo "To: $current_file"
+                else
+                if [ "$current_file" != "" ]; then
+                    printf '%s\n' "$line" >> "$current_file"
+                fi
+            fi
+        done < .elchemy_elixir_output
+
+        ;;
+    *)
+        echo $"Usage: $0 compile [input_dir] [output_dir] [--unsafe]"
+        exit 1
+
+esac

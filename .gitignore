@@ -1,10 +1,14 @@
 .DS_Store
 elm-stuff/
 node_modules/
-elmchemy.js
+elchemy.js
 output.ex
 example/elm.js
 .#*
-.elmchemy*
+.elchemy*
 *.orig
-elixir-stuff/elmchemy/lib/Elmchemy/X*
+elixir-stuff/
+elchemy_ex/lib/*
+*un~
+elchemy-*.ez
+_build/

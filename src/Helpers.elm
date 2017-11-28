@@ -1,11 +1,10 @@
 module Helpers exposing (..)
 
 import Char
-import Tuple exposing (..)
-import List exposing (..)
-import Regex exposing (..)
 import Dict exposing (Dict)
-import ExReserved
+import Ast.Statement exposing (Type(..))
+import Ast.Expression exposing (Expression(..))
+import Regex exposing (Regex(..), HowMany(..), regex)
 
 
 type MaybeUpper
@@ -13,6 +12,8 @@ type MaybeUpper
     | Lower String
 
 
+{-| Throw a nice error saying that this feature is not implemented yet
+-}
 notImplemented : String -> a -> String
 notImplemented feature value =
     " ## ERROR: No "
@@ -24,38 +25,31 @@ notImplemented feature value =
         |> Debug.crash
 
 
+{-| Convert string to snakecase, if the flag is set to true then it won't replace reserved words
+-}
 toSnakeCase : Bool -> String -> String
 toSnakeCase isntAtom s =
     let
-        string =
+        safe x =
             if isntAtom then
-                ExReserved.maybeReplaceReserved s
+                replaceReserved x
             else
-                s
+                x
     in
-        if String.toUpper string == string then
-            String.toLower string
+        if String.toUpper s == s then
+            String.toLower s
         else
-            string
+            s
                 |> Regex.split Regex.All (Regex.regex "(?=[A-Z])")
                 |> String.join "_"
                 |> String.toLower
-
-
-isUpper : String -> Bool
-isUpper string =
-    case String.uncons string of
-        Just ( start, rest ) ->
-            Char.isUpper start
-
-        Nothing ->
-            False
+                |> safe
 
 
 capitalize : String -> String
 capitalize s =
     String.uncons s
-        |> Maybe.map (\a -> String.cons (Char.toUpper (first a)) (second a))
+        |> Maybe.map (Tuple.mapFirst Char.toUpper >> uncurry String.cons)
         |> Maybe.withDefault ""
 
 
@@ -64,22 +58,29 @@ atomize s =
     ":" ++ toSnakeCase False s
 
 
+{-| Returns if string start with uppercase
+-}
 isCapitilzed : String -> Bool
 isCapitilzed s =
     String.uncons s
-        |> Maybe.map (\a -> a |> first |> Char.isUpper)
+        |> Maybe.map (Tuple.first >> Char.isUpper)
         |> Maybe.withDefault False
+
+
+indNoNewline : Int -> String
+indNoNewline i =
+    List.repeat ((i + 1) * 2) " " |> String.join ""
 
 
 ind : Int -> String
 ind i =
-    "\n" ++ (List.repeat ((i + 1) * 2) " " |> String.join "")
+    "\n" ++ indNoNewline i
 
 
 prependAll : String -> String -> String
 prependAll with target =
     String.lines target
-        |> map
+        |> List.map
             (\line ->
                 if String.trim line == "" then
                     line
@@ -141,11 +142,10 @@ operators =
     , ( "%", "rem" )
 
     -- Exception
-    , ( "//", "" )
+    , ( "//", "div" )
 
     -- Exception
-    , ( "rem", "" )
-
+    --, ( "rem", "rem" )
     -- Exception
     , ( "^", "" )
 
@@ -167,8 +167,13 @@ type Operator
     | Custom
 
 
-isOperator : String -> Operator
-isOperator name =
+isCustomOperator : String -> Bool
+isCustomOperator op =
+    operatorType op == Custom
+
+
+operatorType : String -> Operator
+operatorType name =
     let
         is_builtin =
             operators
@@ -193,16 +198,15 @@ translateOperator : String -> String
 translateOperator op =
     case Dict.get op operators of
         Just "" ->
-            Debug.crash
-                (op
+            Debug.crash <|
+                op
                     ++ " is not a valid or not implemented yet operator"
-                )
 
         Just key ->
             key
 
         _ ->
-            ExReserved.replaceOp op
+            replaceOp op
 
 
 trimIndentations : String -> String
@@ -218,13 +222,8 @@ generateArguments =
 generateArguments_ : String -> Int -> List String
 generateArguments_ str n =
     List.range 1 n
-        |> map toString
-        |> map ((++) str)
-
-
-unescape : String -> String
-unescape s =
-    Regex.replace All (regex "\\\\\\\\") (always "\\") s
+        |> List.map toString
+        |> List.map ((++) str)
 
 
 escape : String -> String
@@ -232,41 +231,252 @@ escape s =
     Regex.replace All (regex "\\\\") (always "\\\\") s
 
 
+ops : List ( Int, Char )
+ops =
+    [ '+', '-', '/', '*', '=', '.', '$', '<', '>', ':', '&', '|', '^', '?', '%', '#', '@', '~', '!' ] |> List.indexedMap (,)
+
+
+{-| Gives a String representation of module path
+-}
 modulePath : List String -> String
 modulePath list =
-    list
-        |> map
-            (\a ->
-                if isUpper a then
-                    a
-                else
-                    toSnakeCase True a
-            )
-        |> map maybeReplaceStd
-        |> String.join "."
+    let
+        snakeIfLower a =
+            if isCapitilzed a then
+                a
+            else
+                toSnakeCase True a
+    in
+        list
+            |> List.map snakeIfLower
+            |> String.join "."
+            |> maybeReplaceStd
+
+
+maybeReplaceStd : String -> String
+maybeReplaceStd s =
+    if isStdModule s then
+        "Elchemy.X" ++ s
+    else
+        s
 
 
 isStdModule : String -> Bool
 isStdModule a =
     List.member a
         [ "Basics"
+        , "Bitwise"
+        , "Char"
+        , "Date"
+        , "Debug"
+        , "Dict"
         , "List"
         , "String"
         , "Maybe"
-        , "Char"
+        , "Regex"
         , "Result"
+        , "Set"
+        , "String"
         , "Tuple"
         ]
 
 
-maybeReplaceStd : String -> String
-maybeReplaceStd s =
-    if isStdModule s then
-        "X" ++ s
+reservedWords : List String
+reservedWords =
+    [ "fn"
+    , "do"
+    , "end"
+    , "cond"
+    , "receive"
+    , "or"
+    , "and"
+    , "quote"
+    , "unquote"
+    , "unquote_splicing"
+    , "module"
+    ]
+
+
+reservedBasicFunctions : List String
+reservedBasicFunctions =
+    [ -- From Elchemy STD
+      "cons"
+    , "compare"
+    , "xor"
+    , "negate"
+    , "sqrt"
+    , "clamp"
+    , "logBase"
+    , "e"
+    , "pi"
+    , "cos"
+    , "sin"
+    , "tan"
+    , "acos"
+    , "asin"
+    , "atan"
+    , "atan2"
+    , "round"
+    , "floor"
+    , "ceiling"
+    , "truncate"
+    , "toFloat"
+    , "toString"
+    , "identity"
+    , "always"
+    , "flip"
+    , "tuple2"
+    , "tuple3"
+    , "tuple4"
+    , "tuple5"
+    ]
+
+
+reservedKernelFunctions : List String
+reservedKernelFunctions =
+    [ -- From Elixir std
+      "isTuple"
+    , "abs"
+    , "apply"
+    , "apply"
+    , "binary_part"
+    , "bit_size"
+    , "byte_size"
+    , "div"
+    , "elem"
+    , "exit"
+    , "function_exported?"
+    , "get_and_update_in"
+    , "get_in"
+    , "hd"
+    , "inspect"
+    , "inspect"
+    , "is_atom"
+    , "is_binary"
+    , "is_bitstring"
+    , "is_boolean"
+    , "is_float"
+    , "is_function"
+    , "is_function"
+    , "is_integer"
+    , "is_list"
+    , "is_map"
+    , "is_number"
+    , "is_pid"
+    , "is_port"
+    , "is_reference"
+    , "is_tuple"
+    , "length"
+    , "macro_exported?"
+    , "make_ref"
+    , "map_size"
+    , "max"
+    , "min"
+    , "node"
+    , "node"
+    , "not"
+    , "pop_in"
+    , "put_elem"
+    , "put_in"
+    , "rem"
+    , "round"
+    , "self"
+    , "send"
+    , "spawn"
+    , "spawn"
+    , "spawn_link"
+    , "spawn_link"
+    , "spawn_monitor"
+    , "spawn_monitor"
+    , "struct"
+    , "struct"
+    , "struct!"
+    , "struct!"
+    , "throw"
+    , "tl"
+    , "trunc"
+    , "tuple_size"
+    , "update_in"
+    ]
+
+
+replaceOp : String -> String
+replaceOp op =
+    String.toList op
+        |> List.map replaceOp_
+        |> String.join ""
+        |> flip (++) "__"
+
+
+replaceOp_ : Char -> String
+replaceOp_ op =
+    case
+        List.filter (\( i, o ) -> op == o) ops
+    of
+        ( index, _ ) :: _ ->
+            "op" ++ toString index
+
+        _ ->
+            Debug.crash "Illegal op"
+
+
+replaceReserved : String -> String
+replaceReserved a =
+    if List.member a reservedWords then
+        a ++ "__"
     else
-        s
+        a
 
 
+{-| Change application into a list of expressions
+-}
+applicationToList : Expression -> List Expression
+applicationToList application =
+    case application of
+        Application left right ->
+            (applicationToList left) ++ [ right ]
+
+        other ->
+            [ other ]
+
+
+{-| Change type application into a list of expressions
+-}
+typeApplicationToList : Type -> List Type
+typeApplicationToList application =
+    case application of
+        TypeApplication left right ->
+            left :: typeApplicationToList right
+
+        other ->
+            [ other ]
+
+
+{-| Construct application, rever of applicationToList function
+-}
+constructApplication : List String -> List Expression
+constructApplication list =
+    case list of
+        [] ->
+            Debug.crash "Wrong application"
+
+        [ one ] ->
+            [ Variable [ one ] ]
+
+        head :: tail ->
+            [ List.foldl (\a acc -> Application acc (Variable [ a ])) (Variable [ head ]) tail ]
+
+
+{-| Nicer syntax for tuples
+-}
+(=>) : a -> b -> ( a, b )
+(=>) =
+    (,)
+infixr 0 =>
+
+
+{-| Take left maybe, or right maybe if Nothing
+-}
 maybeOr : Maybe a -> Maybe a -> Maybe a
 maybeOr m1 m2 =
     case m1 of
@@ -275,3 +485,29 @@ maybeOr m1 m2 =
 
         Nothing ->
             m2
+
+
+{-| Filter Maybe based on a predicate
+-}
+filterMaybe : (a -> Bool) -> Maybe a -> Maybe a
+filterMaybe f m =
+    flip Maybe.andThen m <|
+        (\a ->
+            if f a then
+                Just a
+            else
+                Nothing
+        )
+
+
+{-| Finds a value in a list
+-}
+findInList : (a -> Bool) -> List a -> Maybe a
+findInList f =
+    flip List.foldl Nothing <|
+        (\a acc ->
+            if f a then
+                Just a
+            else
+                acc
+        )
