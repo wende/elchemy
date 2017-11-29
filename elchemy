@@ -61,7 +61,7 @@ case "$1" in
             elm-install
         fi
         # Copy all elixir files that are inside packages
-        for f in `{ find -L elm-stuff/packages -name "*.ex" | grep -v "\.elchemy\.ex" ;}`
+        for f in `{ find -L elm-stuff/packages -name "*.ex*" | grep -v "\.elchemy\.ex" ;}`
         do
           echo "FOUND $f"
           file=$(create_file $f)
