@@ -30,8 +30,10 @@ defmodule ElchemyInit do
   end
 
   def app_name(path) do
-      mix_project = Code.eval_file("mix.exs", path)
-      mix_project.project()[:app]
+    mix_file = Path.join(path, "mix.exs") |> File.read!
+    {app_name, _} = ~r"app:(.*?)," |> Regex.run(mix_file, capture: :all_but_first)
+    |> List.first |> String.trim |> Code.eval_string
+    app_name
   end
 end
 
