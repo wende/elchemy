@@ -185,8 +185,8 @@ elixirLetInMutualFunctions context expressionsList =
 
 -}
 elixirLetInBranch : Context -> ( Expression, Expression ) -> ( Context, String )
-elixirLetInBranch c ( var, exp ) =
-    case applicationToList var of
+elixirLetInBranch c ( left, exp ) =
+    case applicationToList left of
         [ (Variable [ name ]) as var ] ->
             rememberVariables [ var ] c
                 => toSnakeCase True name
@@ -194,12 +194,18 @@ elixirLetInBranch c ( var, exp ) =
                 ++ elixirE (c |> rememberVariables [ var ]) exp
 
         ((Variable [ name ]) as var) :: args ->
-            rememberVariables [ var ] c
-                => toSnakeCase True name
-                ++ " = rec "
-                ++ toSnakeCase True name
-                ++ ", "
-                ++ lambda (c |> rememberVariables [ var ]) args exp
+            if Helpers.isCapitilzed name then
+                (c |> rememberVariables args)
+                    => tupleOrFunction (rememberVariables args c) left
+                    ++ " = "
+                    ++ elixirE c exp
+            else
+                rememberVariables [ var ] c
+                    => toSnakeCase True name
+                    ++ " = rec "
+                    ++ toSnakeCase True name
+                    ++ ", "
+                    ++ lambda (c |> rememberVariables [ var ]) args exp
 
         [ assign ] ->
             rememberVariables [ assign ] c

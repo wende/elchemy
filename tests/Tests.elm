@@ -481,6 +481,13 @@ letIns =
                 b = 10
               in d
                 """ |> has "b = 10a = fn {} -> b end"
+        , test "Union types aren't functions" <|
+            \() -> """
+              test = let
+                A a = A 1
+                b = 10
+              in d
+                """ |> has "{:a, a} = {:a, 1}b = 10"
         , test "Sugared functions work too (with arguments)" <|
             \() -> """
               test = let
