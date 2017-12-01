@@ -50,7 +50,7 @@ generateFfi c elixirE name argTypes e =
                     arguments =
                         generateArguments_ "a" def.arity
                 in
-                    ExFunction.functionCurry c elixirE name def.arity
+                    ExFunction.functionCurry c elixirE name def.arity []
                         ++ (onlyWithoutFlag c "noverify" name <|
                                 ind c.indent
                                     ++ "verify as: "
@@ -81,7 +81,7 @@ generateFfi c elixirE name argTypes e =
                     arguments =
                         generateArguments_ "a" def.arity
                 in
-                    ExFunction.functionCurry c elixirE name def.arity
+                    ExFunction.functionCurry c elixirE name def.arity []
                         ++ ind c.indent
                         ++ "def"
                         ++ ExFunction.privateOrPublic c name

@@ -9,6 +9,7 @@ module ExFunction
 import Dict
 import ExVariable exposing (rememberVariables)
 import Ast.Expression exposing (Expression(..))
+import Ast.Statement exposing (Type)
 import ExContext exposing (Context, Parser, inArgs, indent)
 import Helpers
     exposing
@@ -40,13 +41,58 @@ genFunctionDefinition c elixirE name args body =
 
         arity =
             typeDef |> Maybe.map .arity |> Maybe.withDefault 0
+
+        lambdasAt =
+            getLambdaArgumentIndexes (Maybe.map .def typeDef)
     in
         if ExContext.hasFlag "nodef" name c then
-            functionCurry c elixirE name arity
+            functionCurry c elixirE name arity lambdasAt
         else
-            functionCurry c elixirE name arity
+            functionCurry c elixirE name arity lambdasAt
                 ++ genElixirFunc c elixirE name args (arity - List.length args) body
                 ++ "\n"
+
+
+{-| Generates an overloaded function defintion when body is matched on case
+-}
+genOverloadedFunctionDefinition :
+    Context
+    -> Parser
+    -> String
+    -> List Expression
+    -> Expression
+    -> List ( Expression, Expression )
+    -> String
+genOverloadedFunctionDefinition c elixirE name args body expressions =
+    let
+        typeDef =
+            c.modules
+                |> Dict.get c.mod
+                |> Maybe.andThen (.definitions >> Dict.get name)
+
+        arity =
+            typeDef |> Maybe.map .arity |> Maybe.withDefault 0
+
+        lambdasAt =
+            getLambdaArgumentIndexes (Maybe.map .def typeDef)
+    in
+        if ExContext.hasFlag "nodef" name c then
+            functionCurry c elixirE name arity lambdasAt
+        else
+            functionCurry c elixirE name arity lambdasAt
+                ++ (expressions
+                        |> List.map
+                            (\( left, right ) ->
+                                case left of
+                                    Tuple args ->
+                                        genElixirFunc c elixirE name args (arity - List.length args) right
+
+                                    _ ->
+                                        genElixirFunc c elixirE name [ left ] (arity - 1) right
+                            )
+                        |> List.foldr (++) ""
+                        |> flip (++) "\n"
+                   )
 
 
 {-| Encodes a function defintion based on given params
@@ -157,8 +203,8 @@ privateOrPublic context name =
 
 {-| Encodes a curry macro for the function
 -}
-functionCurry : Context -> Parser -> String -> Int -> String
-functionCurry c elixirE name arity =
+functionCurry : Context -> Parser -> String -> Int -> List ( Int, Int ) -> String
+functionCurry c elixirE name arity lambdasAt =
     case ( arity, ExContext.hasFlag "nocurry" name c ) of
         ( 0, _ ) ->
             ""
@@ -173,52 +219,46 @@ functionCurry c elixirE name arity =
                         translateOperator name
                     else
                         toSnakeCase True name
+
+                p =
+                    privateOrPublic c name
+
+                lambdas =
+                    lambdasAt
+                        |> List.map (\( a, b ) -> "{" ++ toString a ++ ", " ++ toString b ++ "}")
             in
-                [ (ind c.indent)
-                , "curry"
-                , privateOrPublic c name
-                , " "
-                , resolvedName
-                , "/"
-                , toString arity
-                ]
-                    |> String.join ""
+                if lambdas == [] || p == "p" then
+                    [ (ind c.indent)
+                    , "curry"
+                    , " "
+                    , resolvedName
+                    , "/"
+                    , toString arity
+                    ]
+                        |> String.join ""
+                else
+                    [ (ind c.indent)
+                    , "curry"
+                    , " "
+                    , resolvedName
+                    , "/"
+                    , toString arity
+                    , ", lambdas: ["
+                    , lambdas |> String.join ", "
+                    , "]"
+                    ]
+                        |> String.join ""
 
 
-{-| Generates an overloaded function defintion when body is matched on case
+{-| Gives indexes (starting from 0) of the arguments which
+are lambdas with arity bigger than 1
 -}
-genOverloadedFunctionDefinition :
-    Context
-    -> Parser
-    -> String
-    -> List Expression
-    -> Expression
-    -> List ( Expression, Expression )
-    -> String
-genOverloadedFunctionDefinition c elixirE name args body expressions =
-    let
-        typeDef =
-            c.modules
-                |> Dict.get c.mod
-                |> Maybe.andThen (.definitions >> Dict.get name)
-
-        arity =
-            typeDef |> Maybe.map .arity |> Maybe.withDefault 0
-    in
-        if ExContext.hasFlag "nodef" name c then
-            functionCurry c elixirE name arity
-        else
-            functionCurry c elixirE name arity
-                ++ (expressions
-                        |> List.map
-                            (\( left, right ) ->
-                                case left of
-                                    Tuple args ->
-                                        genElixirFunc c elixirE name args (arity - List.length args) right
-
-                                    _ ->
-                                        genElixirFunc c elixirE name [ left ] (arity - 1) right
-                            )
-                        |> List.foldr (++) ""
-                        |> flip (++) "\n"
-                   )
+getLambdaArgumentIndexes : Maybe Type -> List ( Int, Int )
+getLambdaArgumentIndexes t =
+    Maybe.map Helpers.typeApplicationToList t
+        |> Maybe.withDefault []
+        |> List.map (Helpers.typeApplicationToList)
+        |> List.indexedMap (,)
+        -- -1 since a -> b is not 2 arity
+        |> List.map (Tuple.mapSecond <| List.length >> (+) -1)
+        |> List.filter (\( _, r ) -> r > 1)
