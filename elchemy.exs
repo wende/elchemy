@@ -1,4 +1,7 @@
 defmodule ElchemyInit do
+
+  @deps_directory_depth 3
+
   def init(project, {__MODULE, _}) do
     project
     |> put_in([:compilers], [:elchemy | (project[:compilers] || [])])
@@ -8,7 +11,7 @@ defmodule ElchemyInit do
 
   def elm_deps() do
     if File.exists?("elm-deps") do
-        find!("elm-deps", 3)
+        find!("elm-deps", @deps_directory_depth)
         |> check_mix_file()
         |> Enum.map(fn {app_name, path} ->
             {app_name, path: path, override: true}
@@ -24,8 +27,8 @@ defmodule ElchemyInit do
       if File.exists?(mix_file) do
         {parse_app_name(mix_file), path}
       else
-        app_name = app_name_from_path(path)
-        create_mix_file(mix_file, app_name, "1.0.0")
+        {app_name, version} = app_info_from_path(path)
+        create_mix_file(mix_file, app_name, version)
         {app_name, path}
       end
     end
@@ -43,7 +46,7 @@ defmodule #{module_name}.Mixfile do
   use Mix.Project
 
   def project do
-    [app: #{inspect String.to_atom(app_name)},
+    [app: #{inspect app_name},
      version: "#{version}",
      elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
@@ -56,7 +59,7 @@ defmodule #{module_name}.Mixfile do
     [extra_applications: [:logger]]
   end
 
-  defp deps, do: [{:elchemy, path: "elm-deps"}]
+  defp deps, do: [{:elchemy, override: false}]
 end
     """
     IO.puts "Creating mix file #{mix_file}"
@@ -64,13 +67,16 @@ end
     File.write!(mix_file, content)
   end
 
-  def app_name_from_path(path) do
-      ~r"elm-deps\/.*?\/(.*?)\/.*?"
-      |> Regex.run(path, capture: :all_but_first)
-      |> List.first
-      |> String.replace(~r"[-]", "_")
-      |> String.replace(~r"[^a-zA-Z0-9]", "")
-      |> String.to_atom
+  def app_info_from_path(path) do
+    [_, _, repo_name, version] = path |> Path.split
+    IO.puts path
+
+    app_name = repo_name
+    |> String.replace(~r"[-]", "_")
+    |> String.replace(~r"[^a-zA-Z0-9_]", "")
+    |> String.to_atom
+
+    {app_name, version}
   end
 
   def find!(dir, segments), do: find!([], dir, segments)
