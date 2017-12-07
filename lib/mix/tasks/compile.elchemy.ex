@@ -14,5 +14,13 @@ defmodule Mix.Tasks.Compile.Elchemy do
         Mix.raise "Compilation error"
       end
     end
+
+    # Force project to be reloaded and deps compiled after elm-deps created.
+    IO.puts "Recompiling dependencies for elchemy..."
+    if project = Mix.Project.pop() do
+      %{name: name, file: file} = project
+      Mix.Project.push(name, file)
+    end
+    Mix.Task.run "deps.compile"
   end
 end
