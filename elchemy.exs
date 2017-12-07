@@ -3,36 +3,89 @@ defmodule ElchemyInit do
     project
     |> put_in([:compilers], [:elchemy | (project[:compilers] || [])])
     |> put_in([:elchemy_path], "elm")
-    |> put_in([:deps], project[:deps] ++ deps())
+    |> put_in([:deps], project[:deps] ++ elm_deps())
   end
 
-  def deps() do
+  def elm_deps() do
     if File.exists?("elm-deps") do
-        find!("elm-deps")
-        |> Enum.map(fn path ->
-            {app_name(path), path: path}
+        find!("elm-deps", 3)
+        |> check_mix_file()
+        |> Enum.map(fn {app_name, path} ->
+            {app_name, path: path, override: true}
         end)
     else
         []
     end
   end
 
-  def find!(dir), do: find!([], dir)
-  def find!(dirs, dir) do
-    files = dir |> File.ls!
-    if Enum.member?(files, "mix.exs") do
-      [dir | dirs]
-    else
-      files
-      |> Enum.map(&Path.join(dir, &1))
-      |> Enum.filter(&File.dir?/1)
-      |> Enum.reduce(dirs, &find!(&2, &1))
+  def check_mix_file(paths) do
+    Enum.map paths, fn path ->
+      mix_file = Path.join(path, "mix.exs")
+      if File.exists?(mix_file) do
+        {parse_app_name(mix_file), path}
+      else
+        app_name = app_name_from_path(path)
+        create_mix_file(mix_file, app_name, "1.0.0")
+        {app_name, path}
+      end
     end
   end
 
-  def app_name(path) do
-    mix_file = Path.join(path, "mix.exs") |> File.read!
-    {app_name, _} = ~r"app:(.*?)," |> Regex.run(mix_file, capture: :all_but_first)
+  def create_mix_file(mix_file, app_name, version) do
+    module_name = app_name
+    |> Atom.to_string
+    |> String.split("_")
+    |> Enum.map(&String.capitalize/1)
+    |> Enum.join("")
+
+    content = """
+defmodule #{module_name}.Mixfile do
+  use Mix.Project
+
+  def project do
+    [app: #{inspect String.to_atom(app_name)},
+     version: "#{version}",
+     elixir: "~> 1.4",
+     build_embedded: Mix.env == :prod,
+     start_permanent: Mix.env == :prod,
+     elixirc_paths: ["src"],
+     deps: deps()]
+  end
+
+  def application do
+    [extra_applications: [:logger]]
+  end
+
+  defp deps, do: [{:elchemy, path: "elm-deps"}]
+end
+    """
+    IO.puts "Creating mix file #{mix_file}"
+
+    File.write!(mix_file, content)
+  end
+
+  def app_name_from_path(path) do
+      ~r"elm-deps\/.*?\/(.*?)\/.*?"
+      |> Regex.run(path, capture: :all_but_first)
+      |> List.first
+      |> String.replace(~r"[-]", "_")
+      |> String.replace(~r"[^a-zA-Z0-9]", "")
+      |> String.to_atom
+  end
+
+  def find!(dir, segments), do: find!([], dir, segments)
+  def find!(dirs, dir, 0), do: [dir | dirs]
+  def find!(dirs, dir, depth) do
+    files = dir |> File.ls!
+    files
+    |> Enum.map(&Path.join(dir, &1))
+    |> Enum.filter(&File.dir?/1)
+    |> Enum.reduce(dirs, &find!(&2, &1, depth - 1))
+  end
+
+  def parse_app_name(mix_file) do
+    contents = File.read!(mix_file)
+    {app_name, _} = ~r"app:(.*?)," |> Regex.run(contents, capture: :all_but_first)
     |> List.first |> String.trim |> Code.eval_string
     app_name
   end
