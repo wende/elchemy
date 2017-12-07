@@ -79,7 +79,7 @@ end
     {app_name, version}
   end
 
-  def find!(dir, segments), do: find!([], dir, segments)
+  def find!(dir, depth), do: find!([], dir, depth)
   def find!(dirs, dir, 0), do: [dir | dirs]
   def find!(dirs, dir, depth) do
     files = dir |> File.ls!
