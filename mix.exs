@@ -5,13 +5,13 @@ defmodule Elchemy.Mixfile do
     [app: :elchemy,
      name: "Elchemy Compiler",
      description: "Mix compiler wrapper around Elchemy project",
-     version: "0.5.1",
+     version: "0.5.3",
      elixir: "~> 1.4",
      description: "",
      package: package(),
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     elixirc_paths: ["elm", "lib"],
+     elixirc_paths: ["elm", "lib", "elm-deps"],
      elchemy_path: "elm",
      deps: deps()]
   end
@@ -35,11 +35,11 @@ defmodule Elchemy.Mixfile do
 
   # Dependencies can be Hex packages:
   #
-  #   {:my_dep, "~> 0.5.1"}
+  #   {:my_dep, "~> 0.5.3"}
   #
   # Or git/path repositories:
   #
-  #   {:my_dep, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.5.1"}
+  #   {:my_dep, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.5.3"}
   #
   # Type "mix help deps" for more examples and options
   defp deps do

@@ -1,8 +1,7 @@
 defmodule ElchemyExTest do
   use ExUnit.Case
-  doctest ElchemyEx
 
-  test "greets the world" do
-    assert ElchemyEx.hello() == :world
+  test "Parsing works" do
+    assert Ast.parse("module A exposing (..)\na = 1") != []
   end
 end

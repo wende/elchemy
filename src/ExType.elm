@@ -1,6 +1,7 @@
-module ExType exposing (typeAliasConstructor, typespec, uniontype)
+module ExType exposing (typeAliasConstructor, typespec, uniontype, elixirT, getExportedTypeNames)
 
-import Ast.Statement exposing (Type(..))
+import Dict
+import Ast.Statement exposing (Type(..), ExportSet(..))
 import ExContext exposing (Context, indent)
 import Ast.Expression exposing (Expression(..))
 import Helpers
@@ -39,32 +40,65 @@ elixirT flatten c t =
                     toSnakeCase True name
 
                 any ->
-                    "any"
-
-        TypeConstructor [ t ] any ->
-            elixirType flatten c t any
+                    if c.inTypeDefiniton then
+                        name
+                    else
+                        "any"
 
         TypeConstructor t args ->
             case lastAndRest t of
-                ( Just last, a ) ->
-                    ExContext.getAlias c.mod last c
-                        |> filterMaybe (.aliasType >> (==) ExContext.TypeAlias)
-                        |> Maybe.map (\{ getTypeBody } -> getTypeBody args)
-                        |> Maybe.map (elixirT flatten c)
-                        |> (Maybe.withDefault <|
-                                String.join "." a
-                                    ++ "."
-                                    ++ toSnakeCase True last
-                           )
+                ( Just last, rest ) ->
+                    let
+                        mapUpdate =
+                            ExContext.getAlias c.mod last c
+                                |> filterMaybe (.aliasType >> (==) ExContext.TypeAlias)
+                                |> Maybe.map (\{ getTypeBody } -> getTypeBody args)
+                                |> Maybe.andThen
+                                    (\body ->
+                                        case body of
+                                            TypeRecordConstructor _ _ ->
+                                                Just body
+
+                                            _ ->
+                                                Nothing
+                                    )
+                                |> Maybe.map (elixirT flatten c)
+
+                        modulePath =
+                            if rest == [] then
+                                c.importedTypes
+                                    |> Dict.get last
+                                    |> Maybe.map (\a -> a ++ ".")
+                                    |> Maybe.withDefault ""
+                            else
+                                (List.map (\a -> a ++ ".") rest |> String.join "")
+                    in
+                        mapUpdate
+                            |> Maybe.withDefault (modulePath ++ elixirType flatten c last args)
 
                 _ ->
                     Debug.crash "Shouldn't ever happen"
 
+        -- TypeConstructor t args ->
+        --     case lastAndRest t of
+        --         ( Just last, a ) ->
+        --             ExContext.getAlias c.mod last c
+        --                 |> filterMaybe (.aliasType >> (==) ExContext.TypeAlias)
+        --                 |> Maybe.map (\{ getTypeBody } -> getTypeBody args)
+        --                 |> Maybe.map (elixirT flatten c)
+        --                 |> (Maybe.withDefault <|
+        --                         String.join "." a
+        --                             ++ "."
+        --                             ++ toSnakeCase True last
+        --                    )
+        --
+        --         _ ->
+        --             Debug.crash "Shouldn't ever happen"
         TypeRecord fields ->
             "%{"
                 ++ ind (c.indent + 1)
                 ++ (fields
-                        |> List.map (\( k, v ) -> k ++ ": " ++ elixirT flatten (indent c) v)
+                        |> List.map (\( k, v ) -> toSnakeCase False k ++ ": " ++ elixirT flatten (indent c) v)
                         |> String.join ("," ++ ind (c.indent + 1))
                    )
                 ++ ind (c.indent)
@@ -182,9 +216,8 @@ elixirType flatten c name args =
         ( "List", [ t ] ) ->
             "list(" ++ elixirT flatten c t ++ ")"
 
-        ( "Dict", [ key, val ] ) ->
-            "%{}"
-
+        -- ( "Dict", [ key, val ] ) ->
+        --     "%{}"
         ( "Maybe", [ t ] ) ->
             "{" ++ elixirT flatten c t ++ "} | nil"
 
@@ -204,15 +237,51 @@ elixirType flatten c name args =
                 "{:ok," ++ elixirT flatten c t ++ "}"
 
         ( t, [] ) ->
-            aliasOr c t [] (atomize t)
+            toSnakeCase True t
 
+        -- aliasOr c t [] (atomize t)
         ( t, list ) ->
-            aliasOr c t list <|
-                "{"
-                    ++ atomize t
-                    ++ ", "
-                    ++ (List.map (elixirT flatten c) list |> String.join ", ")
-                    ++ "}"
+            toSnakeCase True t
+                ++ "("
+                ++ (List.map (elixirT flatten c) list |> String.join ", ")
+                ++ ")"
+
+
+
+-- aliasOr c t list <|
+--     "{"
+--         ++ atomize t
+--         ++ ", "
+--         ++ (List.map (elixirT flatten c) list |> String.join ", ")
+--         ++ "}"
+
+
+{-| Gets all types from a subset export
+-}
+getExportedTypeNames : Context -> String -> ExportSet -> List String
+getExportedTypeNames c mod subset =
+    case subset of
+        SubsetExport list ->
+            List.concatMap (getExportedTypeNames c mod) list
+
+        TypeExport name _ ->
+            [ name ]
+
+        AllExport ->
+            c.modules
+                |> Dict.get mod
+                |> Maybe.map (\mod -> (mod.aliases |> Dict.keys) ++ (mod.types |> Dict.keys))
+                |> Maybe.withDefault []
+
+        FunctionExport _ ->
+            []
+
+
+fullImportedType : Context -> String -> String
+fullImportedType c name =
+    Dict.get "name" c.importedTypes
+        |> Maybe.map (\a -> a ++ "." ++ name)
+        |> Maybe.withDefault name
 
 
 {-| Enocde a typespec with 0 arity

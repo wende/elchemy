@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version="0.5.1"
+version="0.5.3"
 
 function create_file {
     local file=$1
@@ -56,7 +56,7 @@ case "$1" in
         if ! [[ $* == *--unsafe* ]]; then
             if ! hash elm-github-install 2>/dev/null; then
                 echo "No elm-github-install found. Installing..."
-                npm i -g elm-github-install@1.6.0
+                npm i -g elm-github-install@1.6.1
             fi
             elm-install
         fi
@@ -70,7 +70,7 @@ case "$1" in
         done
         i=0
         # Find all elm files inside packages and compile them
-        for f in `{ find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#." ; find -L elm-stuff/packages -name "*.elm" | grep -v "/tests/" ;}`
+        for f in `{ find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#." ; find -L elm-stuff/packages -name "*.elm" | grep -v "/tests/" | grep -v "/example/" ;}`
         do
             if [[ ${f} == *"elm-lang"* ]] || [[ ${f} == *"Elchemy.elm"* ]]; then
                 continue

@@ -1,9 +1,17 @@
-module ExVariable exposing (varOrNah, rememberVariables, organizeLetInVariablesOrder)
+module ExVariable
+    exposing
+        ( varOrNah
+        , rememberVariables
+        , organizeLetInVariablesOrder
+        , groupByCrossDependency
+        , extractName
+        )
 
 import Set
 import Ast.Expression exposing (..)
 import Helpers exposing (toSnakeCase)
 import ExContext exposing (Context, inArgs)
+import List.Extra
 
 
 {-| Put variables into context so they are treated like variables in future
@@ -17,7 +25,7 @@ rememberVariables list c =
             }
     in
         list
-            |> List.map (extractVariables)
+            |> List.map (extractVariablesUsed)
             |> List.foldr (++) []
             |> List.foldl addToContext c
 
@@ -32,38 +40,14 @@ varOrNah c var =
         var ++ "()"
 
 
-{-| Extracts name of variable used, but only the top level. All of the shadowed
-uses will be excluded
--}
-extractVariableUses : Expression -> List String
-extractVariableUses expression =
-    let
-        withoutVars vars right =
-            List.filter (not << flip List.member vars) (extractVariableUses right)
-
-        rightWithoutLeft left right =
-            withoutVars (extractVariables left) right
-    in
-        case expression of
-            Let definitions return ->
-                List.concatMap (uncurry rightWithoutLeft) definitions
-
-            Lambda head body ->
-                body
-                    |> withoutVars (List.concatMap extractVariables head)
-
-            other ->
-                extractVariables other
-
-
 {-| Extract variables from an expression
 -}
-extractVariables : Expression -> List String
-extractVariables exp =
+extractVariablesUsed : Expression -> List String
+extractVariablesUsed exp =
     let
         many vars =
             vars
-                |> List.map extractVariables
+                |> List.map extractVariablesUsed
                 |> List.foldr (++) []
 
         one var =
@@ -99,6 +83,21 @@ extractVariables exp =
             BinOp (Variable [ "as" ]) l ((Variable [ _ ]) as r) ->
                 many [ l, r ]
 
+            BinOp _ l r ->
+                many [ l, r ]
+
+            -- Assignments
+            Case head branches ->
+                List.concatMap (uncurry rightWithoutLeft) branches
+                    |> withoutVars (extractVariablesUsed head)
+
+            Let definitions return ->
+                List.concatMap (uncurry rightWithoutLeft) definitions
+
+            Lambda head body ->
+                extractVariablesUsed body
+                    |> withoutVars (List.concatMap extractVariablesUsed head)
+
             _ ->
                 none
 
@@ -113,31 +112,140 @@ a = b
 -}
 organizeLetInVariablesOrder : List ( Expression, Expression ) -> List ( Expression, Expression )
 organizeLetInVariablesOrder expressionList =
+    case bubbleSelect (\a b -> not <| isIn a b) expressionList of
+        Ok list ->
+            list
+
+        Err list ->
+            let
+                _ =
+                    Debug.crash <|
+                        "Couldn't find a solution to "
+                            ++ toString (list |> List.map Tuple.first)
+            in
+                []
+
+
+{-| Returns a name of a variable, or a name of a function being applied
+-}
+extractName : Expression -> String
+extractName expression =
+    case Helpers.applicationToList expression of
+        [ Variable [ name ] ] ->
+            name
+
+        [ single ] ->
+            Debug.crash (toString single ++ " is not a variable")
+
+        multi ->
+            List.head multi
+                |> Maybe.map extractName
+                |> Maybe.withDefault ""
+
+
+{-| Returns a list of names of a variable, or a name of a function being applied
+
+a = 1 --> ["a"]
+f a b c = 1 --> ["f"]
+(a, b, c) = 1 --> ["a", "b", "c"]
+
+-}
+extractNamesAssigned : Expression -> List String
+extractNamesAssigned expression =
+    case Helpers.applicationToList expression of
+        [ Variable [ name ] ] ->
+            [ name ]
+
+        [ single ] ->
+            extractVariablesUsed single
+
+        multi ->
+            List.head multi
+                |> Maybe.map extractNamesAssigned
+                |> Maybe.withDefault []
+
+
+{-| Extracts only the arguments of an expression (if the expression is a function)
+-}
+extractArguments : Expression -> List String
+extractArguments expression =
+    case Helpers.applicationToList expression of
+        [ single ] ->
+            []
+
+        multi ->
+            List.tail multi
+                |> Maybe.map (List.concatMap extractNamesAssigned)
+                |> Maybe.withDefault []
+
+
+{-| Returns true if a name of right argument is mentioned in a body of left variable
+-}
+isIn : ( Expression, Expression ) -> ( Expression, Expression ) -> Bool
+isIn ( leftHead, _ ) ( rightHead, rightDef ) =
     let
-        compare ( leftVar, leftExp ) ( rightVar, rightExp ) =
-            if isIn leftVar rightExp then
-                LT
-            else if isIn rightVar leftExp then
-                GT
-            else
-                EQ
+        anyMembers members list =
+            List.any (flip List.member list) members
     in
-        List.sortWith compare expressionList
+        withoutVars (extractArguments rightHead) (extractVariablesUsed rightDef)
+            |> anyMembers (extractNamesAssigned leftHead)
 
 
-isIn : Expression -> Expression -> Bool
-isIn var expression =
+{-| Returns a list of variables in right, without these passed as first argument}
+-}
+withoutVars : List String -> List String -> List String
+withoutVars vars right =
+    List.filter (not << flip List.member vars) right
+
+
+{-| Returns a list of variables used in right expression, without variables defined in
+left expression
+-}
+rightWithoutLeft : Expression -> Expression -> List String
+rightWithoutLeft left right =
+    withoutVars (extractVariablesUsed left) (extractVariablesUsed right)
+
+
+{-| Groups functions that mutually call each other in lists
+-}
+groupByCrossDependency : List ( Expression, Expression ) -> List (List ( Expression, Expression ))
+groupByCrossDependency expressionsList =
+    expressionsList
+        |> List.Extra.groupWhile (\l r -> isIn l r && isIn r l)
+
+
+{-| Selects a correct order of elements in a list based on a dependency algorithm
+if dependency requirement (f) is met for all of the other elements it is inserted
+otherwise it looks for next element that fits the requirement.
+Function returns first combination found, satifying the predicate.
+If no function was found it returns Nothing
+-}
+bubbleSelect : (a -> a -> Bool) -> List a -> Result (List a) (List a)
+bubbleSelect f list =
     let
-        extractName var =
-            case var of
-                Variable [ name ] ->
-                    name
+        findIndex discarded list =
+            List.Extra.break (\a -> List.all (f a) discarded) list
 
-                _ ->
-                    ""
+        findNext discarded list acc =
+            case list of
+                [] ->
+                    if discarded == [] then
+                        Ok <| List.reverse acc
+                    else
+                        (Err discarded)
 
-        getVarName ( var, _ ) =
-            extractName var
+                -- Trick to allow mutual recursion
+                -- case findIndex discarded acc of
+                --     ( l, r ) ->
+                --         Ok <| l ++ (List.reverse discarded) ++ r
+                current :: tail ->
+                    let
+                        newlist =
+                            discarded ++ tail
+                    in
+                        if List.all (flip f current) newlist then
+                            findNext [] newlist (current :: acc)
+                        else
+                            findNext (current :: discarded) tail acc
     in
-        extractVariableUses expression
-            |> List.member (extractName var)
+        findNext [] list []

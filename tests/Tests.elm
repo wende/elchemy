@@ -129,13 +129,13 @@ binOps =
                 "add = a + b" |> has "a() + b()"
         , test "Ops as lambda" <|
             \() ->
-                "add = (+)" |> has "(&+/0).()"
+                "add = (+)" |> has "(&XBasics.+/0).()"
         , test "Ops as lambda with param" <|
             \() ->
-                "add = ((+) 2)" |> has "(&+/0).().(2)"
+                "add = ((+) 2)" |> has "(&XBasics.+/0).().(2)"
         , test "Complex ops as lambda " <|
             \() ->
-                "add = map (+) list" |> has "map().((&+/0).()).(list())"
+                "add = map (+) list" |> has "map().((&XBasics.+/0).()).(list())"
         ]
 
 
@@ -219,7 +219,7 @@ types =
         , test "Types can wrap records" <|
             \() ->
                 "type Lens big small = Lens { get : big -> small }"
-                    |> has "@type lens :: {:lens, %{get: (any -> any)}}"
+                    |> has "@type lens(big, small) :: {:lens, %{get: (big -> small)}}"
         , test "Types args don't polute type application" <|
             \() ->
                 "type Focus big small = Focus { get : big -> small }"
@@ -267,7 +267,7 @@ typeAliases =
             \() ->
                 "type alias MyType a = List a"
                     |++ "test : MyType Int"
-                    |> has "@spec test() :: list("
+                    |> has "@spec test() :: my_type(integer"
         , test "Type substitution" <|
             \() ->
                 "type MyType = Wende | NieWende"
@@ -277,13 +277,13 @@ typeAliases =
             \() ->
                 "type alias MyType a = List a"
                     |++ "test : MyType Int"
-                    |> has "@spec test() :: list(integer)"
+                    |> has "@spec test() :: my_type(integer)"
         , test "TypeAlias argument substitution between types" <|
             \() ->
                 "type alias AnyKey val = (a, val)"
                     |++ "type alias Val a = AnyKey a"
                     |++ "test : Val Int"
-                    |> has "@spec test() :: {any, integer}"
+                    |> has "@spec test() :: val(integer)"
         , test "TypeAlias no argument substitution in Type" <|
             \() ->
                 "type alias MyList a = List a"
@@ -298,7 +298,7 @@ typeAliases =
                     |++ "type alias Wendable a = { a | wendify : (a -> Wende)}"
                     |++ "type alias Man = Wendable { gender: Bool }"
                     |++ "a : Man -> String "
-                    |> has "@spec a(%{wendify: (%{gender: boolean} -> wende), gender: boolean}) :: String.t"
+                    |> has "@type man :: %{wendify: (%{gender: boolean} -> wende), gender: boolean"
         , test "Multi polymorhpic record alias" <|
             \() ->
                 "type Wende = Wende"
@@ -306,7 +306,7 @@ typeAliases =
                     |++ "type alias Agable a =  { a | age: Int }"
                     |++ "type alias Man = Namable (Agable { gender : String })"
                     |++ "a : Man -> String "
-                    |> has "@spec a(%{name: String.t, age: integer, gender: String.t}) :: String.t"
+                    |> has "@type man :: %{name: String.t, age: integer, gender: String.t}"
         , test "Interface as type" <|
             \() ->
                 "type alias Namable a = { a | name : String }"
@@ -344,7 +344,7 @@ import A exposing (..)
 a : MyAlias
 a = 1
     """
-                    |> hasFull "@spec a() :: integer"
+                    |> hasFull "@spec a() :: A.my_alias"
         , test "Imported type from another file" <|
             \() ->
                 """
@@ -422,7 +422,7 @@ import C exposing (..)
 a : Invisible
 a = 1
     """
-                    |> hasFull ":invisible"
+                    |> hasFull "invisible"
         , test "Qualified imports work too" <|
             \() ->
                 """
@@ -481,6 +481,29 @@ letIns =
                 b = 10
               in d
                 """ |> has "b = 10a = fn {} -> b end"
+        , test "Union types aren't functions" <|
+            \() -> """
+              test = let
+                A a = A 1
+                b = 10
+              in d
+                """ |> has "{:a, a} = {:a, 1}b = 10"
+        , test "Sugared functions work too (with arguments)" <|
+            \() -> """
+              test = let
+                a x = x + b
+                b = 10
+                x = 1
+              in x
+                """ |> has "b = 10a = rec a, fn x -> (x + b) endx = 1xend"
+        , test "Multiple sugared functions work too" <|
+            \() -> """
+              test = let
+                a x = x + b
+                b a = a
+                x = 1
+              in x
+                """ |> has "b = rec b, fn a -> a enda = rec a, fn x -> (x + b) endx = 1xend"
         , test "Doesn't mind shadowing" <|
             \() -> """
               test = let
@@ -488,6 +511,45 @@ letIns =
                 b = 10
               in d
                 """ |> has "a = fn b -> b endb = 10"
+        , test "Doesn't mind destructuring" <|
+            \() -> """
+                test = let
+                  newX = x + 1
+                  (x, y) = (1, 2)
+                  newY = y + 1
+                in newX
+                  """ |> has "{x, y} = {1, 2}new_x = (x + 1)new_y = (y + 1)"
+
+        -- , test "Solves simple mutual recursion" <|
+        --     \() -> """
+        --       test =
+        --         let
+        --           fx a = fy + 1
+        --           fy b = fx + 1
+        --         in fx 10
+        --           """ |> has "{fx, fy} = let [fx: fn a -> "
+        -- , test "Solves mutual recursion" <|
+        --     \() -> """
+        --       test =
+        --         let
+        --           fx x = case x of
+        --               0 -> 0
+        --               x -> fy x - 1
+        --           end
+        --           fy x = case x of
+        --               0 -> 0
+        --               x -> fx x - 1
+        --           end
+        --         in fx 10
+        --           """ |> has "{fx, fy} = let [fx: fn x -> "
+        -- , test "Solves mutual relation" <|
+        --     \() -> """
+        --       test =
+        --         let
+        --           x = y + 1
+        --           y = x + 1
+        --         in x
+        --           """ |> has "{x, y} = let [x: (y + 1)"
         ]
 
 

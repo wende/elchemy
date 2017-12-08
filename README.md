@@ -96,9 +96,10 @@ make dev
 ```
 To launch and test the web demo
 
-## Contributing Guide
+# Contributing Guide
 - Everyone is welcome to contribute
 - Refer to http://bogdanp.github.io/elm-ast/example/ to have better understanding of parsed tokens.
+- For project management we use ZenHub. You can see the Kanban board, card estimates and all the reports by installing a browser extension here: [Opera/Chrome](https://chrome.google.com/webstore/detail/zenhub-for-github/ogcgkffhplmphkaahpmffcafajaocjbd), [Firefox](zenhub.com)
 
 ## Targeted values:
 - Fully readable and indented elixir code generated from compilation
