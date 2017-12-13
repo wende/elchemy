@@ -82,8 +82,8 @@ end
   def find!(dir, depth), do: find!([], dir, depth)
   def find!(dirs, dir, 0), do: [dir | dirs]
   def find!(dirs, dir, depth) do
-    files = dir |> File.ls!
-    files
+    dir
+    |> File.ls!
     |> Enum.map(&Path.join(dir, &1))
     |> Enum.filter(&File.dir?/1)
     |> Enum.reduce(dirs, &find!(&2, &1, depth - 1))
