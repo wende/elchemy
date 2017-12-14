@@ -4,7 +4,7 @@ defmodule ElchemyInit do
 
   def init(project, {__MODULE, _}) do
     project
-    |> put_in([:compilers], [:elchemy | (project[:compilers] || [])])
+    |> put_in([:compilers], [:elchemy | (project[:compilers] || Mix.compilers())])
     |> put_in([:elchemy_path], "elm")
     |> put_in([:deps], project[:deps] ++ elm_deps())
   end

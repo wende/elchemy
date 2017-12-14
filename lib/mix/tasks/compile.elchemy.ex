@@ -21,6 +21,7 @@ defmodule Mix.Tasks.Compile.Elchemy do
       %{name: name, file: file} = project
       Mix.Project.push(name, file)
     end
+    Mix.Task.run "deps.get"
     Mix.Task.run "deps.compile"
   end
 end
