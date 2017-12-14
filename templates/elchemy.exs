@@ -69,7 +69,6 @@ end
 
   def app_info_from_path(path) do
     [_, _, repo_name, version] = path |> Path.split
-    IO.puts path
 
     app_name = repo_name
     |> String.replace(~r"[-]", "_")
