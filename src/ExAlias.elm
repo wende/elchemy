@@ -136,7 +136,7 @@ replaceTypeAliases c t =
                     (\body ->
                         case body of
                             TypeRecordConstructor _ _ ->
-                                Just body |> Debug.log ("Got body at " ++ typeName)
+                                Just body
 
                             TypeApplication _ _ ->
                                 Just body
