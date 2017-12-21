@@ -43,6 +43,11 @@ elixirBinop c elixirE op l r =
                    )
                 ++ ")"
 
+        "as" ->
+            elixirE c l
+                ++ " = "
+                ++ elixirE c r
+
         op ->
             case operatorType op of
                 Builtin ->

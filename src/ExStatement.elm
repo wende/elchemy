@@ -188,6 +188,14 @@ elixirS c s =
                 isPrivate =
                     ExContext.isPrivate c name
 
+                isTuple t =
+                    case t of
+                        Tuple _ ->
+                            True
+
+                        _ ->
+                            False
+
                 definitionExists =
                     c.modules
                         |> Dict.get c.mod
@@ -217,7 +225,7 @@ elixirS c s =
                                     genFfi app
 
                                 Case (Tuple vars) expressions ->
-                                    if vars == args then
+                                    if vars == args && List.all (Tuple.first >> isTuple) expressions then
                                         ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
                                     else
                                         ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
