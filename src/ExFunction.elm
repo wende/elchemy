@@ -75,21 +75,25 @@ genOverloadedFunctionDefinition c elixirE name args body expressions =
 
         lambdasAt =
             getLambdaArgumentIndexes (Maybe.map .def typeDef)
+
+        pairAsArgs asArgs =
+            asArgs
+                |> List.map2 (flip <| BinOp <| Variable [ "as" ]) args
+
+        caseBranch ( left, right ) =
+            case left of
+                Tuple matchedArgs ->
+                    genElixirFunc c elixirE name (pairAsArgs matchedArgs) (arity - List.length (pairAsArgs matchedArgs)) right
+
+                _ ->
+                    genElixirFunc c elixirE name [ left ] (arity - 1) right
     in
         if ExContext.hasFlag "nodef" name c then
             functionCurry c elixirE name arity lambdasAt
         else
             functionCurry c elixirE name arity lambdasAt
                 ++ (expressions
-                        |> List.map
-                            (\( left, right ) ->
-                                case left of
-                                    Tuple args ->
-                                        genElixirFunc c elixirE name args (arity - List.length args) right
-
-                                    _ ->
-                                        genElixirFunc c elixirE name [ left ] (arity - 1) right
-                            )
+                        |> List.map caseBranch
                         |> List.foldr (++) ""
                         |> flip (++) "\n"
                    )
