@@ -105,7 +105,6 @@ elixirControlFlow c e =
         Let variables expression ->
             variables
                 |> ExVariable.organizeLetInVariablesOrder
-                --|> List.map (List.singleton)
                 |> ExVariable.groupByCrossDependency
                 |> (flip List.foldl ( c, "" ) <|
                         \varGroup ( cAcc, codeAcc ) ->
@@ -186,35 +185,44 @@ elixirLetInMutualFunctions context expressionsList =
 -}
 elixirLetInBranch : Context -> ( Expression, Expression ) -> ( Context, String )
 elixirLetInBranch c ( left, exp ) =
-    case applicationToList left of
-        [ (Variable [ name ]) as var ] ->
-            rememberVariables [ var ] c
-                => toSnakeCase True name
-                ++ " = "
-                ++ elixirE (c |> rememberVariables [ var ]) exp
+    let
+        wrapElixirE c exp =
+            case exp of
+                Let _ _ ->
+                    "(" ++ ind (c.indent + 1) ++ elixirE (indent c) exp ++ ind c.indent ++ ")"
 
-        ((Variable [ name ]) as var) :: args ->
-            if Helpers.isCapitilzed name then
-                (c |> rememberVariables args)
-                    => tupleOrFunction (rememberVariables args c) left
-                    ++ " = "
-                    ++ elixirE c exp
-            else
+                _ ->
+                    elixirE c exp
+    in
+        case applicationToList left of
+            [ (Variable [ name ]) as var ] ->
                 rememberVariables [ var ] c
                     => toSnakeCase True name
-                    ++ " = rec "
-                    ++ toSnakeCase True name
-                    ++ ", "
-                    ++ lambda (c |> rememberVariables [ var ]) args exp
+                    ++ " = "
+                    ++ wrapElixirE (c |> rememberVariables [ var ]) exp
 
-        [ assign ] ->
-            rememberVariables [ assign ] c
-                => elixirE (inArgs c) assign
-                ++ " = "
-                ++ elixirE (rememberVariables [ assign ] c) exp
+            ((Variable [ name ]) as var) :: args ->
+                if Helpers.isCapitilzed name then
+                    (c |> rememberVariables args)
+                        => tupleOrFunction (rememberVariables args c) left
+                        ++ " = "
+                        ++ wrapElixirE c exp
+                else
+                    rememberVariables [ var ] c
+                        => toSnakeCase True name
+                        ++ " = rec "
+                        ++ toSnakeCase True name
+                        ++ ", "
+                        ++ lambda (c |> rememberVariables [ var ]) args exp
 
-        _ ->
-            c => ""
+            [ assign ] ->
+                rememberVariables [ assign ] c
+                    => elixirE (inArgs c) assign
+                    ++ " = "
+                    ++ wrapElixirE (rememberVariables [ assign ] c) exp
+
+            _ ->
+                c => ""
 
 
 {-| Encode primitive value
