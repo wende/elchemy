@@ -1,7 +1,7 @@
-module ExAlias exposing (getAliases)
+module ExAlias exposing (getAliases, replaceTypeAliases)
 
 import Dict exposing (Dict)
-import Helpers exposing ((=>))
+import Helpers exposing ((=>), lastAndRest)
 import Ast.Statement exposing (Statement(..), Type(..))
 import ExContext
     exposing
@@ -10,6 +10,7 @@ import ExContext
         , AliasType
         , wrongArityAlias
         )
+import ExAst
 
 
 getAliases : Context -> List Statement -> Context
@@ -83,7 +84,9 @@ registerFunctionDefinition : Context -> String -> Type -> Context
 registerFunctionDefinition c name t =
     let
         arity =
-            Helpers.typeApplicationToList t |> List.length
+            replaceTypeAliases c t
+                |> Helpers.typeApplicationToList
+                |> List.length
     in
         ExContext.addDefinition c name (ExContext.Definition (arity - 1) t)
 
@@ -120,6 +123,51 @@ replaceAliasArgs name expectedArgs return =
     )
 
 
+{-| Function taking a type and replacing all aliases it points to with their dealiased version
+-}
+replaceTypeAliases : Context -> Type -> Type
+replaceTypeAliases c t =
+    let
+        mapOrFunUpdate mod default typeName args =
+            ExContext.getAlias mod typeName c
+                |> Helpers.filterMaybe (.aliasType >> (==) ExContext.TypeAlias)
+                |> Maybe.map (\{ getTypeBody } -> getTypeBody args)
+                |> Maybe.andThen
+                    (\body ->
+                        case body of
+                            TypeRecordConstructor _ _ ->
+                                Just body |> Debug.log ("Got body at " ++ typeName)
+
+                            TypeApplication _ _ ->
+                                Just body
+
+                            _ ->
+                                Nothing
+                    )
+                |> Maybe.withDefault default
+
+        typeConstructorReplace default fullType args =
+            case lastAndRest fullType of
+                ( Just typeName, [] ) ->
+                    mapOrFunUpdate c.mod default typeName args
+
+                ( Just typeName, modPath ) ->
+                    mapOrFunUpdate (Helpers.modulePath modPath) default typeName args
+
+                ( Nothing, _ ) ->
+                    Debug.crash "Unparsable type"
+
+        replaceAlias t =
+            case t of
+                TypeConstructor fullType args ->
+                    typeConstructorReplace t fullType args
+
+                t ->
+                    t
+    in
+        ExAst.walkTypeOutwards replaceAlias t
+
+
 resolveTypes : List Type -> List Type -> Type -> Type
 resolveTypes expected given return =
     let
@@ -144,30 +192,10 @@ resolveTypes expected given return =
                     Dict.get name paramsWithResolution
                         |> Maybe.withDefault default
 
-                TypeConstructor names args ->
-                    TypeConstructor names (List.map replace args)
-
-                TypeRecordConstructor name args ->
-                    args
-                        |> List.map (Tuple.mapSecond replace)
-                        |> TypeRecordConstructor (replace name)
-
-                -- AST eror workaround
-                TypeTuple [ arg ] ->
-                    replace arg
-
-                TypeTuple args ->
-                    TypeTuple (List.map replace args)
-
-                TypeRecord args ->
-                    args
-                        |> List.map (Tuple.mapSecond replace)
-                        |> TypeRecord
-
-                TypeApplication l r ->
-                    TypeApplication (replace l) (replace r)
+                t ->
+                    t
     in
-        replace return
+        ExAst.walkTypeOutwards replace return
 
 
 localAlias : String -> Context -> Maybe Alias
