@@ -98,6 +98,7 @@ case "$1" in
                 echo "Linking: $current_file"
                 current_file="${current_file/$2\//$3/}"
                 current_file="${current_file%%.elm}.elchemy.ex"
+                current_file=$(echo ${current_file} | perl -pe 's/([a-z0-9])([A-Z])/$1_\L$2/g')
                 current_file=$(create_file $current_file)
                 echo "To: $current_file"
                 else
