@@ -21,7 +21,6 @@ import Helpers
         , generateArguments
         , toSnakeCase
         )
-import ExAlias
 
 
 {-| Encodes a function defintion with all decorations like curry and type spec
