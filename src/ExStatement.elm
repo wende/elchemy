@@ -3,6 +3,7 @@ module ExStatement exposing (elixirS, moduleStatement)
 import Ast
 import ExFfi
 import ExType
+import ExAlias
 import ExFunction
 import ExExpression
 import Dict exposing (Dict)
@@ -78,6 +79,14 @@ typeDefinition c name args types isUnion =
                 "("
                     ++ (List.map getVariableName args |> String.join ", ")
                     ++ ")"
+
+        mapType =
+            (if isUnion then
+                ExType.uniontype { c | inTypeDefiniton = True }
+             else
+                ExType.elixirT False { c | inTypeDefiniton = True }
+            )
+                << ExAlias.replaceTypeAliases c
     in
         (,) newC <|
             (onlyWithoutFlag c "notype" name) <|
@@ -87,15 +96,7 @@ typeDefinition c name args types isUnion =
                     ++ toSnakeCase True name
                     ++ arguments
                     ++ " :: "
-                    ++ (List.map
-                            (if isUnion then
-                                ExType.uniontype { c | inTypeDefiniton = True }
-                             else
-                                ExType.elixirT False { c | inTypeDefiniton = True }
-                            )
-                            types
-                            |> String.join " | "
-                       )
+                    ++ (List.map mapType types |> String.join " | ")
                     ++ "\n"
 
 
@@ -119,6 +120,9 @@ elixirS c s =
                     c.lastDoc
                         |> Maybe.map (elixirDoc c Fundoc name)
                         |> Maybe.withDefault ( c, "" )
+
+                resolved =
+                    ExAlias.replaceTypeAliases c t
             in
                 (,) newC <|
                     (onlyWithoutFlag newC "nodef" name code)
@@ -132,14 +136,14 @@ elixirS c s =
                                     (ind newC.indent)
                                         ++ "@spec "
                                         ++ translateOperator name
-                                        ++ (ExType.typespec newC t)
+                                        ++ (ExType.typespec newC resolved)
 
                             None ->
                                 onlyWithoutFlag newC "nospec" name <|
                                     (ind newC.indent)
                                         ++ "@spec "
                                         ++ toSnakeCase True name
-                                        ++ (ExType.typespec newC t)
+                                        ++ (ExType.typespec newC resolved)
 
         (FunctionTypeDeclaration name t) as def ->
             let

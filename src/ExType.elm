@@ -49,21 +49,6 @@ elixirT flatten c t =
             case lastAndRest t of
                 ( Just last, rest ) ->
                     let
-                        mapUpdate =
-                            ExContext.getAlias c.mod last c
-                                |> filterMaybe (.aliasType >> (==) ExContext.TypeAlias)
-                                |> Maybe.map (\{ getTypeBody } -> getTypeBody args)
-                                |> Maybe.andThen
-                                    (\body ->
-                                        case body of
-                                            TypeRecordConstructor _ _ ->
-                                                Just body
-
-                                            _ ->
-                                                Nothing
-                                    )
-                                |> Maybe.map (elixirT flatten c)
-
                         modulePath =
                             if rest == [] then
                                 c.importedTypes
@@ -73,27 +58,11 @@ elixirT flatten c t =
                             else
                                 (List.map (\a -> a ++ ".") rest |> String.join "")
                     in
-                        mapUpdate
-                            |> Maybe.withDefault (modulePath ++ elixirType flatten c last args)
+                        modulePath ++ elixirType flatten c last args
 
                 _ ->
                     Debug.crash "Shouldn't ever happen"
 
-        -- TypeConstructor t args ->
-        --     case lastAndRest t of
-        --         ( Just last, a ) ->
-        --             ExContext.getAlias c.mod last c
-        --                 |> filterMaybe (.aliasType >> (==) ExContext.TypeAlias)
-        --                 |> Maybe.map (\{ getTypeBody } -> getTypeBody args)
-        --                 |> Maybe.map (elixirT flatten c)
-        --                 |> (Maybe.withDefault <|
-        --                         String.join "." a
-        --                             ++ "."
-        --                             ++ toSnakeCase True last
-        --                    )
-        --
-        --         _ ->
-        --             Debug.crash "Shouldn't ever happen"
         TypeRecord fields ->
             "%{"
                 ++ ind (c.indent + 1)
@@ -295,7 +264,7 @@ typespec0 c t =
 -}
 typespec : Context -> Type -> String
 typespec c t =
-    case lastAndRest (typeApplicationToList t) of
+    case t |> typeApplicationToList |> lastAndRest of
         ( Just last, args ) ->
             "("
                 ++ (List.map (elixirTNoFlat c) args

@@ -32,7 +32,7 @@ if git diff-index --quiet HEAD --; then
     make compile
     make build-docs
     make release
-    git add docs/stable
+    git add docs/stable -f
 
     sed -i "" "s/version=\"$SEMVER\"/version=\"$VER\"/g" ./elchemy
     sed -i "" "s/name\": \"elchemy\"/name\": \"elmchemy\"/g" package.json
