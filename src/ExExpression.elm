@@ -418,9 +418,9 @@ tupleOrFunction c a =
             "{:error, " ++ elixirE c arg ++ "}"
 
         (Variable list) :: rest ->
-            case lastAndRest list of
-                ( Just last, _ ) ->
-                    aliasFor c last rest
+            case Helpers.moduleAccess c.mod list of
+                ( mod, last ) ->
+                    aliasFor { c | mod = mod } last rest
                         |> (Maybe.withDefault <|
                                 "{"
                                     ++ elixirE c (Variable [ last ])
@@ -428,9 +428,6 @@ tupleOrFunction c a =
                                     ++ (List.map (elixirE c) rest |> String.join ", ")
                                     ++ "}"
                            )
-
-                _ ->
-                    Debug.crash "Won't ever happen"
 
         other ->
             Debug.crash ("Shouldn't ever work for" ++ toString other)
@@ -527,12 +524,9 @@ isTuple a =
             isCapitilzed name
 
         Variable list ->
-            case lastAndRest list of
-                ( Just last, _ ) ->
+            case Helpers.moduleAccess "" list of
+                ( _, last ) ->
                     isTuple (Variable [ last ])
-
-                _ ->
-                    Debug.crash "Shouldn't ever happen"
 
         other ->
             False
@@ -606,34 +600,26 @@ elixirVariable c var =
         [ "uncurry" ] ->
             "uncurried()"
 
-        [ name ] ->
-            if isCapitilzed name then
-                aliasFor c name []
-                    |> Maybe.withDefault (atomize name)
-            else if String.startsWith "@" name then
-                String.dropLeft 1 name
-                    |> atomize
-            else
-                case operatorType name of
-                    Builtin ->
-                        -- We need a curried version, so kernel won't work
-                        if name == "<|" then
-                            "flip().((&|>/0).())"
-                        else
-                            "(&XBasics." ++ translateOperator name ++ "/0).()"
-
-                    Custom ->
-                        translateOperator name
-
-                    None ->
-                        name |> toSnakeCase True |> ExVariable.varOrNah c
-
         list ->
-            case lastAndRest list of
-                ( Just last, rest ) ->
-                    elixirE c (Variable [ last ])
+            case Helpers.moduleAccess c.mod list of
+                ( mod, name ) ->
+                    if isCapitilzed name then
+                        aliasFor { c | mod = mod } name []
+                            |> Maybe.withDefault (atomize name)
+                    else if String.startsWith "@" name then
+                        String.dropLeft 1 name
+                            |> atomize
+                    else
+                        case operatorType name of
+                            Builtin ->
+                                -- We need a curried version, so kernel won't work
+                                if name == "<|" then
+                                    "flip().((&|>/0).())"
+                                else
+                                    "(&XBasics." ++ translateOperator name ++ "/0).()"
 
-                _ ->
-                    Debug.crash <|
-                        "Shouldn't ever happen "
-                            ++ String.join "." list
+                            Custom ->
+                                translateOperator name
+
+                            None ->
+                                name |> toSnakeCase True |> ExVariable.varOrNah c

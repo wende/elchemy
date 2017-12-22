@@ -46,22 +46,20 @@ elixirT flatten c t =
                         "any"
 
         TypeConstructor t args ->
-            case lastAndRest t of
-                ( Just last, rest ) ->
-                    let
-                        modulePath =
-                            if rest == [] then
-                                c.importedTypes
-                                    |> Dict.get last
-                                    |> Maybe.map (\a -> a ++ ".")
-                                    |> Maybe.withDefault ""
-                            else
-                                (List.map (\a -> a ++ ".") rest |> String.join "")
-                    in
-                        modulePath ++ elixirType flatten c last args
+            let
+                ( mod, last ) =
+                    Helpers.moduleAccess c.mod t
 
-                _ ->
-                    Debug.crash "Shouldn't ever happen"
+                modulePath =
+                    if mod == c.mod then
+                        c.importedTypes
+                            |> Dict.get last
+                            |> Maybe.map (\a -> a ++ ".")
+                            |> Maybe.withDefault ""
+                    else
+                        mod ++ "."
+            in
+                modulePath ++ elixirType flatten c last args
 
         TypeRecord fields ->
             "%{"

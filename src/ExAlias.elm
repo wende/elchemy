@@ -147,15 +147,8 @@ replaceTypeAliases c t =
                 |> Maybe.withDefault default
 
         typeConstructorReplace default fullType args =
-            case lastAndRest fullType of
-                ( Just typeName, [] ) ->
-                    mapOrFunUpdate c.mod default typeName args
-
-                ( Just typeName, modPath ) ->
-                    mapOrFunUpdate (Helpers.modulePath modPath) default typeName args
-
-                ( Nothing, _ ) ->
-                    Debug.crash "Unparsable type"
+            Helpers.moduleAccess c.mod fullType
+                |> \( mod, typeName ) -> mapOrFunUpdate mod default typeName args
 
         replaceAlias t =
             case t of
