@@ -363,6 +363,22 @@ a : MyType
 a = TypeB
     """
                     |> hasFull "fn x1 -> {:type_b, x1} end"
+        , test "Named type from another aliased module" <|
+            \() ->
+                """
+>>>> Foo.elm
+module Foo exposing (Baz)
+type alias Baz = {a: Int, b: Int}
+
+>>>> Bar.elm
+module Bar exposing (..)
+
+import Foo
+
+a : Foo.Baz
+a = Foo.Baz 10 20
+            """
+                    |> hasFull "%{a: 10, b: 20}"
         , test "Imported specific type from another file" <|
             \() ->
                 """

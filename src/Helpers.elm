@@ -113,6 +113,26 @@ lastAndRest list =
         |> Tuple.mapSecond List.reverse
 
 
+moduleAccess : String -> List String -> ( String, String )
+moduleAccess defaultModule stringList =
+    stringList
+        |> List.reverse
+        |> uncons
+        |> Tuple.mapSecond (List.reverse >> listNonEmptyOr (String.join ".") defaultModule)
+        |> Tuple.mapFirst (Maybe.withDefault "")
+        |> (\( a, b ) -> ( b, a ))
+
+
+listNonEmptyOr : (List a -> b) -> b -> List a -> b
+listNonEmptyOr f b aList =
+    case aList of
+        [] ->
+            b
+
+        list ->
+            f list
+
+
 unquoteSplicing : String -> String
 unquoteSplicing =
     Regex.replace All (regex "(^\\{|\\}$)") (\_ -> "")
