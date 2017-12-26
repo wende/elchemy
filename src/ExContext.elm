@@ -112,6 +112,7 @@ type alias Context =
     , lastDoc : Maybe String
     , modules : Dict String Module
     , inTypeDefiniton : Bool
+    , inCaseOf : Bool
     , importedTypes : Dict String String
     }
 
@@ -247,6 +248,7 @@ empty name exports =
     , lastDoc = Nothing
     , modules = Dict.singleton name (Module Dict.empty Dict.empty Dict.empty exports)
     , inTypeDefiniton = False
+    , inCaseOf = False
     , importedTypes =
         Dict.fromList
             [ ( "Order", "Elchemy.XBasics" )

@@ -536,12 +536,15 @@ isTuple a =
 -}
 caseE : Context -> Expression -> List ( Expression, Expression ) -> String
 caseE c var body =
-    "case "
-        ++ elixirE c var
-        ++ " do"
-        ++ (String.join "" (List.map (c |> rememberVariables [ var ] |> caseBranch) body))
-        ++ ind (c.indent)
-        ++ "end"
+    if c.inCaseOf then
+        Debug.crash "Because of the known bug in elm-ast parser, you can't yet use nested case..of. Sorry"
+    else
+        "case "
+            ++ elixirE c var
+            ++ " do"
+            ++ (String.join "" (List.map ({ c | inCaseOf = True } |> rememberVariables [ var ] |> caseBranch) body))
+            ++ ind (c.indent)
+            ++ "end"
 
 
 {-| Create a single branch of case statement by giving left and right side of the arrow
