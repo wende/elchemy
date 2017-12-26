@@ -24,6 +24,14 @@ compile-watch:
 test:
 	./node_modules/.bin/elm-test
 
+test-all:
+	make test
+	make test-std
+	make compile-elixir # Change to compile-elixir-and-test when let..in fixed completely
+	rm -rf test_project
+	mix new test_project
+	cd test_project && (yes | ../elchemy init) && ../elchemy compile elm lib && cp -r ../elchemy-core/lib lib/elm-deps && mix test
+
 test-std:
 	cd elchemy-core/ && mix test
 

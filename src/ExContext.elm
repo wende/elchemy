@@ -27,6 +27,7 @@ module ExContext
         , listOfImports
         , importBasicsWithoutShadowed
         , putIntoModule
+        , changeCurrentModule
         )
 
 import Set exposing (Set)
@@ -255,6 +256,11 @@ empty name exports =
             , ( "Result", "Elchemy.XResult" )
             ]
     }
+
+
+changeCurrentModule : String -> Context -> Context
+changeCurrentModule mod c =
+    { c | mod = mod }
 
 
 {-| Returns empty module record
