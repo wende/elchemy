@@ -418,16 +418,17 @@ tupleOrFunction c a =
             "{:error, " ++ elixirE c arg ++ "}"
 
         (Variable list) :: rest ->
-            case Helpers.moduleAccess c.mod list of
-                ( mod, last ) ->
-                    aliasFor { c | mod = mod } last rest
-                        |> (Maybe.withDefault <|
-                                "{"
+            Helpers.moduleAccess c.mod list
+                |> (\( mod, last ) ->
+                        aliasFor (ExContext.changeCurrentModule mod c) last rest
+                            |> Maybe.withDefault
+                                ("{"
                                     ++ elixirE c (Variable [ last ])
                                     ++ ", "
                                     ++ (List.map (elixirE c) rest |> String.join ", ")
                                     ++ "}"
-                           )
+                                )
+                   )
 
         other ->
             Debug.crash ("Shouldn't ever work for" ++ toString other)
@@ -524,9 +525,8 @@ isTuple a =
             isCapitilzed name
 
         Variable list ->
-            case Helpers.moduleAccess "" list of
-                ( _, last ) ->
-                    isTuple (Variable [ last ])
+            Helpers.moduleAccess "" list
+                |> (\( _, last ) -> isTuple (Variable [ last ]))
 
         other ->
             False
@@ -536,12 +536,15 @@ isTuple a =
 -}
 caseE : Context -> Expression -> List ( Expression, Expression ) -> String
 caseE c var body =
-    "case "
-        ++ elixirE c var
-        ++ " do"
-        ++ (String.join "" (List.map (c |> rememberVariables [ var ] |> caseBranch) body))
-        ++ ind (c.indent)
-        ++ "end"
+    if c.inCaseOf then
+        Debug.log ("Module " ++ c.mod) "Because of a known bug in elm-ast parser, you can't reliably use nested case..of yet. Sorry"
+    else
+        "case "
+            ++ elixirE c var
+            ++ " do"
+            ++ (String.join "" (List.map ({ c | inCaseOf = True } |> rememberVariables [ var ] |> caseBranch) body))
+            ++ ind (c.indent)
+            ++ "end"
 
 
 {-| Create a single branch of case statement by giving left and right side of the arrow
@@ -554,20 +557,24 @@ caseBranch c ( left, right ) =
         ++ (elixirE (c |> indent |> indent |> rememberVariables [ left ]) right)
 
 
-{-| Used to create a curried function from a lambda expression
+{-| Used to encode a function and create a curried function from a lambda expression
 -}
 lambda : Context -> List Expression -> Expression -> String
 lambda c args body =
-    case args of
-        arg :: rest ->
-            "fn "
-                ++ elixirE (inArgs c) arg
-                ++ " -> "
-                ++ lambda (c |> rememberVariables [ arg ]) rest body
-                ++ " end"
+    let
+        newC =
+            { c | inCaseOf = False }
+    in
+        case args of
+            arg :: rest ->
+                "fn "
+                    ++ elixirE (inArgs c) arg
+                    ++ " -> "
+                    ++ lambda (newC |> rememberVariables [ arg ]) rest body
+                    ++ " end"
 
-        [] ->
-            elixirE c body
+            [] ->
+                elixirE newC body
 
 
 {-| Produce a variable out of it's expression, considering some of the hardcoded values
@@ -601,25 +608,26 @@ elixirVariable c var =
             "uncurried()"
 
         list ->
-            case Helpers.moduleAccess c.mod list of
-                ( mod, name ) ->
-                    if isCapitilzed name then
-                        aliasFor { c | mod = mod } name []
-                            |> Maybe.withDefault (atomize name)
-                    else if String.startsWith "@" name then
-                        String.dropLeft 1 name
-                            |> atomize
-                    else
-                        case operatorType name of
-                            Builtin ->
-                                -- We need a curried version, so kernel won't work
-                                if name == "<|" then
-                                    "flip().((&|>/0).())"
-                                else
-                                    "(&XBasics." ++ translateOperator name ++ "/0).()"
+            Helpers.moduleAccess c.mod list
+                |> (\( mod, name ) ->
+                        if isCapitilzed name then
+                            aliasFor (ExContext.changeCurrentModule mod c) name []
+                                |> Maybe.withDefault (atomize name)
+                        else if String.startsWith "@" name then
+                            String.dropLeft 1 name
+                                |> atomize
+                        else
+                            case operatorType name of
+                                Builtin ->
+                                    -- We need a curried version, so kernel won't work
+                                    if name == "<|" then
+                                        "flip().((&|>/0).())"
+                                    else
+                                        "(&XBasics." ++ translateOperator name ++ "/0).()"
 
-                            Custom ->
-                                translateOperator name
+                                Custom ->
+                                    translateOperator name
 
-                            None ->
-                                name |> toSnakeCase True |> ExVariable.varOrNah c
+                                None ->
+                                    name |> toSnakeCase True |> ExVariable.varOrNah c
+                   )
