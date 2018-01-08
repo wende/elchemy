@@ -21,7 +21,7 @@ Elchemy lets you write simple, fast and quality type safe code while leveraging 
 
 ## [You can read a tutorial on using Elchemy here](https://medium.com/@krzysztof.wende/elmchemy-write-type-safe-elixir-code-with-elms-syntax-part-1-introduction-8968b76d721d)
 ## [You can read Elchemy documentation (WIP) here](https://wende.github.io/elchemy-ivy/)
-## [You can test Elchemy online here](https://wende.github.io/elchemy/)
+## [You can test Elchemy online here (experimental)](http://elchemy-live.herokuapp.com/) or here [Old (stable) version](https://wende.github.io/elchemy/)
 ### CAVEAT: Web version does *not* do any type checking. It only parses syntax. For full type and syntax checking run the CLI version
 ### In case of any questions about the project feel free to submit them in Issues with Q&A label
 
@@ -99,6 +99,7 @@ To launch and test the web demo
 # Contributing Guide
 - Everyone is welcome to contribute
 - Refer to http://bogdanp.github.io/elm-ast/example/ to have better understanding of parsed tokens.
+- Refer to https://wende.github.io/elchemy/stable/ to know the latest development version of the parser
 - For project management we use ZenHub. You can see the Kanban board, card estimates and all the reports by installing a browser extension here: [Opera/Chrome](https://chrome.google.com/webstore/detail/zenhub-for-github/ogcgkffhplmphkaahpmffcafajaocjbd), [Firefox](zenhub.com)
 
 ## Targeted values:
