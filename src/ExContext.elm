@@ -27,6 +27,7 @@ module ExContext
         , listOfImports
         , importBasicsWithoutShadowed
         , putIntoModule
+        , changeCurrentModule
         )
 
 import Set exposing (Set)
@@ -112,6 +113,7 @@ type alias Context =
     , lastDoc : Maybe String
     , modules : Dict String Module
     , inTypeDefiniton : Bool
+    , inCaseOf : Bool
     , importedTypes : Dict String String
     }
 
@@ -247,12 +249,18 @@ empty name exports =
     , lastDoc = Nothing
     , modules = Dict.singleton name (Module Dict.empty Dict.empty Dict.empty exports)
     , inTypeDefiniton = False
+    , inCaseOf = False
     , importedTypes =
         Dict.fromList
             [ ( "Order", "Elchemy.XBasics" )
             , ( "Result", "Elchemy.XResult" )
             ]
     }
+
+
+changeCurrentModule : String -> Context -> Context
+changeCurrentModule mod c =
+    { c | mod = mod }
 
 
 {-| Returns empty module record

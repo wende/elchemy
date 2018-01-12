@@ -48,10 +48,7 @@ install:
   - make compile-std
 
 script:
-  - make test
-  - make test-std
-  - make compile-elixir # Change to compile-elixir-and-test when let..in fixed completely
-  - mix new test_project && cd test_project && (yes | ../elchemy init) && ../elchemy compile elm lib && cp -r ../elchemy-core/lib lib/elm-deps && mix test
-
+  - make test-all
+  
 notifications:
   email: false
