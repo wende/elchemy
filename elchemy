@@ -67,6 +67,7 @@ case "$1" in
         for f in `{ find -L elm-stuff/packages -name "*.ex*" | grep -v "\.elchemy\.ex" ;}`
         do
           echo "FOUND $f"
+          file="${file/\/elm\//\/lib\//}"
           file=$(create_file $f)
           echo "TO $file"
           cp $f $file
