@@ -30,6 +30,9 @@ case "$1" in
       rm -rf ./elm-deps
       rm -rf ./elm-stuff
       rm -rf ~/.elm-install/github.com/
+      find . | grep "\.elchemy.ex" | xargs rm
+      rm .elchemy_elixir_output
+      rm .elchemy_output
       ;;
     new)
         mix new $2
@@ -67,7 +70,7 @@ case "$1" in
         for f in `{ find -L elm-stuff/packages -name "*.ex*" | grep -v "\.elchemy\.ex" ;}`
         do
           echo "FOUND $f"
-          file="${file/\/elm\//\/lib\//}"
+          file="${file/^elm\//lib\//}"
           file=$(create_file $f)
           echo "TO $file"
           cp $f $file
@@ -99,6 +102,7 @@ case "$1" in
                 current_file="${line/\/\///}"
                 current_file="${current_file/>>>>/}"
                 echo "Linking: $current_file"
+                echo "Replacing $2\/ with $3"
                 current_file="${current_file/$2\//$3/}"
                 current_file="${current_file%%.elm}.elchemy.ex"
                 current_file=$(echo ${current_file} | perl -pe 's/([a-z0-9])([A-Z])/$1_\L$2/g')
@@ -110,7 +114,8 @@ case "$1" in
                 fi
             fi
         done < .elchemy_elixir_output
-
+        rm .elchemy_elixir_output
+        rm .elchemy_output
         ;;
     *)
         echo $"Usage: $0 compile [input_dir] [output_dir] [--unsafe]"

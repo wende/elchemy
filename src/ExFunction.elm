@@ -35,7 +35,7 @@ genFunctionDefinition :
 genFunctionDefinition c elixirE name args body =
     let
         typeDef =
-            c.modules
+            c.commons.modules
                 |> Dict.get c.mod
                 |> Maybe.andThen (.definitions >> Dict.get name)
 
@@ -66,7 +66,7 @@ genOverloadedFunctionDefinition :
 genOverloadedFunctionDefinition c elixirE name args body expressions =
     let
         typeDef =
-            c.modules
+            c.commons.modules
                 |> Dict.get c.mod
                 |> Maybe.andThen (.definitions >> Dict.get name)
 

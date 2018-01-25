@@ -52,7 +52,14 @@ getName file =
 {-| Transforms a code in Elm to code in Elixir
 -}
 tree : String -> String
-tree m =
+tree =
+    treeAndCommons >> Tuple.first
+
+
+{-| Transforms a code in Elm to code in Elixir and returns commons
+-}
+treeAndCommons : String -> ( String, ExContext.Commons )
+treeAndCommons m =
     case String.split (">>" ++ ">>") m of
         [ single ] ->
             single
@@ -64,7 +71,7 @@ tree m =
                                 Debug.crash "Failed getting context"
 
                             Just c ->
-                                getCode c a
+                                ( getCode c a, c.commons )
                    )
 
         multiple ->
@@ -103,14 +110,15 @@ tree m =
                                         Just ( name, c, ast )
                             )
 
-                commonModules =
+                commons =
                     wContexts
-                        |> List.map (\( name, ctx, ast ) -> ctx.modules)
+                        |> List.map (\( name, ctx, ast ) -> ctx.commons)
                         |> getCommonImports
+                        |> (\modules -> { modules = modules })
 
                 wTrueContexts =
                     wContexts
-                        |> List.map (\( name, c, ast ) -> ( name, { c | modules = commonModules }, ast ))
+                        |> List.map (\( name, c, ast ) -> ( name, { c | commons = commons }, ast ))
 
                 compileWithIndex ( i, ( name, c, ast ) ) =
                     let
@@ -122,21 +130,23 @@ tree m =
                                     ++ toString count
                                     ++ " # "
                     in
+                        -- "Used to avoid quadruple > becuase it's a meta string"
                         ">>" ++ ">>" ++ name ++ "\n" ++ getCode c ast
             in
                 wTrueContexts
                     |> List.indexedMap (,)
                     |> List.map compileWithIndex
                     |> String.join "\n"
+                    |> flip (,) commons
 
 
-getCommonImports : List (Dict String v) -> Dict String v
-getCommonImports a =
+getCommonImports : List ExContext.Commons -> Dict String ExContext.Module
+getCommonImports commons =
     let
         merge aliases acc =
             Dict.merge Dict.insert typeAliasDuplicate Dict.insert acc aliases Dict.empty
     in
-        List.foldl merge Dict.empty a
+        List.foldl (.modules >> merge) Dict.empty commons
 
 
 typeAliasDuplicate : comparable -> a -> a -> Dict.Dict comparable a -> Dict.Dict comparable a

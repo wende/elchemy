@@ -28,7 +28,7 @@ generateFfi :
 generateFfi c elixirE name argTypes e =
     let
         typeDef =
-            c.modules
+            c.commons.modules
                 |> Dict.get c.mod
                 |> Maybe.andThen (.definitions >> Dict.get name)
 

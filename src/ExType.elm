@@ -13,6 +13,7 @@ import Helpers
         , ind
         , atomize
         )
+import ExAlias
 
 
 {-| Enocde any elm type
@@ -131,7 +132,7 @@ typeRecordFields c flatten t =
                 let
                     inherited =
                         ExContext.getAlias c.mod name c
-                            |> Maybe.map (\{ getTypeBody } -> getTypeBody args)
+                            |> Maybe.map (\{ typeBody } -> ExAlias.resolveTypeBody typeBody)
                             |> Maybe.map (typeRecordFields c flatten)
                 in
                     List.map keyValuePair fields
@@ -235,7 +236,7 @@ getExportedTypeNames c mod subset =
             [ name ]
 
         AllExport ->
-            c.modules
+            c.commons.modules
                 |> Dict.get mod
                 |> Maybe.map (\mod -> (mod.aliases |> Dict.keys) ++ (mod.types |> Dict.keys))
                 |> Maybe.withDefault []
@@ -297,7 +298,7 @@ uniontype c t =
 {-| Change a constructor of a type alias into an expression after resolving it from contextual alias
 -}
 typeAliasConstructor : List Expression -> ExContext.Alias -> Maybe Expression
-typeAliasConstructor args ({ parentModule, aliasType, arity, body, getTypeBody } as ali) =
+typeAliasConstructor args ({ parentModule, aliasType, arity, body, typeBody } as ali) =
     case ( aliasType, body ) of
         ( ExContext.Type, _ ) ->
             Nothing
@@ -325,7 +326,7 @@ typeAliasConstructor args ({ parentModule, aliasType, arity, body, getTypeBody }
 
         -- Error in AST. Single TypeTuple are just paren app
         ( _, TypeTuple [ app ] ) ->
-            typeAliasConstructor args { ali | getTypeBody = (\_ -> app) }
+            typeAliasConstructor args { ali | typeBody = app }
 
         ( _, TypeTuple kvs ) ->
             let
@@ -350,16 +351,16 @@ aliasOr : Context -> String -> List Type -> String -> String
 aliasOr c name args default =
     ExContext.getAlias c.mod name c
         |> (Maybe.map <|
-                \{ parentModule, getTypeBody, aliasType } ->
+                \{ parentModule, typeBody, aliasType } ->
                     if parentModule == c.mod then
-                        elixirTNoFlat c (getTypeBody args)
+                        elixirTNoFlat c typeBody
                     else
                         case aliasType of
                             ExContext.Type ->
-                                parentModule ++ "." ++ elixirTNoFlat c (getTypeBody args)
+                                parentModule ++ "." ++ elixirTNoFlat c typeBody
 
                             ExContext.TypeAlias ->
-                                getTypeBody args
+                                typeBody
                                     |> elixirTNoFlat { c | mod = parentModule }
            )
         |> Maybe.withDefault default
