@@ -460,6 +460,21 @@ applicationToList application =
             [ other ]
 
 
+{-| Change list of expressions into an application
+-}
+listToApplication : List Expression -> Expression
+listToApplication list =
+    case list of
+        [] ->
+            Debug.crash "Empty list to expression conversion"
+
+        [ one ] ->
+            one
+
+        left :: rest ->
+            Application left (listToApplication rest)
+
+
 {-| Change type application into a list of expressions
 -}
 typeApplicationToList : Type -> List Type
