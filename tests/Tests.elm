@@ -569,6 +569,28 @@ letIns =
         ]
 
 
+accessMacros : Test
+accessMacros =
+    describe "Access macros compile properly"
+        [ test "Update"
+            (\() ->
+                "test = updateIn .a (\\a -> a + 1)" |> has "update_in_([:a]).(fn a -> (a + 1) end)"
+            )
+        , test "Update5"
+            (\() ->
+                "test = updateIn5 .a .b .c .d .e (\\a -> a + 1) v" |> has "update_in_([:a, :b, :c, :d, :e]).(fn a -> (a + 1) end).(v())"
+            )
+        , test "Get"
+            (\() ->
+                "test = getIn3 .something .something .darkSide True v" |> has "get_in_([:something, :something, :dark_side]).(:true).(v())"
+            )
+        , test "Put"
+            (\() ->
+                "test = putIn4 .a .b .c .d 10 v" |> has "put_in_([:a, :b, :c, :d]).(10).(v())"
+            )
+        ]
+
+
 all : Test
 all =
     describe "All"
@@ -586,4 +608,5 @@ all =
         , doctests
         , fileImports
         , letIns
+        , accessMacros
         ]
