@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-version="0.5.5"
+version="0.5.6"
 set -e
 
 function create_file {
@@ -113,7 +113,27 @@ case "$1" in
 
         ;;
     *)
-        echo $"Usage: $0 compile [input_dir] [output_dir] [--unsafe]"
+        echo $"Usage: $0 <COMMAND> [<ARGS>]"
+        cat <<EOF
+
+Available commands include:
+
+    new <PROJECT_NAME>
+        Start a new project
+
+    init
+        Add Elchemy to an existing project
+
+    compile [INPUT_DIR] [OUTPUT_DIR] [--unsafe]
+        Compile Elchemy source code
+
+    clean
+        Remove temporary files
+
+    version
+        Print Elchmey's version number number and exit
+
+EOF
         exit 1
 
 esac
