@@ -2,10 +2,14 @@ module ExContext
     exposing
         ( Alias
         , AliasType(..)
+        , TypeBody(..)
+        , Commons
         , Context
+        , Module
         , Definition
         , Parser
         , empty
+        , emptyCommons
         , addAlias
         , getAlias
         , wrongArityAlias
@@ -43,12 +47,17 @@ type alias Parser =
 
 {-| A structure containing all the essential information about Type Alias
 -}
+type TypeBody
+    = SimpleType Type
+    | ArgumentedType String (List Type) Type
+
+
 type alias Alias =
     { parentModule : String
     , arity : Int
     , aliasType : AliasType
     , body : Type
-    , getTypeBody : List Type -> Type
+    , typeBody : TypeBody
     , types : List String
     }
 
@@ -98,12 +107,18 @@ type alias Module =
     }
 
 
+type alias Commons =
+    { modules : Dict String Module
+    }
+
+
 {-| Context containing all the necessary information about current place in a file
 like what's the name of a module, what aliases, types and variables are currently defined,
 what flags were set for the compiler, what functions were defined and if it is in definition mode.
 -}
 type alias Context =
     { mod : String
+    , commons : Commons
     , exports : ExportSet
     , indent : Int
     , flags : List Flag
@@ -111,7 +126,6 @@ type alias Context =
     , inArgs : Bool
     , hasModuleDoc : Bool
     , lastDoc : Maybe String
-    , modules : Dict String Module
     , inTypeDefiniton : Bool
     , inCaseOf : Bool
     , importedTypes : Dict String String
@@ -156,8 +170,11 @@ putIntoModule mod name getter setter thing c =
                 |> Dict.update name (always <| Just thing)
                 |> setter (maybeMod |> Maybe.withDefault emptyModule)
                 |> Just
+
+        commons =
+            c.commons
     in
-        { c | modules = c.modules |> Dict.update mod updateMod }
+        { c | commons = { commons | modules = commons.modules |> Dict.update mod updateMod } }
 
 
 {-| Adds an alias definition to the context
@@ -195,6 +212,7 @@ getFromContext :
     -> Maybe a
 getFromContext from mod name context =
     context
+        |> .commons
         |> .modules
         |> Dict.get mod
         |> Maybe.map from
@@ -221,7 +239,7 @@ getType =
 -}
 getArity : Context -> String -> String -> Maybe Int
 getArity ctx m fn =
-    ctx.modules
+    ctx.commons.modules
         |> Dict.get m
         |> Maybe.map .definitions
         |> Maybe.andThen (Dict.get fn)
@@ -247,7 +265,7 @@ empty name exports =
     , inArgs = False
     , hasModuleDoc = False
     , lastDoc = Nothing
-    , modules = Dict.singleton name (Module Dict.empty Dict.empty Dict.empty exports)
+    , commons = { modules = Dict.singleton name (Module Dict.empty Dict.empty Dict.empty exports) }
     , inTypeDefiniton = False
     , inCaseOf = False
     , importedTypes =
@@ -255,6 +273,14 @@ empty name exports =
             [ ( "Order", "Elchemy.XBasics" )
             , ( "Result", "Elchemy.XResult" )
             ]
+    }
+
+
+{-| Returns empty commons structure
+-}
+emptyCommons : Commons
+emptyCommons =
+    { modules = Dict.empty
     }
 
 
@@ -352,13 +378,13 @@ mergeVariables left right =
 
 
 {-| Finds all defined functions and all auto imported functions (XBasics) and returns
-the common subset. Return empty list for XBasics
+the commons subset. Return empty list for XBasics
 -}
 getShadowedFunctions : Context -> List String -> List ( String, Definition )
 getShadowedFunctions context list =
     let
         definitions =
-            context.modules
+            context.commons.modules
                 |> Dict.get context.mod
                 |> Maybe.map (.definitions)
                 |> Maybe.withDefault Dict.empty
@@ -426,7 +452,7 @@ mergeTypes : ExportSet -> String -> Context -> Context
 mergeTypes set mod c =
     let
         getAll getter mod =
-            c.modules
+            c.commons.modules
                 |> Dict.get mod
                 |> Maybe.map getter
                 |> Maybe.withDefault (Dict.empty)

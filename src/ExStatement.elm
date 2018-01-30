@@ -177,7 +177,7 @@ elixirS c s =
             let
                 genFfi =
                     ExFfi.generateFfi c ExExpression.elixirE name <|
-                        (c.modules
+                        (c.commons.modules
                             |> Dict.get c.mod
                             |> Maybe.andThen (.definitions >> Dict.get name)
                             |> Maybe.map (.def >> typeApplicationToList)
@@ -197,7 +197,7 @@ elixirS c s =
                             False
 
                 definitionExists =
-                    c.modules
+                    c.commons.modules
                         |> Dict.get c.mod
                         |> Maybe.andThen (.definitions >> Dict.get name)
                         |> (/=) Nothing
@@ -261,7 +261,7 @@ elixirS c s =
                         |> List.foldr (++) []
 
                 excepts =
-                    c.modules
+                    c.commons.modules
                         |> Dict.get c.mod
                         |> Maybe.map (.definitions >> Dict.keys >> duplicates imports)
                         |> Maybe.withDefault []
@@ -311,13 +311,13 @@ elixirS c s =
                     modulePath modPath
 
                 exports =
-                    c.modules
+                    c.commons.modules
                         |> Dict.get mod
                         |> Maybe.map (.definitions >> Dict.keys)
                         |> Maybe.withDefault []
 
                 excepts =
-                    c.modules
+                    c.commons.modules
                         |> Dict.get c.mod
                         |> Maybe.map (.definitions >> Dict.keys >> duplicates exports)
                         |> Maybe.withDefault []
@@ -503,7 +503,7 @@ elixirExportList c list =
                 ""
             else
                 defineFor (toSnakeCase True name) 0
-                    ++ (c.modules
+                    ++ (c.commons.modules
                             |> Dict.get c.mod
                             |> Maybe.map .definitions
                             |> Maybe.andThen (Dict.get name)

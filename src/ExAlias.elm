@@ -1,4 +1,4 @@
-module ExAlias exposing (getAliases, replaceTypeAliases)
+module ExAlias exposing (getAliases, replaceTypeAliases, resolveTypeBody)
 
 import Dict exposing (Dict)
 import Helpers exposing ((=>), lastAndRest)
@@ -7,6 +7,7 @@ import ExContext
     exposing
         ( Context
         , Alias
+        , TypeBody(..)
         , AliasType
         , wrongArityAlias
         )
@@ -34,6 +35,26 @@ registerAlias s c =
             c
 
 
+resolveTypeBody : TypeBody -> List Type -> Type
+resolveTypeBody typeBody givenArgs =
+    case typeBody of
+        SimpleType t ->
+            t
+
+        ArgumentedType name expectedArgs return ->
+            let
+                arity =
+                    List.length givenArgs
+
+                expected =
+                    List.length expectedArgs
+            in
+                if arity == expected then
+                    resolveTypes expectedArgs givenArgs return
+                else
+                    wrongArityAlias expected givenArgs name
+
+
 registerTypeAlias : Context -> Type -> Type -> Context
 registerTypeAlias c tc t =
     case tc of
@@ -43,7 +64,7 @@ registerTypeAlias c tc t =
                     List.length arguments
 
                 typeBody =
-                    replaceAliasArgs name arguments t
+                    ArgumentedType name arguments t
 
                 ali =
                     Alias c.mod arity ExContext.TypeAlias t typeBody []
@@ -62,9 +83,6 @@ registerUnionType c tc types =
                 typeVar =
                     TypeVariable <| "@" ++ name
 
-                typeBody =
-                    always typeVar
-
                 arity =
                     List.length arguments
 
@@ -72,7 +90,7 @@ registerUnionType c tc types =
                     registerTypes types name c
 
                 ali =
-                    Alias c.mod arity ExContext.Type typeVar typeBody names
+                    Alias c.mod arity ExContext.Type typeVar (SimpleType typeVar) names
             in
                 ExContext.addAlias c.mod name ali newC
 
@@ -106,23 +124,6 @@ registerTypes types parentAlias c =
         List.foldl addType ( [], c ) types
 
 
-replaceAliasArgs : String -> List Type -> Type -> (List Type -> Type)
-replaceAliasArgs name expectedArgs return =
-    (\givenArgs ->
-        let
-            arity =
-                List.length givenArgs
-
-            expected =
-                List.length expectedArgs
-        in
-            if arity == expected then
-                resolveTypes expectedArgs givenArgs return
-            else
-                wrongArityAlias expected givenArgs name
-    )
-
-
 {-| Function taking a type and replacing all aliases it points to with their dealiased version
 -}
 replaceTypeAliases : Context -> Type -> Type
@@ -131,7 +132,7 @@ replaceTypeAliases c t =
         mapOrFunUpdate mod default typeName args =
             ExContext.getAlias mod typeName c
                 |> Helpers.filterMaybe (.aliasType >> (==) ExContext.TypeAlias)
-                |> Maybe.map (\{ getTypeBody } -> getTypeBody args)
+                |> Maybe.map (\{ typeBody } -> resolveTypeBody typeBody args)
                 |> Maybe.andThen
                     (\body ->
                         case body of

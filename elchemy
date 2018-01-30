@@ -30,6 +30,8 @@ case "$1" in
       rm -rf ./elm-deps
       rm -rf ./elm-stuff
       rm -rf ~/.elm-install/github.com/
+      find . | grep "\.elchemy.ex" | xargs rm
+      rm -rf .elchemy
       ;;
     new)
         mix new $2
@@ -39,7 +41,6 @@ case "$1" in
     init)
         if [ -a ./mix.exs ]
         then
-
             mix archive.install "https://github.com/wende/elchemy/releases/download/$version/elchemy-$version.ez"
             mkdir -p elm
             cp $SOURCE_DIR/templates/elm-package.json ./
@@ -54,8 +55,10 @@ case "$1" in
         fi
     ;;
     compile)
-        rm -rf ".elchemy"
-        echo "" > .elchemy_output
+        # Create ./.elchemy if doesn't exist
+        mkdir -p ".elchemy"
+        MTIME="$(cat ".elchemy/mtime" || echo "Mon Apr 10 00:00:00 CET 1995")"
+        echo "" > .elchemy/output
         if ! [[ $* == *--unsafe* ]]; then
             if ! hash elm-github-install 2>/dev/null; then
                 echo "No elm-github-install found. Installing..."
@@ -67,32 +70,32 @@ case "$1" in
         for f in `{ find -L elm-stuff/packages -name "*.ex*" | grep -v "\.elchemy\.ex" ;}`
         do
           echo "FOUND $f"
-          file="${file/\/elm\//\/lib\//}"
+          file="${file/^elm\//lib\//}"
           file=$(create_file $f)
           echo "TO $file"
           cp $f $file
         done
         i=0
         # Find all elm files inside packages and compile them
-        for f in `{ find $2 -name "*.elm" | grep -v "elm-stuff" | grep -v "#." ; find -L elm-stuff/packages -name "*.elm" | grep -v "/tests/" | grep -v "/example/" ;}`
+        for f in `{ find $2 -name "*.elm" -newermt "$MTIME" | grep -v "elm-stuff" | grep -v "#." ; find -L elm-stuff/packages -name "*.elm" -newermt "$MTIME" | grep -v "/tests/" | grep -v "/example/" ;}`
         do
             if [[ ${f} == *"elm-lang"* ]] || [[ ${f} == *"Elchemy.elm"* ]]; then
                 continue
             fi
             echo "----------"
             echo "Type Checking $f"
-            echo ">>>>$f" >> .elchemy_output
+            echo ">>>>$f" >> .elchemy/output
             # We don't need to typecheck deps again
             if [[ ${f} != *"elm-stuff"* ]] && ! [[ $* == *--unsafe* ]]; then
-                (echo n | elm-make $f --output .elchemy_output_tmp.js) || { echo 'Type Check failed' ; exit 1; }
-                rm .elchemy_output_tmp.js
+                (echo n | elm-make $f --output .elchemy/output_tmp.js) || { echo 'Type Check failed' ; exit 1; }
+                rm .elchemy/output_tmp.js
             fi
             i=$((i+1))
             echo "#$i"
-            cat $f >> .elchemy_output
+            cat $f >> .elchemy/output
         done
         echo "-- Linking files --"
-        node --max_old_space_size=8192 $SOURCE_DIR/elchemy.js .elchemy_output .elchemy_elixir_output
+        node --max_old_space_size=8192 $SOURCE_DIR/elchemy.js .elchemy/output .elchemy/elixir_output .elchemy/cache.json
         current_file=""
         while IFS= read -r line; do
             if [[ $line =~ ">>>>" ]]; then
@@ -109,8 +112,10 @@ case "$1" in
                     printf '%s\n' "$line" >> "$current_file"
                 fi
             fi
-        done < .elchemy_elixir_output
-
+        done < .elchemy/elixir_output
+        rm .elchemy/elixir_output
+        rm .elchemy/output
+        echo $(date) > .elchemy/mtime
         ;;
     *)
         echo $"Usage: $0 <COMMAND> [<ARGS>]"

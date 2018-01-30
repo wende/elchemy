@@ -12,10 +12,7 @@ release:
 compile:
 	elm-make Main.elm --yes --output compiled.js
 	sed 's/var Elm = {}/&; \
-	var fs = require(\"fs\"); \
-	var a = fs.readFileSync(process.argv[2]).toString(); \
-  var output = _user$$project$$Compiler$$tree(a); \
-	fs.writeFileSync(process.argv[3], output);/' compiled.js > elchemy.js
+	require(".\/elchemy_node.js").execute(_user$$project$$Compiler$$tree, _user$$project$$Compiler$$fullTree, _user$$project$$Compiler$$treeAndCommons)/' compiled.js > elchemy.js
 	rm compiled.js
 
 compile-watch:
@@ -37,7 +34,6 @@ test-std:
 
 compile-std:
 	make compile
-	rm -rf elchemy-core/lib/Elchemy/*
 	cd elchemy-core && ../elchemy compile elm lib
 
 compile-std-watch:
