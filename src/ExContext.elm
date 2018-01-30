@@ -9,6 +9,7 @@ module ExContext
         , Definition
         , Parser
         , empty
+        , emptyCommons
         , addAlias
         , getAlias
         , wrongArityAlias
@@ -272,6 +273,14 @@ empty name exports =
             [ ( "Order", "Elchemy.XBasics" )
             , ( "Result", "Elchemy.XResult" )
             ]
+    }
+
+
+{-| Returns empty commons structure
+-}
+emptyCommons : Commons
+emptyCommons =
+    { modules = Dict.empty
     }
 
 

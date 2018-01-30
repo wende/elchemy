@@ -132,7 +132,7 @@ typeRecordFields c flatten t =
                 let
                     inherited =
                         ExContext.getAlias c.mod name c
-                            |> Maybe.map (\{ typeBody } -> ExAlias.resolveTypeBody typeBody)
+                            |> Maybe.map (\{ typeBody } -> ExAlias.resolveTypeBody typeBody args)
                             |> Maybe.map (typeRecordFields c flatten)
                 in
                     List.map keyValuePair fields
@@ -326,7 +326,7 @@ typeAliasConstructor args ({ parentModule, aliasType, arity, body, typeBody } as
 
         -- Error in AST. Single TypeTuple are just paren app
         ( _, TypeTuple [ app ] ) ->
-            typeAliasConstructor args { ali | typeBody = app }
+            typeAliasConstructor args { ali | typeBody = ExContext.SimpleType app }
 
         ( _, TypeTuple kvs ) ->
             let
@@ -353,14 +353,14 @@ aliasOr c name args default =
         |> (Maybe.map <|
                 \{ parentModule, typeBody, aliasType } ->
                     if parentModule == c.mod then
-                        elixirTNoFlat c typeBody
+                        elixirTNoFlat c (ExAlias.resolveTypeBody typeBody args)
                     else
                         case aliasType of
                             ExContext.Type ->
-                                parentModule ++ "." ++ elixirTNoFlat c typeBody
+                                parentModule ++ "." ++ elixirTNoFlat c (ExAlias.resolveTypeBody typeBody args)
 
                             ExContext.TypeAlias ->
-                                typeBody
+                                (ExAlias.resolveTypeBody typeBody args)
                                     |> elixirTNoFlat { c | mod = parentModule }
            )
         |> Maybe.withDefault default

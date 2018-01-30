@@ -60,6 +60,13 @@ tree =
 -}
 treeAndCommons : String -> ( String, ExContext.Commons )
 treeAndCommons m =
+    fullTree ExContext.emptyCommons m
+
+
+{-| Transforms a code in Elm with cache from previous run to code in Elixir and cache
+-}
+fullTree : ExContext.Commons -> String -> ( String, ExContext.Commons )
+fullTree cachedCommons m =
     case String.split (">>" ++ ">>") m of
         [ single ] ->
             single
@@ -113,6 +120,7 @@ treeAndCommons m =
                 commons =
                     wContexts
                         |> List.map (\( name, ctx, ast ) -> ctx.commons)
+                        |> (::) cachedCommons
                         |> getCommonImports
                         |> (\modules -> { modules = modules })
 
