@@ -12,7 +12,6 @@ function execute(tree, fullTree, treeAndCommons) {
   if(CACHE_PATH && !cacheExists) {
     var compiledSource = fs.readFileSync(SOURCE_DIR).toString();
     var compiledOutput = treeAndCommons(compiledSource);
-    console.log(compiledOutput)
     var compiledCode = compiledOutput._0
     var compiledCache = JSON.stringify(compiledOutput._1)
     fs.writeFileSync(TARGET_DIR, compiledCode);
