@@ -16,12 +16,13 @@ defmodule Mix.Tasks.Compile.Elchemy do
     end
 
     # Force project to be reloaded and deps compiled after elm-deps created.
-    IO.puts "Recompiling dependencies for elchemy..."
+    IO.puts "-- Recompiling dependencies for elchemy --"
     if project = Mix.Project.pop() do
       %{name: name, file: file} = project
       Mix.Project.push(name, file)
     end
     Mix.Task.run "deps.get"
     Mix.Task.run "deps.compile"
+    IO.puts "-- Elchemy compilation complete --\n"
   end
 end

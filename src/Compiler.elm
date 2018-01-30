@@ -156,23 +156,9 @@ getCommonImports : List ExContext.Commons -> Dict String ExContext.Module
 getCommonImports commons =
     let
         merge aliases acc =
-            Dict.merge Dict.insert typeAliasDuplicate Dict.insert acc aliases Dict.empty
+            Dict.merge Dict.insert (\k v v2 -> Dict.insert k v) Dict.insert acc aliases Dict.empty
     in
         List.foldl (.modules >> merge) Dict.empty commons
-
-
-typeAliasDuplicate : comparable -> a -> a -> Dict.Dict comparable a -> Dict.Dict comparable a
-typeAliasDuplicate k v v2 =
-    if v /= v2 then
-        Debug.crash <|
-            "You can't have two different type aliases for "
-                ++ toString k
-                ++ "\nThese are: "
-                ++ toString v
-                ++ "\nand\n"
-                ++ toString v2
-    else
-        Dict.insert k v
 
 
 getContext : List Statement -> ( Maybe Context, List Statement )
