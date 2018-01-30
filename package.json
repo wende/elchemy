@@ -9,6 +9,7 @@
   "files": [
     "elchemy",
     "elchemy.js",
+    "elchemy_node.js",
     "templates/*"
   ],
   "bin": {
