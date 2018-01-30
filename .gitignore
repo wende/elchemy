@@ -13,3 +13,5 @@ elchemy_ex/lib/*
 elchemy-*.ez
 _build/
 docs/
+example/
+stable/

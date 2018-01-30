@@ -31,6 +31,7 @@ import ExContext
         , mergeVariables
         , areMatchingArity
         )
+import ExSelector
 
 
 {-| Encode any given expression
@@ -322,17 +323,29 @@ isMacro e =
         Application a _ ->
             isMacro a
 
-        Variable [ "tryFfi" ] ->
-            True
-
-        Variable [ "ffi" ] ->
-            True
-
-        Variable [ "lffi" ] ->
-            True
-
-        Variable [ "flambda" ] ->
-            True
+        Variable [ x ] ->
+            List.member x
+                [ "tryFfi"
+                , "ffi"
+                , "lffi"
+                , "flambda"
+                , "updateIn"
+                , "updateIn2"
+                , "updateIn3"
+                , "updateIn4"
+                , "updateIn5"
+                , "putIn"
+                , "putIn"
+                , "putIn2"
+                , "putIn3"
+                , "putIn4"
+                , "putIn5"
+                , "getIn"
+                , "getIn2"
+                , "getIn3"
+                , "getIn4"
+                , "getIn5"
+                ]
 
         other ->
             False
@@ -344,9 +357,7 @@ flattenTypeApplication : Expression -> List Expression
 flattenTypeApplication application =
     case application of
         Application left right ->
-            if isMacro application then
-                (flattenTypeApplication left) ++ [ right ]
-            else if isTuple application then
+            if isMacro application || isTuple application then
                 (flattenTypeApplication left) ++ [ right ]
             else
                 [ application ]
@@ -388,14 +399,53 @@ functionApplication c left right =
                 elixirE c left ++ ".(" ++ elixirE c right ++ ")"
 
 
+encodeAccessMacroAndRest : Context -> ( ExSelector.AccessMacro, List Expression ) -> String
+encodeAccessMacroAndRest c ( ExSelector.AccessMacro t arity selectors, rest ) =
+    let
+        encodeSelector (ExSelector.Access s) =
+            ":" ++ toSnakeCase True s
+
+        encodedSelectors =
+            selectors |> List.map encodeSelector |> String.join ", "
+
+        encodedType =
+            case t of
+                ExSelector.Update ->
+                    "update_in_"
+
+                ExSelector.Get ->
+                    "get_in_"
+
+                ExSelector.Put ->
+                    "put_in_"
+
+        encodedRest =
+            case rest of
+                [] ->
+                    ""
+
+                list ->
+                    ".("
+                        ++ (List.map (elixirE c) rest |> String.join ").(")
+                        ++ ")"
+    in
+        encodedType
+            ++ "(["
+            ++ encodedSelectors
+            ++ "])"
+            ++ encodedRest
+
+
 {-| Returns code representation of tuple or function depending on definition
 -}
 tupleOrFunction : Context -> Expression -> String
 tupleOrFunction c a =
     case flattenTypeApplication a of
+        -- Not a macro
         (Application left right) :: [] ->
             functionApplication c left right
 
+        -- A macro
         (Variable [ "ffi" ]) :: rest ->
             Debug.crash "Ffi inside function body is deprecated since Elchemy 0.3"
 
@@ -417,18 +467,23 @@ tupleOrFunction c a =
         [ Variable [ "Err" ], arg ] ->
             "{:error, " ++ elixirE c arg ++ "}"
 
-        (Variable list) :: rest ->
-            Helpers.moduleAccess c.mod list
-                |> (\( mod, last ) ->
-                        aliasFor (ExContext.changeCurrentModule mod c) last rest
-                            |> Maybe.withDefault
-                                ("{"
-                                    ++ elixirE c (Variable [ last ])
-                                    ++ ", "
-                                    ++ (List.map (elixirE c) rest |> String.join ", ")
-                                    ++ "}"
-                                )
-                   )
+        -- Regular non-macro application
+        ((Variable list) as call) :: rest ->
+            ExSelector.maybeAccessMacro call rest
+                |> Maybe.map (encodeAccessMacroAndRest c)
+                |> Maybe.withDefault
+                    (Helpers.moduleAccess c.mod list
+                        |> (\( mod, last ) ->
+                                aliasFor (ExContext.changeCurrentModule mod c) last rest
+                                    |> Maybe.withDefault
+                                        ("{"
+                                            ++ elixirE c (Variable [ last ])
+                                            ++ ", "
+                                            ++ (List.map (elixirE c) rest |> String.join ", ")
+                                            ++ "}"
+                                        )
+                           )
+                    )
 
         other ->
             Debug.crash ("Shouldn't ever work for" ++ toString other)
@@ -537,7 +592,7 @@ isTuple a =
 caseE : Context -> Expression -> List ( Expression, Expression ) -> String
 caseE c var body =
     if c.inCaseOf then
-        Debug.log ("Module " ++ c.mod) "Because of a known bug in elm-ast parser, you can't reliably use nested case..of yet. Sorry"
+        Debug.crash <| "Module " ++ c.mod ++ "\nBecause of a known bug in elm-ast parser, you can't reliably use nested case..of yet. Sorry"
     else
         "case "
             ++ elixirE c var
