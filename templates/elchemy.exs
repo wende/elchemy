@@ -41,27 +41,28 @@ defmodule ElchemyInit do
     |> Enum.map(&String.capitalize/1)
     |> Enum.join("")
 
-    content = """
-defmodule #{module_name}.Mixfile do
-  use Mix.Project
+    content =
+      """
+      defmodule #{module_name}.Mixfile do
+        use Mix.Project
 
-  def project do
-    [app: #{inspect app_name},
-     version: "#{version}",
-     elixir: "~> 1.4",
-     build_embedded: Mix.env == :prod,
-     start_permanent: Mix.env == :prod,
-     elixirc_paths: ["src"],
-     deps: deps()]
-  end
+        def project do
+          [app: #{inspect app_name},
+           version: "#{version}",
+           elixir: "~> 1.4",
+           build_embedded: Mix.env == :prod,
+           start_permanent: Mix.env == :prod,
+           elixirc_paths: ["src"],
+           deps: deps()]
+        end
 
-  def application do
-    [extra_applications: [:logger]]
-  end
+        def application do
+          [extra_applications: [:logger]]
+        end
 
-  defp deps, do: [{:elchemy, override: false}]
-end
-    """
+        defp deps, do: [{:elchemy, override: false}]
+      end
+      """
     IO.puts "Creating mix file #{mix_file}"
 
     File.write!(mix_file, content)
