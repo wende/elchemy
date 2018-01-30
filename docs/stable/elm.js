@@ -19744,8 +19744,8 @@ var _user$project$Compiler$parse = F2(
 					return _elm_lang$core$Native_Utils.crash(
 						'Compiler',
 						{
-							start: {line: 230, column: 17},
-							end: {line: 230, column: 28}
+							start: {line: 216, column: 17},
+							end: {line: 216, column: 28}
 						})(
 						A2(
 							_elm_lang$core$Basics_ops['++'],
@@ -19786,8 +19786,8 @@ var _user$project$Compiler$parse = F2(
 		return _elm_lang$core$Native_Utils.crashCase(
 			'Compiler',
 			{
-				start: {line: 221, column: 5},
-				end: {line: 246, column: 39}
+				start: {line: 207, column: 5},
+				end: {line: 232, column: 39}
 			},
 			_p1)(
 			_elm_lang$core$Basics$toString(_p1));
@@ -19823,35 +19823,20 @@ var _user$project$Compiler$getContext = function (statements) {
 		};
 	}
 };
-var _user$project$Compiler$typeAliasDuplicate = F3(
-	function (k, v, v2) {
-		return (!_elm_lang$core$Native_Utils.eq(v, v2)) ? _elm_lang$core$Native_Utils.crash(
-			'Compiler',
-			{
-				start: {line: 167, column: 9},
-				end: {line: 167, column: 20}
-			})(
-			A2(
-				_elm_lang$core$Basics_ops['++'],
-				'You can\'t have two different type aliases for ',
-				A2(
-					_elm_lang$core$Basics_ops['++'],
-					_elm_lang$core$Basics$toString(k),
-					A2(
-						_elm_lang$core$Basics_ops['++'],
-						'\nThese are: ',
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							_elm_lang$core$Basics$toString(v),
-							A2(
-								_elm_lang$core$Basics_ops['++'],
-								'\nand\n',
-								_elm_lang$core$Basics$toString(v2))))))) : A2(_elm_lang$core$Dict$insert, k, v);
-	});
 var _user$project$Compiler$getCommonImports = function (commons) {
 	var merge = F2(
 		function (aliases, acc) {
-			return A6(_elm_lang$core$Dict$merge, _elm_lang$core$Dict$insert, _user$project$Compiler$typeAliasDuplicate, _elm_lang$core$Dict$insert, acc, aliases, _elm_lang$core$Dict$empty);
+			return A6(
+				_elm_lang$core$Dict$merge,
+				_elm_lang$core$Dict$insert,
+				F3(
+					function (k, v, v2) {
+						return A2(_elm_lang$core$Dict$insert, k, v);
+					}),
+				_elm_lang$core$Dict$insert,
+				acc,
+				aliases,
+				_elm_lang$core$Dict$empty);
 		});
 	return A3(
 		_elm_lang$core$List$foldl,
@@ -19887,7 +19872,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elchemy', '\n'));
-var _user$project$Compiler$version = '0.6.2';
+var _user$project$Compiler$version = '0.6.3';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		var shadowsBasics = _user$project$ExContext$importBasicsWithoutShadowed(context);
