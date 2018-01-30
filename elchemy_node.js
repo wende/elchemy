@@ -27,7 +27,7 @@ function execute(tree, fullTree, treeAndCommons) {
   else {
     var cachedCommons = JSON.parse(fs.readFileSync(CACHE_PATH).toString())
     var compiledSource = fs.readFileSync(SOURCE_DIR).toString();
-    var compiledOutput = fullTree(compiledSource, cachedCommons);
+    var compiledOutput = fullTree(cachedCommons)(compiledSource);
     var compiledCode = compiledOutput._0
     fs.writeFileSync(TARGET_DIR, compiledCode);
   }

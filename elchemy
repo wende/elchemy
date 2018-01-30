@@ -57,13 +57,14 @@ case "$1" in
     compile)
         # Create ./.elchemy if doesn't exist
         mkdir -p ".elchemy"
-        MTIME="$(cat ".elchemy/mtime" || echo "Mon Apr 10 00:00:00 CET 1995")"
+        MTIME="$(cat ".elchemy/mtime" 2> /dev/null || echo "Mon Apr 10 00:00:00 CET 1995")"
         echo "" > .elchemy/output
-        if ! [[ $* == *--unsafe* ]]; then
+        if [ ! -d ./elm-deps ] || [[ !  $(find ./elm-package.json -newermt "$MTIME") == "" ]]; then
             if ! hash elm-github-install 2>/dev/null; then
                 echo "No elm-github-install found. Installing..."
                 npm i -g elm-github-install@1.6.1
             fi
+            echo "-- Downloading Elchemy deps --"
             elm-install
         fi
         # Copy all elixir files that are inside packages
@@ -113,8 +114,8 @@ case "$1" in
                 fi
             fi
         done < .elchemy/elixir_output
-        rm .elchemy/elixir_output
-        rm .elchemy/output
+        #rm .elchemy/elixir_output
+        #rm .elchemy/output
         echo $(date) > .elchemy/mtime
         ;;
     *)
