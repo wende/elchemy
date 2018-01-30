@@ -4,6 +4,11 @@
 version="0.6.2"
 set -e
 
+VERBOSE=false
+if [[ $* == *--verbose* ]]; then
+  VERBOSE=true
+fi
+
 function create_file {
     local file=$1
     if [[ ${file} == *"elm-stuff/packages"* ]]; then
@@ -68,15 +73,21 @@ case "$1" in
             elm-install
         fi
         # Copy all elixir files that are inside packages
+        echo "-- Copying Elixir native files --"
         for f in `{ find -L elm-stuff/packages -name "*.ex*" | grep -v "\.elchemy\.ex" ;}`
         do
-          echo "FOUND $f"
+          if [ $VERBOSE = true ]; then
+            echo "FOUND $f"
+          fi
           file="${file/^elm\//lib\//}"
           file=$(create_file $f)
-          echo "TO $file"
+          if [ $VERBOSE = true ]; then
+             echo "TO $file"
+           fi
           cp $f $file
         done
         i=0
+        echo "-- Compiling Elm files --"
         # Find all elm files inside packages and compile them
         for f in `{ find $2 -name "*.elm" -newermt "$MTIME" | grep -v "elm-stuff" | grep -v "#." ; find -L elm-stuff/packages -name "*.elm" -newermt "$MTIME" | grep -v "/tests/" | grep -v "/example/" ;}`
         do
