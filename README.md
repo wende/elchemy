@@ -31,26 +31,15 @@ Elchemy lets you write simple, fast and quality type safe code while leveraging 
 - **Nearly No runtime errors** - Elchemy's type system **eliminates almost all runtime errors**. With a shrinking set of edge cases, your entire app will be as safe as the parts written in Elixir are.
 - **Beatiful and fully readable output** - All of the code produced by Elchemy can be easily read and analyzed without taking a single look at the source code
 
-# Patch Notes:
-### v0.5
-  - Numerous output code quality and performance improvements
-  - Functions can be shadowed (Elm behaviour over Elixir's behaviour)
-  - Support for Elixir 1.5
-  - Elchemy can compile itself without any parsing or compiling errors. (2 out of 3 steps complete)
-### v0.4 
-  - New name `Elchemy` (without 'm')
-    - New repository and std lib name 
-    - New compile tools commands (All commands can be still called with an old name and it will be supported for next couple of versions)
-### v0.3
-  - Native modules
-  - Imported types and type aliases
-  - Type polimorhpism 
-  - Advanced syntax and bugfixes
+# Path notes.
+Since version 0.4 all of the patch notes are included in the description of [a release](https://github.com/wende/elchemy/releases):
+
 
 
 # Usage
 
 ### Prerequisites
+- [elixir@1.4.0-1.6.x](https://elixir-lang.org/install.html)
 - [node@5+](https://nodejs.org/en/)
 - [elm-lang@0.18](https://guide.elm-lang.org/install.html)
 - [elm-github-install@0.1.2](https://github.com/gdotdesign/elm-github-install) - Compiler will install it automatically for you, if you don't have it yet
