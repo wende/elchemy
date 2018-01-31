@@ -18801,8 +18801,8 @@ var _user$project$ExStatement$exportSetToList = function (exp) {
 			return _elm_lang$core$Native_Utils.crashCase(
 				'ExStatement',
 				{
-					start: {line: 476, column: 5},
-					end: {line: 484, column: 62}
+					start: {line: 482, column: 5},
+					end: {line: 490, column: 62}
 				},
 				_p2)(
 				A2(
@@ -18837,8 +18837,8 @@ var _user$project$ExStatement$verifyFlag = function (flag) {
 	return _elm_lang$core$Native_Utils.crashCase(
 		'ExStatement',
 		{
-			start: {line: 363, column: 5},
-			end: {line: 371, column: 62}
+			start: {line: 369, column: 5},
+			end: {line: 377, column: 62}
 		},
 		_p4)(
 		A2(
@@ -19295,9 +19295,9 @@ var _user$project$ExStatement$elixirS = F2(
 								}()));
 					}
 				case 'FunctionDeclaration':
-					var _p35 = _p18._0;
-					var _p34 = _p18._2;
-					var _p33 = _p18._1;
+					var _p36 = _p18._0;
+					var _p35 = _p18._2;
+					var _p34 = _p18._1;
 					var definitionExists = A2(
 						F2(
 							function (x, y) {
@@ -19309,14 +19309,14 @@ var _user$project$ExStatement$elixirS = F2(
 							function (_p26) {
 								return A2(
 									_elm_lang$core$Dict$get,
-									_p35,
+									_p36,
 									function (_) {
 										return _.definitions;
 									}(_p26));
 							},
 							A2(_elm_lang$core$Dict$get, c.mod, c.commons.modules)));
 					var preCurry = ((!definitionExists) && (!_elm_lang$core$Native_Utils.eq(
-						_p33,
+						_p34,
 						{ctor: '[]'}))) ? A2(
 						_elm_lang$core$Basics_ops['++'],
 						_user$project$Helpers$ind(c.indent),
@@ -19325,12 +19325,12 @@ var _user$project$ExStatement$elixirS = F2(
 							'curryp ',
 							A2(
 								_elm_lang$core$Basics_ops['++'],
-								A2(_user$project$Helpers$toSnakeCase, true, _p35),
+								A2(_user$project$Helpers$toSnakeCase, true, _p36),
 								A2(
 									_elm_lang$core$Basics_ops['++'],
 									'/',
 									_elm_lang$core$Basics$toString(
-										_elm_lang$core$List$length(_p33)))))) : '';
+										_elm_lang$core$List$length(_p34)))))) : '';
 					var isTuple = function (t) {
 						var _p27 = t;
 						if (_p27.ctor === 'Tuple') {
@@ -19339,12 +19339,12 @@ var _user$project$ExStatement$elixirS = F2(
 							return false;
 						}
 					};
-					var isPrivate = A2(_user$project$ExContext$isPrivate, c, _p35);
+					var isPrivate = A2(_user$project$ExContext$isPrivate, c, _p36);
 					var genFfi = A4(
 						_user$project$ExFfi$generateFfi,
 						c,
 						_user$project$ExExpression$elixirE,
-						_p35,
+						_p36,
 						A2(
 							_elm_lang$core$List$map,
 							_user$project$Helpers$typeApplicationToList,
@@ -19364,7 +19364,7 @@ var _user$project$ExStatement$elixirS = F2(
 										function (_p29) {
 											return A2(
 												_elm_lang$core$Dict$get,
-												_p35,
+												_p36,
 												function (_) {
 													return _.definitions;
 												}(_p29));
@@ -19384,7 +19384,7 @@ var _user$project$ExStatement$elixirS = F2(
 								'To be able to export it, you need to provide function type for `',
 								A2(
 									_elm_lang$core$Basics_ops['++'],
-									_p35,
+									_p36,
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										'` function in module ',
@@ -19392,8 +19392,8 @@ var _user$project$ExStatement$elixirS = F2(
 							_elm_lang$core$Basics_ops['++'],
 							preCurry,
 							function () {
-								var _p30 = _p34;
-								_v12_3:
+								var _p30 = _p35;
+								_v12_4:
 								do {
 									switch (_p30.ctor) {
 										case 'Application':
@@ -19404,29 +19404,43 @@ var _user$project$ExStatement$elixirS = F2(
 													case 'tryFfi':
 														return genFfi(_p30);
 													default:
-														break _v12_3;
+														break _v12_4;
 												}
 											} else {
-												break _v12_3;
+												break _v12_4;
 											}
 										case 'Case':
-											if (_p30._0.ctor === 'Tuple') {
-												var _p32 = _p30._1;
-												return (_elm_lang$core$Native_Utils.eq(_p30._0._0, _p33) && A2(
-													_elm_lang$core$List$all,
-													function (_p31) {
-														return isTuple(
-															_elm_lang$core$Tuple$first(_p31));
-													},
-													_p32)) ? A6(_user$project$ExFunction$genOverloadedFunctionDefinition, c, _user$project$ExExpression$elixirE, _p35, _p33, _p34, _p32) : A5(_user$project$ExFunction$genFunctionDefinition, c, _user$project$ExExpression$elixirE, _p35, _p33, _p34);
-											} else {
-												break _v12_3;
+											switch (_p30._0.ctor) {
+												case 'Variable':
+													if ((_p30._0._0.ctor === '::') && (_p30._0._0._1.ctor === '[]')) {
+														var _p31 = _p30._0._0._0;
+														return _elm_lang$core$Native_Utils.eq(
+															{
+																ctor: '::',
+																_0: _p30._0,
+																_1: {ctor: '[]'}
+															},
+															_p34) ? A6(_user$project$ExFunction$genOverloadedFunctionDefinition, c, _user$project$ExExpression$elixirE, _p31, _p34, _p35, _p30._1) : A5(_user$project$ExFunction$genFunctionDefinition, c, _user$project$ExExpression$elixirE, _p31, _p34, _p35);
+													} else {
+														break _v12_4;
+													}
+												case 'Tuple':
+													var _p33 = _p30._1;
+													return (_elm_lang$core$Native_Utils.eq(_p30._0._0, _p34) && A2(
+														_elm_lang$core$List$all,
+														function (_p32) {
+															return isTuple(
+																_elm_lang$core$Tuple$first(_p32));
+														},
+														_p33)) ? A6(_user$project$ExFunction$genOverloadedFunctionDefinition, c, _user$project$ExExpression$elixirE, _p36, _p34, _p35, _p33) : A5(_user$project$ExFunction$genFunctionDefinition, c, _user$project$ExExpression$elixirE, _p36, _p34, _p35);
+												default:
+													break _v12_4;
 											}
 										default:
-											break _v12_3;
+											break _v12_4;
 									}
 								} while(false);
-								return A5(_user$project$ExFunction$genFunctionDefinition, c, _user$project$ExExpression$elixirE, _p35, _p33, _p34);
+								return A5(_user$project$ExFunction$genFunctionDefinition, c, _user$project$ExExpression$elixirE, _p36, _p34, _p35);
 							}()));
 				case 'Comment':
 					return A2(_user$project$ExStatement$elixirComment, c, _p18._0);
@@ -19464,8 +19478,8 @@ var _user$project$ExStatement$elixirS = F2(
 						} else {
 							switch (_p18._2._0.ctor) {
 								case 'SubsetExport':
-									var _p38 = _p18._2._0;
-									var _p37 = _p18._0;
+									var _p39 = _p18._2._0;
+									var _p38 = _p18._0;
 									var imports = A3(
 										_elm_lang$core$List$foldr,
 										F2(
@@ -19479,14 +19493,14 @@ var _user$project$ExStatement$elixirS = F2(
 										{ctor: '[]'},
 										A2(
 											_elm_lang$core$Maybe$map,
-											function (_p36) {
+											function (_p37) {
 												return A2(
 													_user$project$ExStatement$duplicates,
 													imports,
 													_elm_lang$core$Dict$keys(
 														function (_) {
 															return _.definitions;
-														}(_p36)));
+														}(_p37)));
 											},
 											A2(_elm_lang$core$Dict$get, c.mod, c.commons.modules)));
 									var except = _elm_lang$core$Native_Utils.eq(
@@ -19526,14 +19540,14 @@ var _user$project$ExStatement$elixirS = F2(
 										{ctor: '[]'}) && _elm_lang$core$Native_Utils.eq(
 										excepts,
 										{ctor: '[]'})) ? 'alias ' : 'import ';
-									var moduleName = A2(_elm_lang$core$String$join, '.', _p37);
+									var moduleName = A2(_elm_lang$core$String$join, '.', _p38);
 									return A2(
 										_user$project$Helpers_ops['=>'],
 										A3(
 											_user$project$ExContext$mergeTypes,
-											_p38,
-											_user$project$Helpers$modulePath(_p37),
-											A3(_user$project$ExStatement$insertImportedTypes, moduleName, _p38, c)),
+											_p39,
+											_user$project$Helpers$modulePath(_p38),
+											A3(_user$project$ExStatement$insertImportedTypes, moduleName, _p39, c)),
 										A2(
 											_elm_lang$core$Basics_ops['++'],
 											_user$project$Helpers$ind(c.indent),
@@ -19554,7 +19568,7 @@ var _user$project$ExStatement$elixirS = F2(
 															ctor: '::',
 															_0: {
 																ctor: '::',
-																_0: _user$project$Helpers$modulePath(_p37),
+																_0: _user$project$Helpers$modulePath(_p38),
 																_1: {ctor: '[]'}
 															},
 															_1: {
@@ -19577,11 +19591,11 @@ var _user$project$ExStatement$elixirS = F2(
 											{ctor: '[]'},
 											A2(
 												_elm_lang$core$Maybe$map,
-												function (_p39) {
+												function (_p40) {
 													return _elm_lang$core$Dict$keys(
 														function (_) {
 															return _.definitions;
-														}(_p39));
+														}(_p40));
 												},
 												A2(_elm_lang$core$Dict$get, mod, c.commons.modules)));
 										var excepts = A2(
@@ -19589,14 +19603,14 @@ var _user$project$ExStatement$elixirS = F2(
 											{ctor: '[]'},
 											A2(
 												_elm_lang$core$Maybe$map,
-												function (_p40) {
+												function (_p41) {
 													return A2(
 														_user$project$ExStatement$duplicates,
 														exports,
 														_elm_lang$core$Dict$keys(
 															function (_) {
 																return _.definitions;
-															}(_p40)));
+															}(_p41)));
 												},
 												A2(_elm_lang$core$Dict$get, c.mod, c.commons.modules)));
 										var except = _elm_lang$core$Native_Utils.eq(
