@@ -56,7 +56,7 @@ install-sysconf:
 compile-elixir:
 	make compile
 	rm -rf elchemy_ex/elm-deps
-	cd elchemy_ex && ../elchemy compile ../src lib | ts %H:%M:%.S
+	cd elchemy_ex && ../elchemy compile ../src lib
 
 compile-elixir-and-run:
 	make compile-elixir
