@@ -50,7 +50,7 @@ elixirE c e =
             "%{"
                 ++ toSnakeCase True name
                 ++ " | "
-                ++ (List.map (\( a, b ) -> a ++ ": " ++ elixirE c b) keyValuePairs
+                ++ (List.map (\( a, b ) -> toSnakeCase True a ++ ": " ++ elixirE c b) keyValuePairs
                         |> String.join ", "
                    )
                 ++ "}"
