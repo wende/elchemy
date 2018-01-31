@@ -224,7 +224,7 @@ elixirS c s =
                                 (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
                                     genFfi app
 
-                                Case ((Variable [ name ]) as var) expressions ->
+                                Case ((Variable [ _ ]) as var) expressions ->
                                     if [ var ] == args then
                                         ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
                                     else

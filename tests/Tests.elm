@@ -569,6 +569,30 @@ letIns =
         ]
 
 
+caseOfs =
+    describe "Case ofs"
+        [ test "Simple case of" <|
+            \() ->
+                """
+test =
+  case x of
+    1 -> 1
+    2 -> 2
+                """ |> has "case x() do1 ->12 ->2end"
+        , test "Nested case of" <|
+            \() ->
+                """
+test =
+  case x of
+    1 -> 1
+    2 -> case y of
+      0 -> 0
+    3 -> 3
+
+            """ |> has "case x() do1 ->12 ->case y() do0 ->0end3 ->3end"
+        ]
+
+
 accessMacros : Test
 accessMacros =
     describe "Access macros compile properly"
@@ -608,5 +632,6 @@ all =
         , doctests
         , fileImports
         , letIns
+        , caseOfs
         , accessMacros
         ]

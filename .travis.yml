@@ -43,6 +43,9 @@ install:
   - make compile
   - make compile-std
 
+after_failure:
+  - find elchemy-core/lib | xargs cat
+
 script:
   - make test-all
 
