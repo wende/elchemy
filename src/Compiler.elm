@@ -239,7 +239,7 @@ prepare codebase =
 
 removeComments : String -> String
 removeComments =
-    Regex.replace All (regex "^\\s+--.*\\r?\\n") (always "")
+    Regex.replace All (regex " +--.*\\r?\\n") (always "")
         >> Regex.replace All (regex "\\s--.*\\r?\\n") (always "")
         >> Regex.replace All (regex "\n +\\w+ : .*") (always "")
 
