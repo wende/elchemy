@@ -591,15 +591,12 @@ isTuple a =
 -}
 caseE : Context -> Expression -> List ( Expression, Expression ) -> String
 caseE c var body =
-    if c.inCaseOf then
-        Debug.crash <| "Module " ++ c.mod ++ "\nBecause of a known bug in elm-ast parser, you can't reliably use nested case..of yet. Sorry"
-    else
-        "case "
-            ++ elixirE c var
-            ++ " do"
-            ++ (String.join "" (List.map ({ c | inCaseOf = True } |> rememberVariables [ var ] |> caseBranch) body))
-            ++ ind (c.indent)
-            ++ "end"
+    "case "
+        ++ elixirE c var
+        ++ " do"
+        ++ (String.join "" (List.map (rememberVariables [ var ] c |> caseBranch) body))
+        ++ ind (c.indent)
+        ++ "end"
 
 
 {-| Create a single branch of case statement by giving left and right side of the arrow
@@ -616,20 +613,16 @@ caseBranch c ( left, right ) =
 -}
 lambda : Context -> List Expression -> Expression -> String
 lambda c args body =
-    let
-        newC =
-            { c | inCaseOf = False }
-    in
-        case args of
-            arg :: rest ->
-                "fn "
-                    ++ elixirE (inArgs c) arg
-                    ++ " -> "
-                    ++ lambda (newC |> rememberVariables [ arg ]) rest body
-                    ++ " end"
+    case args of
+        arg :: rest ->
+            "fn "
+                ++ elixirE (inArgs c) arg
+                ++ " -> "
+                ++ lambda (c |> rememberVariables [ arg ]) rest body
+                ++ " end"
 
-            [] ->
-                elixirE newC body
+        [] ->
+            elixirE c body
 
 
 {-| Produce a variable out of it's expression, considering some of the hardcoded values
