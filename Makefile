@@ -30,11 +30,11 @@ test-all:
 	cd test_project && (yes | ../elchemy init) && ../elchemy compile elm lib && cp -r ../elchemy-core/lib lib/elm-deps && mix test
 
 test-std:
-	cd elchemy-core/ && mix test
+	cd elchemy-core/ && rm -rf .elchemy && mix test
 
 compile-std:
 	make compile
-	cd elchemy-core && ../elchemy compile elm lib
+	cd elchemy-core && rm -rf .elchemy && ../elchemy compile elm lib
 
 compile-std-watch:
 	find elchemy-core -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr make compile-std
