@@ -239,19 +239,9 @@ prepare codebase =
 
 removeComments : String -> String
 removeComments =
-    -- Need to remove the second one
-    Regex.replace All (regex "\\s--.*\n") (always "")
+    Regex.replace All (regex "^\\s+--.*\n") (always "")
+        >> Regex.replace All (regex "\\s--.*\n") (always "")
         >> Regex.replace All (regex "\n +\\w+ : .*") (always "")
-
-
-crunchSplitLines : String -> String
-crunchSplitLines =
-    Regex.replace All (regex "(?:({-(?:\\n|.)*?-})|([\\w\\])}\"][\\t ]*)\\n[\\t ]+((?!.*\\s->\\s)(?!.*=)(?!.*\\bin\\b)[\\w[({\"]))") <|
-        \m ->
-            m.submatches
-                |> List.map (Maybe.map (flip (++) " "))
-                |> List.filterMap identity
-                |> String.join " "
 
 
 getLinePosition : Int -> String -> ( Int, Int )

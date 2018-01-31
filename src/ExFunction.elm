@@ -86,7 +86,7 @@ genOverloadedFunctionDefinition c elixirE name args body expressions =
                     genElixirFunc c elixirE name (pairAsArgs matchedArgs) (arity - List.length (pairAsArgs matchedArgs)) right
 
                 _ ->
-                    genElixirFunc c elixirE name [ left ] (arity - 1) right
+                    genElixirFunc c elixirE name (pairAsArgs [ left ]) (arity - 1) right
     in
         if ExContext.hasFlag "nodef" name c then
             functionCurry c elixirE name arity lambdasAt
