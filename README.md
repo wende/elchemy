@@ -159,7 +159,7 @@ Elchemy uses Elm to typecheck your program. Although it is possible to use it wi
 
 # Progress of the project
 
-- Parser - **98%** of Elm's syntax
+- Parser - **99%** of Elm's syntax 
 - Compiler - **97%** (still needs some nicer solutions of code generation plus we might come out with some new nice ideas)
 - Elchemy-core - **93** ( We have Basics, Debug, Char, String, List, Result, Tuple, Set, Bitwise, Dict and Maybe) 
 - Interop with Elixir - **90%** - All of the interop is mature and type-safe-verified based on specs 
@@ -168,3 +168,8 @@ Elchemy uses Elm to typecheck your program. Although it is possible to use it wi
 - Elchemy-effects - **15%** - You can't and shouldn't write anything with side-effects in Elchemy yet. We're working on finding the best solution for effects that would fit both Elm's and Elixir's community
 - Elchemy-core for Erlang VM - **5%** (Everything for os related tasks like filesystem, OTP goodies etc has to be done)
 
+# Contributor credits:
+
+- Tomasz Cichociński - [@baransu](https://github.com/baransu)
+- Colin Bankier - [@colinbankier](https://github.com/colinbankier)
+- Nathaniel Knight - [@neganp](https://github.com/neganp)
