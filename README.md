@@ -168,3 +168,7 @@ Elchemy uses Elm to typecheck your program. Although it is possible to use it wi
 - Elchemy-effects - **15%** - You can't and shouldn't write anything with side-effects in Elchemy yet. We're working on finding the best solution for effects that would fit both Elm's and Elixir's community
 - Elchemy-core for Erlang VM - **5%** (Everything for os related tasks like filesystem, OTP goodies etc has to be done)
 
+# Contributor credits:
+Tomasz Cichociński - @baransu
+Colin Bankier - @colinbankier
+Nathaniel Knight - @neganp
