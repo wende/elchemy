@@ -169,6 +169,7 @@ Elchemy uses Elm to typecheck your program. Although it is possible to use it wi
 - Elchemy-core for Erlang VM - **5%** (Everything for os related tasks like filesystem, OTP goodies etc has to be done)
 
 # Contributor credits:
-Tomasz Cichociński - @baransu
-Colin Bankier - @colinbankier
-Nathaniel Knight - @neganp
+
+- Tomasz Cichociński - [@baransu](https://github.com/baransu)
+- Colin Bankier - [@colinbankier](https://github.com/colinbankier)
+- Nathaniel Knight - [@neganp](https://github.com/neganp)
