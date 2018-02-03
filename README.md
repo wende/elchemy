@@ -19,9 +19,10 @@ npm install -g elchemy
 # What is it?
 Elchemy lets you write simple, fast and quality type safe code while leveraging both the Elm's safety and Elixir's ecosystem
 
+## [You can test Elchemy online here](http://elchemy-live.herokuapp.com/) or here [Old (stable, no type checking) version](https://wende.github.io/elchemy/stable)
+## [You can read Elchemy documentation here](roadmap/README.md)
 ## [You can read a tutorial on using Elchemy here](https://medium.com/@krzysztof.wende/elmchemy-write-type-safe-elixir-code-with-elms-syntax-part-1-introduction-8968b76d721d)
-## [You can read Elchemy documentation (WIP) here](https://wende.github.io/elchemy-ivy/)
-## [You can test Elchemy online here (experimental)](http://elchemy-live.herokuapp.com/) or here [Old (stable, no type checking) version](https://wende.github.io/elchemy/)
+
 ### In case of any questions about the project feel free to submit them in Issues with Q&A label
 
 # Features
