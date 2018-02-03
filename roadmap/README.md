@@ -15,6 +15,16 @@ or eventually will have to face
   - [Comments](COMMENTS.md)
   - [Interop (Foreign Function Interface)](INTEROP.md)
 
+## Advanced
+  - [Side Effects / TEA](SIDE_EFFECTS.md)
+  - [Unit Testing](TESTING.md)
+  - [Compiler flags](FLAGS.md)
+  - [Inlining Elixir](INLINING.md)
+
+## Tooling
+  - [Installation](INSTALLATION.md)
+  - [Troubleshooting](TROUBLESHOOTING.md)
+
 # Introduction
 
 
@@ -40,7 +50,7 @@ Elchemy inherits many values from its parents: Elm and Elixir
 - Battle-tested distribution system that just works
 
 ### Additional
-- Foreign function calls type saftety
+- Foreign function calls type safety
 - Foreign function calls purity checks
 - Dependency system based on GitHub
 - Compile time code optimizations
