@@ -224,18 +224,17 @@ elixirS c s =
                                 (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
                                     genFfi app
 
-                                Case ((Variable [ _ ]) as var) expressions ->
-                                    if [ var ] == args then
-                                        ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
-                                    else
-                                        ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
-
-                                Case (Tuple vars) expressions ->
-                                    if vars == args && List.all (Tuple.first >> isTuple) expressions then
-                                        ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
-                                    else
-                                        ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
-
+                                -- Case ((Variable [ _ ]) as var) expressions ->
+                                --     if [ var ] == args then
+                                --         ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
+                                --     else
+                                --         ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
+                                --
+                                -- Case (Tuple vars) expressions ->
+                                --     if vars == args && List.all (Tuple.first >> isTuple) expressions then
+                                --         ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
+                                --     else
+                                --         ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
                                 _ ->
                                     ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
 

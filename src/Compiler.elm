@@ -214,12 +214,14 @@ parse fileName code =
                     getLinePosition position code
             in
                 Debug.crash <|
-                    "]ERR> Compilation error in:\n "
+                    "]ERR> Parsing error in:\n "
                         ++ fileName
                         ++ ":"
                         ++ toString line
                         ++ ":"
                         ++ toString column
+                        ++ "\n"
+                        ++ msg
                         ++ "\nat:\n "
                         ++ (input
                                 |> String.lines
