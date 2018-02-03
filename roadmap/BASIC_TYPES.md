@@ -6,7 +6,7 @@ Because Elm and Elixir share a lot of common basic types, there is no need to re
 Here is a table of all standard types used in Elchemy environment and their Elixir equivalents:
 
 |  Elchemy | Elixir |
-|  :  |  : |
+|  --- |  --- |
 | `a` | `any()`
 | `comparable` | `term()`
 | `Int` | `integer()`
