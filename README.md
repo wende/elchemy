@@ -13,7 +13,7 @@
 
 #### Quick install
 ```shell
-npm install -g elchem
+npm install -g elchemy
 ```
 
 # What is it?
