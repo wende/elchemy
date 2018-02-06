@@ -23,7 +23,7 @@ Which are included in the output file, but can only be used as a top level const
 Another one and probably most important is a doc-comment.
 
 ``` elm
-{-| Doc coment -}
+{-| Doc comment -}
 ```
 Doc-comments follow these rules:
 
