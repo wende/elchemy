@@ -1,0 +1,17 @@
+.DS_Store
+elm-stuff/
+node_modules/
+elchemy.js
+output.ex
+example/elm.js
+.#*
+.elchemy*
+*.orig
+elixir-stuff/
+elchemy_ex/lib/*
+*un~
+elchemy-*.ez
+_build/
+docs/
+example/
+stable/

@@ -1,0 +1,42 @@
+{
+  "name": "elchemy",
+  "version": "0.6.3",
+  "description": "Write Elixir code using Elm-inspired syntax (elm-make compatible)",
+  "directories": {
+    "example": "example",
+    "test": "tests"
+  },
+  "files": [
+    "elchemy",
+    "elchemy.js",
+    "elchemy_node.js",
+    "templates/*"
+  ],
+  "bin": {
+    "elchemy": "./elchemy"
+  },
+  "scripts": {
+    "test": "elm-test",
+    "precommit": "lint-staged"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wende/elchemy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wende/elchemy/issues"
+  },
+  "homepage": "https://github.com/wende/elchemy#readme",
+  "devDependencies": {
+    "elm-format": "^0.6.1-alpha",
+    "elm-test": "0.18.0",
+    "husky": "^0.13.3",
+    "lint-staged": "^3.4.1"
+  },
+  "lint-staged": {
+    "*.elm": [
+      "node_modules/.bin/elm-format --yes",
+      "git add"
+    ]
+  }
+}

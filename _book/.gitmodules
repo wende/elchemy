@@ -1,0 +1,3 @@
+[submodule "elchemy-core"]
+	path = elchemy-core
+	url = https://github.com/wende/elchemy-core.git
