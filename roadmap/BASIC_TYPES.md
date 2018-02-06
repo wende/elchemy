@@ -1,9 +1,9 @@
 # Basic types
 
 
-Because Elm and Elixir share a lot of common basic types, there is no need to redefine all of them for Elchemy need. For simplicity and interoperability some of the standard types translate directly to each other.
+Because Elm and Elixir share a lot of common basic types, there is no need to redefine all of them for Elchemy. For simplicity and interoperability some of the standard types translate directly to each other.
 
-Here is a table of all standard types used in Elchemy environment and their Elixir equivalents:
+Here is a table of all standard types used in the Elchemy environment and their Elixir equivalents:
 
 |  Elchemy | Elixir |
 |  --- |  --- |
