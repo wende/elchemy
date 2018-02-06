@@ -1,0 +1,493 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>Compiler Flags · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.3">
+        
+        
+        
+    
+    <link rel="stylesheet" href="gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="INLINING.html" />
+    
+    
+    <link rel="prev" href="TESTING.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        <li class="header">Documentation</li>
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="./">
+            
+                <a href="./">
+            
+                    
+                    Table Of Contents
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="INSTALLATION.html">
+            
+                <a href="INSTALLATION.html">
+            
+                    
+                    Installations
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" >
+            
+                <span>
+            
+                    
+                    Basics
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.1" data-path="BASIC_TYPES.html">
+            
+                <a href="BASIC_TYPES.html">
+            
+                    
+                    Basic Types
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2" data-path="TYPES.html">
+            
+                <a href="TYPES.html">
+            
+                    
+                    Defining Types
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3" data-path="TYPE_ALIASES.html">
+            
+                <a href="TYPE_ALIASES.html">
+            
+                    
+                    Defining Type Aliases
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4" data-path="STRUCTURES.html">
+            
+                <a href="STRUCTURES.html">
+            
+                    
+                    Defining Structures
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.5" data-path="MODULES.html">
+            
+                <a href="MODULES.html">
+            
+                    
+                    Defining Modules
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.6" data-path="FUNCTIONS.html">
+            
+                <a href="FUNCTIONS.html">
+            
+                    
+                    Defining Functions
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.7" data-path="COMMENTS.html">
+            
+                <a href="COMMENTS.html">
+            
+                    
+                    Comments
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" >
+            
+                <span>
+            
+                    
+                    Advanced
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.1" data-path="SIDE_EFFECTS.html">
+            
+                <a href="SIDE_EFFECTS.html">
+            
+                    
+                    Side Effects / TEA
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2" data-path="TESTING.html">
+            
+                <a href="TESTING.html">
+            
+                    
+                    Unit Testing
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.4.3" data-path="FLAGS.html">
+            
+                <a href="FLAGS.html">
+            
+                    
+                    Compiler Flags
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.4" data-path="INLINING.html">
+            
+                <a href="INLINING.html">
+            
+                    
+                    Inlining Elixir
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5" >
+            
+                <span>
+            
+                    
+                    Tooling
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.5.1" data-path="TROUBLESHOOTING.html">
+            
+                <a href="TROUBLESHOOTING.html">
+            
+                    
+                    Troubleshooting
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="." >Compiler Flags</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <h1 id="flags">Flags</h1>
+<p>Elchemy compiler for purposes of experimenting and stretching the boundaries accepts flags.</p>
+<h4 id="do-not-attempt-to-do-that-unless-youre-sure-its-the-only-way">DO NOT ATTEMPT TO DO THAT UNLESS YOU&apos;RE SURE IT&apos;S THE ONLY WAY</h4>
+<p>To pass a flag to a compiler there is a special comment syntax</p>
+<pre><code>{- flag flagname:+argument flagname2:+argument2 }
+</code></pre><p>So far there is 4 flag types:</p>
+<h4 id="notypetypename"><code>notype:+TypeName</code></h4>
+<p>Omits putting the <code>@type</code> into the compiled output code<br>Used when you need type checking inside Elchemy ecosystem, without forwarding the definition into the output code.<br>Example:</p>
+<pre><code class="lang-elm"><span class="hljs-comment">{- flag notype:+MyHiddenType -}</span>
+<span class="hljs-keyword">type</span> <span class="hljs-type">MyHiddenType</span> = <span class="hljs-type">Hidden</span> a
+</code></pre>
+<hr>
+<h4 id="nodeffunctionname"><code>nodef:+functionName</code></h4>
+<p>Omits entire function definition from the code output. The function <code>@spec</code> will still be produced.
+Example:</p>
+<pre><code class="lang-elm"><span class="hljs-comment">{- flag nodef:+myHiddenFunction -}</span>
+<span class="hljs-title">myHiddenFunction</span> = <span class="hljs-number">1</span>
+</code></pre>
+<hr>
+<h4 id="nospecfunctionname"><code>nospec:+functionName</code></h4>
+<p>Omits function spec from the code output
+Example:</p>
+<pre><code class="lang-elm"><span class="hljs-comment">{- flag nospec:+myHiddenFunction -}</span>
+<span class="hljs-title">myHiddenFunction</span> : <span class="hljs-type">Int</span>
+</code></pre>
+<hr>
+<h4 id="noverifyfunctionname"><code>noverify:+functionName</code></h4>
+<p>Omits function verify macro from the code output. Usable only when using for functions defined as FFI
+Example:</p>
+<pre><code class="lang-elm"><span class="hljs-comment">{- flag nospec:+myHiddenFunction -}</span>
+<span class="hljs-title">myHiddenFunction</span> : <span class="hljs-type">Int</span>
+</code></pre>
+
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="TESTING.html" class="navigation navigation-prev " aria-label="Previous page: Unit Testing">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+                <a href="INLINING.html" class="navigation navigation-next " aria-label="Next page: Inlining Elixir">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"Compiler Flags","level":"1.4.3","depth":2,"next":{"title":"Inlining Elixir","level":"1.4.4","depth":2,"path":"INLINING.md","ref":"./INLINING.md","articles":[]},"previous":{"title":"Unit Testing","level":"1.4.2","depth":2,"path":"TESTING.md","ref":"./TESTING.md","articles":[]},"dir":"ltr"},"config":{"plugins":["livereload"],"root":"./roadmap","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"livereload":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"gitbook":"*"},"file":{"path":"FLAGS.md","mtime":"2018-02-03T23:29:09.626Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2018-02-06T21:44:49.543Z"},"basePath":".","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="gitbook/gitbook.js"></script>
+    <script src="gitbook/theme.js"></script>
+    
+        
+        <script src="gitbook/gitbook-plugin-livereload/plugin.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+
