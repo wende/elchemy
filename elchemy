@@ -62,7 +62,7 @@ case "$1" in
     compile)
         # Create ./.elchemy if doesn't exist
         mkdir -p ".elchemy"
-        MTIME="$(cat ".elchemy/mtime" 2> /dev/null || echo "Mon Apr 10 00:00:00 CET 1995")"
+        MTIME="$(cat ".elchemy/mtime" 2> /dev/null || echo "1995-04-10 23:35:02")"
         echo "" > .elchemy/output
         if [ ! -d ./elm-deps ] || [[ !  $(find ./elm-package.json -newermt "$MTIME") == "" ]]; then
             if ! hash elm-github-install 2>/dev/null; then
@@ -127,7 +127,7 @@ case "$1" in
         done < .elchemy/elixir_output
         #rm .elchemy/elixir_output
         #rm .elchemy/output
-        echo $(date) > .elchemy/mtime
+        echo $(date +"%Y-%m-%d %H:%M:%S") > .elchemy/mtime
         ;;
     *)
         echo $"Usage: $0 <COMMAND> [<ARGS>]"
