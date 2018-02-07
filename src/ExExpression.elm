@@ -549,7 +549,7 @@ typeApplication c name args =
                                 ++ "{"
                                 ++ atomize name
                                 ++ ", "
-                                ++ (List.map (rememberVariables (args ++ varArgs) c |> elixirE) (args ++ varArgs)
+                                ++ (List.map (rememberVariables varArgs c |> elixirE) (args ++ varArgs)
                                         |> String.join ", "
                                    )
                                 ++ "}"
