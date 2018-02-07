@@ -20,7 +20,7 @@ import Regex exposing (Regex, HowMany(..), regex)
 -}
 version : String
 version =
-    "0.6.4"
+    "0.6.3"
 
 
 glueStart : String
@@ -70,93 +70,93 @@ fullTree cachedCommons m =
     -- If only no blank characters
     if Regex.contains (Regex.regex "^\\s*$") m then
         ( "", cachedCommons )
+    else if not <| String.contains (">>" ++ ">>") m then
+        m
+            |> parse "NoName.elm"
+            |> getContext
+            |> (\( c, a ) ->
+                    case c of
+                        Nothing ->
+                            Debug.crash "Failed getting context"
+
+                        Just c ->
+                            ( getCode c a, c.commons )
+               )
     else
-        case String.split (">>" ++ ">>") m of
-            [ single ] ->
-                single
-                    |> parse "NoName.elm"
-                    |> getContext
-                    |> (\( c, a ) ->
-                            case c of
-                                Nothing ->
-                                    Debug.crash "Failed getting context"
+        let
+            multiple =
+                String.split (">>" ++ ">>") m
 
-                                Just c ->
-                                    ( getCode c a, c.commons )
-                       )
+            count =
+                Debug.log "Number of files" (List.length multiple)
 
-            multiple ->
+            files =
+                multiple
+                    |> List.map getName
+                    |> List.indexedMap (,)
+                    |> List.map
+                        (\( i, ( name, code ) ) ->
+                            let
+                                _ =
+                                    flip Debug.log name <|
+                                        "Parsing "
+                                            ++ toString (count - i)
+                                            ++ "/"
+                                            ++ toString count
+                                            ++ " # "
+                            in
+                                ( name, parse name code )
+                        )
+
+            wContexts =
+                files
+                    |> List.map (\( name, ast ) -> ( name, getContext ast ))
+                    |> List.filterMap
+                        (\a ->
+                            case a of
+                                ( _, ( Nothing, _ ) ) ->
+                                    Nothing
+
+                                ( name, ( Just c, ast ) ) ->
+                                    Just ( name, c, ast )
+                        )
+
+            commons =
+                wContexts
+                    |> List.map (\( name, ctx, ast ) -> ctx.commons)
+                    |> (::) cachedCommons
+                    |> getCommonImports
+                    |> (\modules -> { modules = modules })
+
+            wTrueContexts =
+                wContexts
+                    |> List.map (\( name, c, ast ) -> ( name, { c | commons = commons }, ast ))
+
+            compileWithIndex ( i, ( name, c, ast ) ) =
                 let
-                    count =
-                        Debug.log "Number of files" (List.length multiple)
-
-                    files =
-                        multiple
-                            |> List.map getName
-                            |> List.indexedMap (,)
-                            |> List.map
-                                (\( i, ( name, code ) ) ->
-                                    let
-                                        _ =
-                                            flip Debug.log name <|
-                                                "Parsing "
-                                                    ++ toString (count - i)
-                                                    ++ "/"
-                                                    ++ toString count
-                                                    ++ " # "
-                                    in
-                                        ( name, parse name code )
-                                )
-
-                    wContexts =
-                        files
-                            |> List.map (\( name, ast ) -> ( name, getContext ast ))
-                            |> List.filterMap
-                                (\a ->
-                                    case a of
-                                        ( _, ( Nothing, _ ) ) ->
-                                            Nothing
-
-                                        ( name, ( Just c, ast ) ) ->
-                                            Just ( name, c, ast )
-                                )
-
-                    commons =
-                        wContexts
-                            |> List.map (\( name, ctx, ast ) -> ctx.commons)
-                            |> (::) cachedCommons
-                            |> getCommonImports
-                            |> (\modules -> { modules = modules })
-
-                    wTrueContexts =
-                        wContexts
-                            |> List.map (\( name, c, ast ) -> ( name, { c | commons = commons }, ast ))
-
-                    compileWithIndex ( i, ( name, c, ast ) ) =
-                        let
-                            _ =
-                                flip Debug.log name <|
-                                    "Compiling "
-                                        ++ toString (count - i)
-                                        ++ "/"
-                                        ++ toString count
-                                        ++ " # "
-                        in
-                            -- "Used to avoid quadruple > becuase it's a meta string"
-                            ">>" ++ ">>" ++ name ++ "\n" ++ getCode c ast
+                    _ =
+                        flip Debug.log name <|
+                            "Compiling "
+                                ++ toString (count - i)
+                                ++ "/"
+                                ++ toString count
+                                ++ " # "
                 in
-                    wTrueContexts
-                        |> List.indexedMap (,)
-                        |> List.map compileWithIndex
-                        |> String.join "\n"
-                        |> flip (,) commons
+                    -- "Used to avoid quadruple > becuase it's a meta string"
+                    ">>" ++ ">>" ++ name ++ "\n" ++ getCode c ast
+        in
+            wTrueContexts
+                |> List.indexedMap (,)
+                |> List.map compileWithIndex
+                |> String.join "\n"
+                |> flip (,) commons
 
 
 getCommonImports : List ExContext.Commons -> Dict String ExContext.Module
 getCommonImports commons =
     let
         merge aliases acc =
-            Dict.merge Dict.insert (\k v v2 -> Dict.insert k v) Dict.insert acc aliases Dict.empty
+            Dict.merge Dict.insert (\k v v2 -> Dict.insert k v2) Dict.insert acc aliases Dict.empty
     in
         List.foldl (.modules >> merge) Dict.empty commons
 
