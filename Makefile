@@ -30,17 +30,24 @@ test-all:
 	cd test_project && (yes | ../elchemy init) && ../elchemy compile elm lib && cp -r ../elchemy-core/lib lib/elm-deps && mix test
 
 test-std:
-	cd elchemy-core/ && rm -rf .elchemy && mix test
+	cd elchemy-core/ && mix test
 
 compile-std:
+	cd elchemy-core && rm -rf .elchemy
+	make compile-std-incremental
+
+compile-std-incremental:
 	make compile
-	cd elchemy-core && rm -rf .elchemy && ../elchemy compile elm lib
+	cd elchemy-core && ../elchemy compile elm lib
 
 compile-std-watch:
 	find elchemy-core -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr make compile-std
 
 compile-std-tests-watch:
 	find elchemy-core \( -name "*.elm" -or -name '*.ex*' \) | grep -v "elchemy.ex" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c "make compile && make compile-std && make test-std"
+
+compile-incremental-std-tests-watch:
+	find elchemy-core \( -name "*.elm" -or -name '*.ex*' \) | grep -v "elchemy.ex" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c "make compile && make compile-std-incremental && make test-std"
 
 tests-watch:
 	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr ./node_modules/.bin/elm-test
