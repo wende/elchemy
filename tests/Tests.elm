@@ -224,7 +224,7 @@ types =
             \() ->
                 "type Focus big small = Focus { get : big -> small }"
                     |++ "a = Focus { get = get, update = update }"
-                    |> has "{:focus, %{get: get, update: update}}"
+                    |> has "{:focus, %{get: get(), update: update()}}"
         ]
 
 
