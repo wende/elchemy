@@ -4,6 +4,7 @@
 * [Table Of Contents](./README.md)
 * [Installations](./INSTALLATION.md)
 * Basics 
+    * [Syntax overview)[./SYNTAX.md]
     * [Basic Types](./BASIC_TYPES.md)
     * [Defining Types](./TYPES.md)
     * [Defining Type Aliases](./TYPE_ALIASES.md)
