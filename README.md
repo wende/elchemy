@@ -158,16 +158,16 @@ So you want to write an Elm-like code, that will manipulate Elixir code, which g
 Elchemy uses Elm to typecheck your program. Although it is possible to use it without Elm on your machine it's not advised.
 
 
-# Progress of the project
+# Maturity of the project
 
-- Parser - **99%** of Elm's syntax 
-- Compiler - **97%** (still needs some nicer solutions of code generation plus we might come out with some new nice ideas)
-- Elchemy-core - **93** ( We have Basics, Debug, Char, String, List, Result, Tuple, Set, Bitwise, Dict and Maybe) 
-- Interop with Elixir - **90%** - All of the interop is mature and type-safe-verified based on specs 
-- Ideology - **60%** - We've got a pretty solid idea of where Elchemy is going 
-- Documentation - **50%** - There's couple of tutorials online and example projects. Nothing fancy yet, though
-- Elchemy-effects - **15%** - You can't and shouldn't write anything with side-effects in Elchemy yet. We're working on finding the best solution for effects that would fit both Elm's and Elixir's community
-- Elchemy-core for Erlang VM - **5%** (Everything for os related tasks like filesystem, OTP goodies etc has to be done)
+- Parser - **99%** of Elm's syntax (see [elm-ast](https://github.com/Bogdanp/elm-ast/issues))
+- Compiler - **99%** (Sophisticated incremental compilation. No support for Windows yet though ([#287](https://github.com/wende/elchemy/issues/287)) also big reliance on unix tools ([#288](https://github.com/wende/elchemy/issues/288))
+- Elchemy-core - **95** ( Everything covered except side effects and JSON Decoders) 
+- Interop with Elixir - **90%** - Purity tests ([#162](https://github.com/wende/elchemy/issues/162)) and handling of macro-heavy libraries ([#276](https://github.com/wende/elchemy/issues/276)) to go 
+- Ideology - **70%** - We've got a pretty solid idea of where Elchemy is going 
+- Documentation - **80%** - There are two tutorials and a complete Gitbook documentation. Few entrance level tutorials though
+- Elchemy-effects - **20%** - You can't and shouldn't write anything with side-effects in Elchemy yet. We're working on finding the best solution for effects that would fit both Elm's and Elixir's community (see [#297](https://github.com/wende/elchemy/issues/297) for more info)
+- Elchemy-core for Erlang VM - **5%** (Everything for os related tasks like filesystem, OTP goodies etc are yet to be done)
 
 # Contributor credits:
 
