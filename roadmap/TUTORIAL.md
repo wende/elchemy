@@ -104,6 +104,8 @@ And to prove and learn the basics of it, below we’ll write a simple example pr
 
 ## Example program
 
+![elchemyinit](elchemy_init.svg)
+
 We don't have any project so we’ll start a new one:
 
     $ mix new article_example_elchemy
@@ -118,7 +120,7 @@ So let's do that and try out how our type safety is doing.
 Terminal responds to us with:
 
 ```
-Elchemy 0.6.3 initialised. Make sure to add:
+Elchemy 0.6.4 initialised. Make sure to add:
 
         |> Code.eval_file("elchemy.exs").init
 
