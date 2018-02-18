@@ -130,7 +130,7 @@ This pipes the project keyword list to the elchemy init function to configure so
 Then run mix test to check if everything went fine
 ```
 
-Open your favorite and edit the file as asked. You should have something along the lines (I'm using `elixir 1.6.0`):
+Open your favorite editor and edit the file as asked. You should have something along the lines (I'm using `elixir 1.6.0`):
 
 ```elixir
 
