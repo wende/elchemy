@@ -32,7 +32,7 @@ Elchemy lets you write simple, fast and quality type safe code while leveraging 
 - **Nearly No runtime errors** - Elchemy's type system **eliminates almost all runtime errors**. With a shrinking set of edge cases, your entire app will be as safe as the parts written in Elixir are.
 - **Beautiful and fully readable output** - The produced code is idiomatic, performant and can be easily read and analyzed without taking a single look at the original source.
 
-# Path notes.
+# Patch notes
 Since version 0.4 all of the patch notes are included in the description of [a release](https://github.com/wende/elchemy/releases):
 
 
