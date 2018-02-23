@@ -45,9 +45,6 @@ compile-std-tests-watch:
 tests-watch:
 	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr ./node_modules/.bin/elm-test
 
-compile-demo:
-	find . -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c "make compile && node elchemy.js src/Example.elm  > elixir-stuff/elchemy/lib/example.ex"
-
 install-sysconf:
 	git clone "https://github.com/obmarg/libsysconfcpus.git"
 	cd libsysconfcpus && ./configure && make && make install
