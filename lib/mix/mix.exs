@@ -2,19 +2,22 @@ defmodule Elchemy.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :elchemy,
-     name: "Elchemy Compiler",
-     description: "Mix compiler wrapper around Elchemy project",
-     version: "0.4.25",
-     elixir: "~> 1.4",
-     description: "",
-     package: package(),
-     build_embedded: Mix.env == :prod,
-     start_permanent: Mix.env == :prod,
-     elixirc_paths: ["elm", "lib"],
-     elchemy_path: "elm",
-     deps: deps()]
+    [
+      app: :elchemy,
+      name: "Elchemy Compiler",
+      description: "Mix compiler wrapper around Elchemy project",
+      version: "0.4.25",
+      elixir: "~> 1.4",
+      description: "",
+      package: package(),
+      build_embedded: Mix.env() == :prod,
+      start_permanent: Mix.env() == :prod,
+      elixirc_paths: ["elm", "lib"],
+      elchemy_path: "elm",
+      deps: deps()
+    ]
   end
+
   defp package do
     # These are the default files included in the package
     [
@@ -25,6 +28,7 @@ defmodule Elchemy.Mixfile do
       links: %{"GitHub" => "https://github.com/wende/elchemy"}
     ]
   end
+
   # Configuration for the OTP application
   #
   # Type "mix help compile.app" for more information
