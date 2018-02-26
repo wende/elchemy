@@ -7,6 +7,7 @@ defmodule Elchemy.Mixfile do
      description: "Mix compiler wrapper around Elchemy project",
      version: "0.6.4",
      elixir: "~> 1.4",
+     escript: [main_module: Elchemy.Cli],
      description: "",
      package: package(),
      build_embedded: Mix.env == :prod,
