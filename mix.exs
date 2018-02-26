@@ -7,7 +7,7 @@ defmodule Elchemy.Mixfile do
      description: "Mix compiler wrapper around Elchemy project",
      version: "0.6.4",
      elixir: "~> 1.4",
-     escript: [main_module: Elchemy.Cli],
+     escript: escript(),
      description: "",
      package: package(),
      build_embedded: Mix.env == :prod,
@@ -16,6 +16,15 @@ defmodule Elchemy.Mixfile do
      elchemy_path: "elm",
      deps: deps()]
   end
+
+  defp escript do
+    [
+      main_module: Elchemy.CLI,
+      embed_elixir: true,
+      language: :elixir
+    ]
+  end
+
   defp package do
     # These are the default files included in the package
     [
@@ -31,7 +40,7 @@ defmodule Elchemy.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     # Specify extra applications you'll use from Erlang/Elixir
-    [extra_applications: [:logger]]
+    [extra_applications: [:logger, :mix]]
   end
 
   # Dependencies can be Hex packages:

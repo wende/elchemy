@@ -17,8 +17,8 @@ view model =
 
 
 init : String -> ( String, Cmd Msg )
-init v =
-    ( v, Cmd.none )
+init value =
+    ( value, Cmd.none )
 
 
 main : Program String String Msg
@@ -27,12 +27,7 @@ main =
         { init = init
         , update = update
         , view = view
-        , subscriptions =
-            (\_ ->
-                Sub.batch
-                    [ updateInput Replace
-                    ]
-            )
+        , subscriptions = (\_ -> Sub.batch [ updateInput Replace ])
         }
 
 
