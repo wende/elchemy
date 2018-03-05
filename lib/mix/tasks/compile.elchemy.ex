@@ -26,7 +26,7 @@ defmodule Mix.Tasks.Compile.Elchemy do
     IO.puts "-- Elchemy compilation complete --\n"
 
     unless System.version |> Version.compare("1.6.0") == :lt do
-      Mix.Task.run("format", "lib/**/*.elchemy.{ex,exs}") |> IO.inspect
+      Mix.Task.run("format", ["lib/**/*.elchemy.{ex,exs}"])
     end
     IO.puts "-- Elchemy format complete --\n"
   end
