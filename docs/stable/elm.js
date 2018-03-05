@@ -18104,10 +18104,7 @@ var _user$project$ExExpression$typeApplication = F3(
 											A2(
 												_elm_lang$core$List$map,
 												_user$project$ExExpression$elixirE(
-													A2(
-														_user$project$ExVariable$rememberVariables,
-														A2(_elm_lang$core$Basics_ops['++'], args, varArgs),
-														c)),
+													A2(_user$project$ExVariable$rememberVariables, varArgs, c)),
 												A2(_elm_lang$core$Basics_ops['++'], args, varArgs))),
 										'}')))))) : _elm_lang$core$Native_Utils.crash(
 					'ExExpression',
@@ -19785,7 +19782,7 @@ var _user$project$Compiler$getCommonImports = function (commons) {
 				_elm_lang$core$Dict$insert,
 				F3(
 					function (k, v, v2) {
-						return A2(_elm_lang$core$Dict$insert, k, v);
+						return A2(_elm_lang$core$Dict$insert, k, v2);
 					}),
 				_elm_lang$core$Dict$insert,
 				acc,
@@ -19826,7 +19823,7 @@ var _user$project$Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elchemy', '\n'));
-var _user$project$Compiler$version = '0.6.4';
+var _user$project$Compiler$version = '0.6.5';
 var _user$project$Compiler$getCode = F2(
 	function (context, statements) {
 		var shadowsBasics = _user$project$ExContext$importBasicsWithoutShadowed(context);
@@ -19869,140 +19866,54 @@ var _user$project$Compiler$fullTree = F2(
 			m)) {
 			return {ctor: '_Tuple2', _0: '', _1: cachedCommons};
 		} else {
-			var _p11 = A2(
-				_elm_lang$core$String$split,
+			if (!A2(
+				_elm_lang$core$String$contains,
 				A2(_elm_lang$core$Basics_ops['++'], '>>', '>>'),
-				m);
-			if ((_p11.ctor === '::') && (_p11._1.ctor === '[]')) {
-				return function (_p12) {
-					var _p13 = _p12;
-					var _p14 = _p13._0;
-					if (_p14.ctor === 'Nothing') {
+				m)) {
+				return function (_p11) {
+					var _p12 = _p11;
+					var _p13 = _p12._0;
+					if (_p13.ctor === 'Nothing') {
 						return _elm_lang$core$Native_Utils.crashCase(
 							'Compiler',
 							{
-								start: {line: 80, column: 29},
-								end: {line: 85, column: 63}
+								start: {line: 78, column: 21},
+								end: {line: 83, column: 55}
 							},
-							_p14)('Failed getting context');
+							_p13)('Failed getting context');
 					} else {
-						var _p16 = _p14._0;
+						var _p15 = _p13._0;
 						return {
 							ctor: '_Tuple2',
-							_0: A2(_user$project$Compiler$getCode, _p16, _p13._1),
-							_1: _p16.commons
+							_0: A2(_user$project$Compiler$getCode, _p15, _p12._1),
+							_1: _p15.commons
 						};
 					}
 				}(
 					_user$project$Compiler$getContext(
-						A2(_user$project$Compiler$parse, 'NoName.elm', _p11._0)));
+						A2(_user$project$Compiler$parse, 'NoName.elm', m)));
 			} else {
-				var _p32 = _p11;
+				var multiple = A2(
+					_elm_lang$core$String$split,
+					A2(_elm_lang$core$Basics_ops['++'], '>>', '>>'),
+					m);
 				var count = A2(
 					_elm_lang$core$Debug$log,
 					'Number of files',
-					_elm_lang$core$List$length(_p32));
-				var files = A2(
-					_elm_lang$core$List$map,
-					function (_p17) {
-						var _p18 = _p17;
-						var _p20 = _p18._1._0;
-						var _p19 = A3(
-							_elm_lang$core$Basics$flip,
-							_elm_lang$core$Debug$log,
-							_p20,
-							A2(
-								_elm_lang$core$Basics_ops['++'],
-								'Parsing ',
-								A2(
-									_elm_lang$core$Basics_ops['++'],
-									_elm_lang$core$Basics$toString(count - _p18._0),
-									A2(
-										_elm_lang$core$Basics_ops['++'],
-										'/',
-										A2(
-											_elm_lang$core$Basics_ops['++'],
-											_elm_lang$core$Basics$toString(count),
-											' # ')))));
-						return {
-							ctor: '_Tuple2',
-							_0: _p20,
-							_1: A2(_user$project$Compiler$parse, _p20, _p18._1._1)
-						};
-					},
-					A2(
-						_elm_lang$core$List$indexedMap,
-						F2(
-							function (v0, v1) {
-								return {ctor: '_Tuple2', _0: v0, _1: v1};
-							}),
-						A2(_elm_lang$core$List$map, _user$project$Compiler$getName, _p32)));
-				var wContexts = A2(
-					_elm_lang$core$List$filterMap,
-					function (a) {
-						var _p21 = a;
-						if (_p21._1._0.ctor === 'Nothing') {
-							return _elm_lang$core$Maybe$Nothing;
-						} else {
-							return _elm_lang$core$Maybe$Just(
-								{ctor: '_Tuple3', _0: _p21._0, _1: _p21._1._0._0, _2: _p21._1._1});
-						}
-					},
-					A2(
-						_elm_lang$core$List$map,
-						function (_p22) {
-							var _p23 = _p22;
-							return {
-								ctor: '_Tuple2',
-								_0: _p23._0,
-								_1: _user$project$Compiler$getContext(_p23._1)
-							};
-						},
-						files));
-				var commons = function (modules) {
-					return {modules: modules};
-				}(
-					_user$project$Compiler$getCommonImports(
-						A2(
-							F2(
-								function (x, y) {
-									return {ctor: '::', _0: x, _1: y};
-								}),
-							cachedCommons,
-							A2(
-								_elm_lang$core$List$map,
-								function (_p24) {
-									var _p25 = _p24;
-									return _p25._1.commons;
-								},
-								wContexts))));
-				var wTrueContexts = A2(
-					_elm_lang$core$List$map,
-					function (_p26) {
-						var _p27 = _p26;
-						return {
-							ctor: '_Tuple3',
-							_0: _p27._0,
-							_1: _elm_lang$core$Native_Utils.update(
-								_p27._1,
-								{commons: commons}),
-							_2: _p27._2
-						};
-					},
-					wContexts);
-				var compileWithIndex = function (_p28) {
-					var _p29 = _p28;
-					var _p31 = _p29._1._0;
-					var _p30 = A3(
+					_elm_lang$core$List$length(multiple));
+				var compileWithIndex = function (_p16) {
+					var _p17 = _p16;
+					var _p19 = _p17._1._0;
+					var _p18 = A3(
 						_elm_lang$core$Basics$flip,
 						_elm_lang$core$Debug$log,
-						_p31,
+						_p19,
 						A2(
 							_elm_lang$core$Basics_ops['++'],
 							'Compiling ',
 							A2(
 								_elm_lang$core$Basics_ops['++'],
-								_elm_lang$core$Basics$toString(count - _p29._0),
+								_elm_lang$core$Basics$toString(count - _p17._0),
 								A2(
 									_elm_lang$core$Basics_ops['++'],
 									'/',
@@ -20018,12 +19929,100 @@ var _user$project$Compiler$fullTree = F2(
 							'>>',
 							A2(
 								_elm_lang$core$Basics_ops['++'],
-								_p31,
+								_p19,
 								A2(
 									_elm_lang$core$Basics_ops['++'],
 									'\n',
-									A2(_user$project$Compiler$getCode, _p29._1._1, _p29._1._2)))));
+									A2(_user$project$Compiler$getCode, _p17._1._1, _p17._1._2)))));
 				};
+				var files = A2(
+					_elm_lang$core$List$map,
+					function (_p20) {
+						var _p21 = _p20;
+						var _p23 = _p21._1._0;
+						var _p22 = A3(
+							_elm_lang$core$Basics$flip,
+							_elm_lang$core$Debug$log,
+							_p23,
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								'Parsing ',
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									_elm_lang$core$Basics$toString(count - _p21._0),
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										'/',
+										A2(
+											_elm_lang$core$Basics_ops['++'],
+											_elm_lang$core$Basics$toString(count),
+											' # ')))));
+						return {
+							ctor: '_Tuple2',
+							_0: _p23,
+							_1: A2(_user$project$Compiler$parse, _p23, _p21._1._1)
+						};
+					},
+					A2(
+						_elm_lang$core$List$indexedMap,
+						F2(
+							function (v0, v1) {
+								return {ctor: '_Tuple2', _0: v0, _1: v1};
+							}),
+						A2(_elm_lang$core$List$map, _user$project$Compiler$getName, multiple)));
+				var wContexts = A2(
+					_elm_lang$core$List$filterMap,
+					function (a) {
+						var _p24 = a;
+						if (_p24._1._0.ctor === 'Nothing') {
+							return _elm_lang$core$Maybe$Nothing;
+						} else {
+							return _elm_lang$core$Maybe$Just(
+								{ctor: '_Tuple3', _0: _p24._0, _1: _p24._1._0._0, _2: _p24._1._1});
+						}
+					},
+					A2(
+						_elm_lang$core$List$map,
+						function (_p25) {
+							var _p26 = _p25;
+							return {
+								ctor: '_Tuple2',
+								_0: _p26._0,
+								_1: _user$project$Compiler$getContext(_p26._1)
+							};
+						},
+						files));
+				var commons = function (modules) {
+					return {modules: modules};
+				}(
+					_user$project$Compiler$getCommonImports(
+						A2(
+							F2(
+								function (x, y) {
+									return {ctor: '::', _0: x, _1: y};
+								}),
+							cachedCommons,
+							A2(
+								_elm_lang$core$List$map,
+								function (_p27) {
+									var _p28 = _p27;
+									return _p28._1.commons;
+								},
+								wContexts))));
+				var wTrueContexts = A2(
+					_elm_lang$core$List$map,
+					function (_p29) {
+						var _p30 = _p29;
+						return {
+							ctor: '_Tuple3',
+							_0: _p30._0,
+							_1: _elm_lang$core$Native_Utils.update(
+								_p30._1,
+								{commons: commons}),
+							_2: _p30._2
+						};
+					},
+					wContexts);
 				return A3(
 					_elm_lang$core$Basics$flip,
 					F2(
@@ -20050,9 +20049,9 @@ var _user$project$Compiler$fullTree = F2(
 var _user$project$Compiler$treeAndCommons = function (m) {
 	return A2(_user$project$Compiler$fullTree, _user$project$ExContext$emptyCommons, m);
 };
-var _user$project$Compiler$tree = function (_p33) {
+var _user$project$Compiler$tree = function (_p31) {
 	return _elm_lang$core$Tuple$first(
-		_user$project$Compiler$treeAndCommons(_p33));
+		_user$project$Compiler$treeAndCommons(_p31));
 };
 
 var _user$project$Main$update = F2(
