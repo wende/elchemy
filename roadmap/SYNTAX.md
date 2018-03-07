@@ -1,5 +1,5 @@
-Elchemy is a functional reactive programming language that compile to (server-side) Elixir (Erlang VM).
-Elchemy is statically typed, meaning that the compiler catches most errors immediately and provides a clear clear and understandable error messages.
+Elchemy is a functional reactive programming language that compiles to (server-side) Elixir (Erlang VM).
+Elchemy is statically typed, which means that the compiler catches most errors immediately and provides clear and understandable error messages.
 
 ```elm
 -- Single line comments start with two dashes.
