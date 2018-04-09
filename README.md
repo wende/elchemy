@@ -161,7 +161,7 @@ Elchemy uses Elm to typecheck your program. Although it is possible to use it wi
 # Maturity of the project
 
 - Parser - **99%** of Elm's syntax (see [elm-ast](https://github.com/Bogdanp/elm-ast/issues))
-- Compiler - **90%** (Sophisticated incremental compilation. No support for Windows yet though ([#287](https://github.com/wende/elchemy/issues287)) also big reliance on unix tools ([#288](https://github.com/wende/elchemy/issues/288))
+- Compiler - **90%** (Sophisticated incremental compilation. No support for Windows yet though ([#287](https://github.com/wende/elchemy/issues/287)) also big reliance on unix tools ([#288](https://github.com/wende/elchemy/issues/288))
 - Elchemy-core - **95%** ( Everything covered except side effects and JSON Decoders) 
 - Interop with Elixir - **90%** - Purity tests ([#162](https://github.com/wende/elchemy/issues/162)) and handling of macro-heavy libraries ([#276](https://github.com/wende/elchemy/issues/276)) to go 
 - Ideology - **70%** - We've got a pretty solid idea of where Elchemy is going 
