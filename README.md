@@ -27,9 +27,9 @@ Elchemy lets you write simple, fast and quality type safe code while leveraging 
 
 # Features
 - **Type inference:** Powerful type inference means you rarely have to annotate types. Everything gets checked for you by the compiler
-- **Easy and type-safe interop**: You can call Elixir/Erlang without any extra boiler-plate. All the calls you make are checked in terms of type-safety as thoroughly as possible
+- **Easy and type-safe interop**: You can call Elixir/Erlang without any extra boiler-plate. All the calls you make are checked in terms of type-safety as thoroughly as possible based on Elixir's typespecs.
 - **All the best of Elm and Elixir**: Elchemy inherits what's best in Elm - type safety, inference and extreme expressiveness, but also what's best in Elixir - Doc-tests, tooling and obviously the entire BEAM platform.
-- **Nearly no runtime errors** - Elchemy's type system **eliminates almost all runtime errors**. With a shrinking set of edge cases, your entire app will be as safe as the parts written in Elixir are.
+- **Nearly no runtime errors** - Elchemy's type system **eliminates almost all runtime errors**. With a shrinking set of edge cases, your entire Elchemy codebase is safe. Elixir parts of the codebase are the only ones to be a suspect in cases of runtime errors happening.
 - **Beautiful and fully readable output** - The produced code is idiomatic, performant and can be easily read and analyzed without taking a single look at the original source.
 
 # Patch notes
