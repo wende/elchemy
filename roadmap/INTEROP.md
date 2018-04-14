@@ -29,7 +29,7 @@ And it will work as fine
 ## Calling Elixir
 
 
-To call elixir from Elchemy you need to define a foreing function interface.
+To call elixir from Elchemy you need to define a foreign function interface.
 To do that you can use `ffi` [special syntax (?)](SPECIAL_SYNTAX.md)
 
 `ffi` requires the function to have a very specific format, which is:
