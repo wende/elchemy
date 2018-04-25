@@ -96,10 +96,19 @@ fun a b = 1
                     "app = a b c d" |> has "a().(b()).(c()).(d())"
             , test "Uncurried application when all args provided" <|
                 \() ->
-                    "a : a -> a -> a -> a\napp = a b c d" |> has "a(b(), c(), d())"
+                    "a : a -> a -> a -> a"
+                        |++ "app = a b c d"
+                        |> has "a(b(), c(), d())"
             , test "ffi" <|
                 \() ->
-                    "upcase : String -> String\nupcase name = ffi \"String\" \"to_upper\" " |> has "String.to_upper("
+                    "upcase : String -> String"
+                        |++ "upcase name = ffi \"String\" \"to_upper\" "
+                        |> has "String.to_upper("
+            , test "macro" <|
+                \() ->
+                    "upcase : Macro"
+                        |++ "upcase name = macro \"String\" \"to_upper\" "
+                        |> has "String.to_upper("
             , test "Function names are snakecased" <|
                 \() ->
                     "camelCase = 1" |> has "camel_case()"
@@ -108,10 +117,13 @@ fun a b = 1
                     "a = camelCase 1" |> has "camel_case().(1)"
             , test "Uncurried function calls are snakecased" <|
                 \() ->
-                    "fooBar : a -> a -> a\napp = fooBar 1 2" |> has "foo_bar(1, 2)"
+                    "fooBar : a -> a -> a"
+                        |++ "app = fooBar 1 2"
+                        |> has "foo_bar(1, 2)"
             , test "Can call function recursively" <|
                 \() ->
-                    "a = let f a = f (a - 1) in f" |> has "f = rec f, fn a ->"
+                    "a = let f a = f (a - 1) in f"
+                        |> has "f = rec f, fn a ->"
             , test "Correct curried application from modules" <|
                 \() -> testModules |> hasFull "A.fun().(1)"
             , test "Correct full application from modules" <|
@@ -144,28 +156,38 @@ specs =
     describe "Specs"
         [ test "Typespecs with dependant types" <|
             \() ->
-                "sum : (List Int) -> Int" |> has "@spec sum(list(integer)) :: integer"
+                "sum : (List Int) -> Int"
+                    |++ "sum = 0"
+                    |> has "@spec sum(list(integer)) :: integer"
         , test "Typespecs with functions" <|
             \() ->
                 "map : (List a) -> (a -> a) -> (List a)"
+                    |++ "map = 0"
                     |> has "map(list(any), (any -> any)) :: list(any)"
         , test "Typespecs with functions #2" <|
             \() ->
                 "map : (a -> a) -> (b -> b) -> (List a)"
+                    |++ "map = 0"
                     |> has "map((any -> any), (any -> any)) :: list(any)"
         , test "Typespecs with multiple arg functions" <|
             \() ->
                 "map : (List a) -> (a -> a -> b) -> (List a)"
+                    |++ "map = 0"
                     |> has "map(list(any), (any -> (any -> any))) :: list(any) "
         , test "Typespecs names are snakecased" <|
             \() ->
-                "mapMap : a" |> has "@spec map_map"
+                "mapMap : a"
+                    |++ "mapMap = 0"
+                    |> has "@spec map_map"
         , test "Records in typespecs" <|
             \() ->
-                "record : { a : Int, b : String}" |> has "@spec record() :: %{a: integer,b: String.t}"
+                "record : { a : Int, b : String}"
+                    |++ "record = 0"
+                    |> has "@spec record() :: %{a: integer,b: String.t}"
         , test "Remote typespecs" <|
             \() ->
                 "f : Remote.Module.Type -> String.T"
+                    |++ "f = 0"
                     |> has "f(Remote.Module.type) :: String.t"
         ]
 
@@ -267,28 +289,33 @@ typeAliases =
             \() ->
                 "type alias MyType a = List a"
                     |++ "test : MyType Int"
+                    |++ "test = 0"
                     |> has "@spec test() :: my_type(integer"
         , test "Type substitution" <|
             \() ->
                 "type MyType = Wende | NieWende"
                     |++ "test : MyType"
+                    |++ "test = 0"
                     |> has "@spec test() :: my_type"
         , test "TypeAlias argument substitution" <|
             \() ->
                 "type alias MyType a = List a"
                     |++ "test : MyType Int"
+                    |++ "test = 0"
                     |> has "@spec test() :: my_type(integer)"
         , test "TypeAlias argument substitution between types" <|
             \() ->
                 "type alias AnyKey val = (a, val)"
                     |++ "type alias Val a = AnyKey a"
                     |++ "test : Val Int"
+                    |++ "test = 0"
                     |> has "@spec test() :: val(integer)"
         , test "TypeAlias no argument substitution in Type" <|
             \() ->
                 "type alias MyList a = List a"
                     |++ "type Val a = AnyKey (MyList a)"
                     |++ "test : Val Int"
+                    |++ "test = 0"
                     |> has "@spec test() :: val"
 
         -- Polymorhpism
@@ -298,6 +325,7 @@ typeAliases =
                     |++ "type alias Wendable a = { a | wendify : (a -> Wende)}"
                     |++ "type alias Man = Wendable { gender: Bool }"
                     |++ "a : Man -> String "
+                    |++ "a = 0"
                     |> has "@type man :: %{wendify: (%{gender: boolean} -> wende), gender: boolean"
         , test "Multi polymorhpic record alias" <|
             \() ->
@@ -306,11 +334,13 @@ typeAliases =
                     |++ "type alias Agable a =  { a | age: Int }"
                     |++ "type alias Man = Namable (Agable { gender : String })"
                     |++ "a : Man -> String "
+                    |++ "a = 0"
                     |> has "@type man :: %{name: String.t, age: integer, gender: String.t}"
         , test "Interface as type" <|
             \() ->
                 "type alias Namable a = { a | name : String }"
-                    |++ "getName : Namable a -> String "
+                    |++ "getName : Namable a -> String"
+                    |++ "getName = 0"
                     |> has "@spec get_name(%{name: String.t}) :: String.t"
         ]
 

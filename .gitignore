@@ -16,3 +16,4 @@ docs/
 example/
 stable/
 _book/
+.elixir_ls/

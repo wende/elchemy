@@ -314,6 +314,7 @@ reservedWords =
     , "unquote"
     , "unquote_splicing"
     , "module"
+    , "use"
     ]
 
 
@@ -349,6 +350,7 @@ reservedBasicFunctions =
     , "tuple3"
     , "tuple4"
     , "tuple5"
+    , "rec"
     ]
 
 

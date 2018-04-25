@@ -1,4 +1,4 @@
-module ExType exposing (typeAliasConstructor, typespec, uniontype, elixirT, getExportedTypeNames)
+module ExType exposing (typeAliasConstructor, typespec, uniontype, elixirT, getExportedTypeNames, hasReturnedType)
 
 import Dict
 import Ast.Statement exposing (Type(..), ExportSet(..))
@@ -364,3 +364,13 @@ aliasOr c name args default =
                                     |> elixirTNoFlat { c | mod = parentModule }
            )
         |> Maybe.withDefault default
+
+
+hasReturnedType : Type -> Type -> Bool
+hasReturnedType returned t =
+    case List.reverse (typeApplicationToList t) of
+        [] ->
+            False
+
+        t :: _ ->
+            t == returned

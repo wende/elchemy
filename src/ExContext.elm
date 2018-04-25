@@ -128,6 +128,11 @@ type alias Context =
     , lastDoc : Maybe String
     , inTypeDefiniton : Bool
     , importedTypes : Dict String String
+
+    -- Dict functionName (moduleName, arity)
+    , importedFunctions : Dict String ( String, Int )
+    , meta : Maybe Expression
+    , inMeta : Bool
     }
 
 
@@ -271,6 +276,9 @@ empty name exports =
             [ ( "Order", "Elchemy.XBasics" )
             , ( "Result", "Elchemy.XResult" )
             ]
+    , importedFunctions = Dict.empty
+    , meta = Nothing
+    , inMeta = False
     }
 
 

@@ -328,6 +328,7 @@ isMacro e =
                 [ "tryFfi"
                 , "ffi"
                 , "lffi"
+                , "macro"
                 , "flambda"
                 , "updateIn"
                 , "updateIn2"
@@ -448,6 +449,9 @@ tupleOrFunction c a =
         -- A macro
         (Variable [ "ffi" ]) :: rest ->
             Debug.crash "Ffi inside function body is deprecated since Elchemy 0.3"
+
+        (Variable [ "macro" ]) :: rest ->
+            Debug.crash "You can't use `macro` inside a function body"
 
         (Variable [ "tryFfi" ]) :: rest ->
             Debug.crash "tryFfi inside function body is deprecated since Elchemy 0.3"
