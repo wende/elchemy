@@ -3,10 +3,20 @@ defmodule ElchemyInit do
   @deps_directory_depth 3
 
   def init(project, {__MODULE, _}) do
-    project
-    |> put_in([:compilers], [:elchemy | (project[:compilers] || Mix.compilers())])
-    |> put_in([:elchemy_path], "elm")
-    |> put_in([:deps], project[:deps] ++ elm_deps())
+    if !project || !project[:name] do
+      IO.warn """
+        The project structure is invalid. Make sure that
+
+          |> Code.eval_file(\".elchemy.exs\").init
+
+        Line was put __after__ the closing bracked `]`
+      """
+    else
+      project
+      |> put_in([:compilers], [:elchemy | (project[:compilers] || Mix.compilers())])
+      |> put_in([:elchemy_path], "elm")
+      |> put_in([:deps], project[:deps] ++ elm_deps())
+    end
   end
 
   def elm_deps() do

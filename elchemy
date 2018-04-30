@@ -49,10 +49,12 @@ case "$1" in
             mix archive.install "https://github.com/wende/elchemy/releases/download/$version/elchemy-$version.ez"
             mkdir -p elm
             cp $SOURCE_DIR/templates/elm-package.json ./
-            cp $SOURCE_DIR/templates/elchemy.exs ./
+            cp $SOURCE_DIR/templates/elchemy.exs ./.elchemy.exs
             cp $SOURCE_DIR/templates/Hello.elm ./elm/
-            cp $SOURCE_DIR/templates/elchemy_test.exs ./test/
-            printf  "Elchemy $version initialised. Make sure to add:\n\n\t|> Code.eval_file(\"elchemy.exs\").init\n\nto your mix.exs file as the last line of the project() function.\nThis pipes the project keyword list to the elchemy init function to configure some additional values.\n\nThen run mix test to check if everything went fine\n"
+            if [ -d ./test ]; then
+                cp $SOURCE_DIR/templates/elchemy_test.exs ./test/
+            fi
+            printf  "Elchemy $version initialised. Make sure to add:\n\n\t|> Code.eval_file(\".elchemy.exs\").init\n\nto your mix.exs file as the last line of the project() function.\nThis pipes the project keyword list to the elchemy init function to configure some additional values.\n\nThen run mix test to check if everything went fine\n"
             printf "\nelm-deps" >> .gitignore
             printf "\nelm-stuff" >> .gitignore
         else
