@@ -32,11 +32,6 @@ Elchemy lets you write simple, fast and quality type safe code while leveraging 
 - **Nearly no runtime errors** - Elchemy's type system **eliminates almost all runtime errors**. With a shrinking set of edge cases, your entire Elchemy codebase is safe. Elixir parts of the codebase are the only ones to be a suspect in cases of runtime errors happening.
 - **Beautiful and fully readable output** - The produced code is idiomatic, performant and can be easily read and analyzed without taking a single look at the original source.
 
-# Patch notes
-Since version 0.4 all the patch notes are included in the description of [a release](https://github.com/wende/elchemy/releases):
-
-
-
 # Usage
 
 ### Prerequisites
@@ -71,6 +66,11 @@ Usage
 ```
 elchemy compile source_dir output_dir
 ```
+
+### Recommended editors setup
+- [Atom](https://atom.io/) with [elixir-language](https://atom.io/packages/language-elixir) and [atom-elixir](https://github.com/msaraiva/atom-elixir) or [elixir-ide](https://atom.io/packages/ide-elixir) for Elixir; and [language-elm](https://atom.io/packages/language-elm) + [elmjutsu](https://atom.io/packages/elmjutsu) for Elchemy.
+- [Visual Studio Code](https://code.visualstudio.com/) with [vscode-elixir](https://marketplace.visualstudio.com/items?itemName=mjmcloug.vscode-elixir), [vscode-elixir-ls](https://github.com/JakeBecker/vscode-elixir-ls) and [vscode-elm](https://github.com/Krzysztof-Cieslak/vscode-elm)
+
 ### Build from source
 
 ```
