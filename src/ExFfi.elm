@@ -98,7 +98,7 @@ generateFfi c elixirE name argTypes e =
                             ++ "."
                             ++ fun
                             ++ "("
-                            ++ (uncurryArguments (rememberVariables (wrapAllInVar arguments) c) |> List.map (\a -> "unquote(" ++ a ++ ")") |> String.join ", ")
+                            ++ (uncurryArguments (rememberVariables (wrapAllInVar arguments) c) |> String.join ", ")
                             ++ ")"
                     else
                         Debug.crash "Macro calls have to return a Macro type"

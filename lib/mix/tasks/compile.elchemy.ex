@@ -6,12 +6,17 @@ defmodule Mix.Tasks.Compile.Elchemy do
     src = project[:elchemy_path]
     dests = project[:elixirc_paths] || ["lib"]
 
-    #unless src, do: IO.warn "No 'elchemy_path' setting found"
+    # Crash if elchemy not found globally
+    unless 0 == Mix.shell.cmd("which elchemy") do
+      Mix.raise "Elchemy not installed globally. You need to run `npm install elchemy -g`"
+    end
+
+    # Crash if elchemy not found globally
     unless dests, do: IO.warn "No 'elixirc_paths' setting found"
     if src && dests do
       [dest | _] = dests
       unless 0 == Mix.shell.cmd("elchemy compile #{src} #{dest}") do
-        Mix.raise "Compilation error"
+        Mix.raise "Elchemy failed the compilation with an error\n"
       end
     end
 

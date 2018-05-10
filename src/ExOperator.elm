@@ -30,7 +30,10 @@ elixirBinop c elixirE op l r =
             elixirBinop c elixirE ">>" r l
 
         "<|" ->
-            elixirBinop c elixirE "|>" r l
+            if l == Variable [ "Do" ] then
+                "quote do " ++ elixirE c r ++ " end"
+            else
+                elixirBinop c elixirE "|>" r l
 
         "|>" ->
             "("

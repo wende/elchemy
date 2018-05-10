@@ -471,6 +471,9 @@ tupleOrFunction c a =
         [ Variable [ "Err" ], arg ] ->
             "{:error, " ++ elixirE c arg ++ "}"
 
+        [ Variable [ "Do" ], arg ] ->
+            "quote do " ++ elixirE c arg ++ " end"
+
         -- Regular non-macro application
         ((Variable list) as call) :: rest ->
             ExSelector.maybeAccessMacro call rest
