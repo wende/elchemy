@@ -243,11 +243,20 @@ getType =
 -}
 getArity : Context -> String -> String -> Maybe Int
 getArity ctx m fn =
-    ctx.commons.modules
-        |> Dict.get m
-        |> Maybe.map .definitions
-        |> Maybe.andThen (Dict.get fn)
-        |> Maybe.map .arity
+    let
+        local =
+            ctx.commons.modules
+                |> Dict.get m
+                |> Maybe.map .definitions
+                |> Maybe.andThen (Dict.get fn)
+                |> Maybe.map .arity
+
+        imported =
+            ctx.importedFunctions
+                |> Dict.get fn
+                |> Maybe.map (Tuple.second)
+    in
+        Helpers.maybeOr local imported
 
 
 {-| Checks if function arity stored in context is the same as arguments count

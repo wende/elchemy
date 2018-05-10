@@ -194,12 +194,6 @@ elixirS c s =
 
                         _ ->
                             False
-
-                preCurry =
-                    if (not <| definitionExists name c) && args /= [] then
-                        (ind c.indent) ++ "curryp " ++ toSnakeCase True name ++ "/" ++ toString (List.length args)
-                    else
-                        ""
             in
                 newC
                     => if (not <| definitionExists name c) && (not isPrivate) then
@@ -211,20 +205,17 @@ elixirS c s =
                        else
                         case body of
                             (Application (Application (Variable [ "ffi" ]) _) _) as app ->
-                                preCurry
-                                    ++ spec
+                                spec
                                     ++ ind (c.indent + 1)
                                     ++ genFfi app
 
                             (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
-                                preCurry
-                                    ++ spec
+                                spec
                                     ++ ind (c.indent + 1)
                                     ++ genFfi app
 
                             (Application (Application (Variable [ "macro" ]) _) _) as app ->
-                                preCurry
-                                    ++ ind c.indent
+                                ind c.indent
                                     ++ genFfi app
                                     ++ "\n"
 
@@ -240,8 +231,7 @@ elixirS c s =
                             --     else
                             --         ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
                             _ ->
-                                preCurry
-                                    ++ spec
+                                spec
                                     ++ ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
 
         Comment content ->

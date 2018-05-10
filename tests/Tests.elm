@@ -74,7 +74,11 @@ functions =
     let
         testModules =
             """
-module B exposing(..)
+>>>> b.elm
+module B exposing (..)
+
+import A exposing (..)
+
 testFull : Int
 testFull = A.fun 1 2
 
@@ -84,10 +88,16 @@ testCurried = A.fun 1
 join : List String -> String
 join a = String.join " " a
 
->>>> b.elm
-module A exposing(fun)
+tested : Float
+tested = importedFun 10 10.0
+
+>>>> a.elm
+module A exposing (fun, importedFun)
 fun : Int -> Int -> Int
 fun a b = 1
+
+importedFun : Int -> Float -> Float
+importedFun a b = 1
 """
     in
         describe "Functions"
@@ -130,6 +140,8 @@ fun a b = 1
                 \() -> testModules |> hasFull "A.fun(1, 2)"
             , test "Correct curried application for undefined module" <|
                 \() -> testModules |> hasFull "Elchemy.XString.join().(\" \").(a)"
+            , test "Correct curried application for imported functions" <|
+                \() -> testModules |> hasFull "imported_fun(10, 10.0)"
             ]
 
 

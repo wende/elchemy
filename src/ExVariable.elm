@@ -36,8 +36,6 @@ varOrNah : Context -> String -> String
 varOrNah c var =
     if Set.member var c.variables || c.inArgs then
         var
-    else if c.inMeta then
-        c.mod ++ "." ++ var ++ "()"
     else
         var ++ "()"
 
