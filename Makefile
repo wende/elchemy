@@ -25,10 +25,18 @@ test-all:
 	make test
 	make test-std
 	make compile-elixir # Change to compile-elixir-and-test when let..in fixed completely
+	make test-project
+
+test-project:
 	rm -rf test_project
 	mix new test_project
-	cd test_project && (yes | ../elchemy init) && ../elchemy compile elm lib && cp -r ../elchemy-core/lib lib/elm-deps && mix test
-
+	cd test_project ; \
+		(yes | ../elchemy init) ;\
+		../elchemy compile elm lib  ;\
+		cp -r ../elchemy-core/lib lib/elm-deps ;\
+		cp -r ../elchemy-core/elm lib/elm-deps-elixir-files ;\
+		mix test
+ 
 test-std:
 	cd elchemy-core/ && mix test
 

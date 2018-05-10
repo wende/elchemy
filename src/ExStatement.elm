@@ -195,43 +195,36 @@ elixirS c s =
                             False
             in
                 newC
-                    => if (not <| definitionExists name c) && (not isPrivate) then
-                        ExContext.crash c <|
-                            "To be able to export it, you need to provide function type for `"
-                                ++ name
-                                ++ "` function in module "
-                                ++ toString c.mod
-                       else
-                        case body of
-                            (Application (Application (Variable [ "ffi" ]) _) _) as app ->
-                                spec
-                                    ++ ind (c.indent + 1)
-                                    ++ genFfi app
+                    => case body of
+                        (Application (Application (Variable [ "ffi" ]) _) _) as app ->
+                            spec
+                                ++ ind (c.indent + 1)
+                                ++ genFfi app
 
-                            (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
-                                spec
-                                    ++ ind (c.indent + 1)
-                                    ++ genFfi app
+                        (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
+                            spec
+                                ++ ind (c.indent + 1)
+                                ++ genFfi app
 
-                            (Application (Application (Variable [ "macro" ]) _) _) as app ->
-                                ind c.indent
-                                    ++ genFfi app
-                                    ++ "\n"
+                        (Application (Application (Variable [ "macro" ]) _) _) as app ->
+                            ind c.indent
+                                ++ genFfi app
+                                ++ "\n"
 
-                            -- Case ((Variable [ _ ]) as var) expressions ->
-                            --     if [ var ] == args then
-                            --         ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
-                            --     else
-                            --         ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
-                            --
-                            -- Case (Tuple vars) expressions ->
-                            --     if vars == args && List.all (Tuple.first >> isTuple) expressions then
-                            --         ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
-                            --     else
-                            --         ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
-                            _ ->
-                                spec
-                                    ++ ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
+                        -- Case ((Variable [ _ ]) as var) expressions ->
+                        --     if [ var ] == args then
+                        --         ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
+                        --     else
+                        --         ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
+                        --
+                        -- Case (Tuple vars) expressions ->
+                        --     if vars == args && List.all (Tuple.first >> isTuple) expressions then
+                        --         ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
+                        --     else
+                        --         ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
+                        _ ->
+                            spec
+                                ++ ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
 
         Comment content ->
             elixirComment c content
