@@ -44,10 +44,10 @@ generateFfi c elixirE name argTypes e =
     in
         case ( typeDef, applicationToList e ) of
             ( Nothing, (Variable [ "ffi" ]) :: _ ) ->
-                Debug.crash "Ffi requires type definition"
+                ExContext.crash c "Ffi requires type definition"
 
             ( Nothing, (Variable [ "macro" ]) :: _ ) ->
-                Debug.crash "Macro requires type definition"
+                ExContext.crash c "Macro requires type definition"
 
             ( Just def, [ Variable [ "ffi" ], String mod, String fun ] ) ->
                 let
@@ -101,7 +101,7 @@ generateFfi c elixirE name argTypes e =
                             ++ (uncurryArguments (rememberVariables (wrapAllInVar arguments) c) |> String.join ", ")
                             ++ ")"
                     else
-                        Debug.crash "Macro calls have to return a Macro type"
+                        ExContext.crash c "Macro calls have to return a Macro type"
 
             ( Just def, [ Variable [ "tryFfi" ], String mod, String fun ] ) ->
                 let
@@ -133,7 +133,7 @@ generateFfi c elixirE name argTypes e =
                         ++ "end"
 
             _ ->
-                Debug.crash "Wrong ffi definition"
+                ExContext.crash c "Wrong ffi definition"
 
 
 {-| Walk through function definition and uncurry all of the multi argument functions
@@ -152,7 +152,7 @@ uncurrify c elixirE argTypes =
                 (\( i, arg ) ->
                     case arg of
                         [] ->
-                            Debug.crash "Impossible"
+                            ExContext.crash c "Impossible"
 
                         [ any ] ->
                             "a" ++ toString i
@@ -246,4 +246,4 @@ resolveFfi c elixirE ffi =
                         ++ " end"
 
             _ ->
-                Debug.crash "Wrong ffi call"
+                ExContext.crash c "Wrong ffi call"

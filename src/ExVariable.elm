@@ -36,6 +36,8 @@ varOrNah : Context -> String -> String
 varOrNah c var =
     if Set.member var c.variables || c.inArgs then
         var
+    else if c.inMeta then
+        c.mod ++ "." ++ var ++ "()"
     else
         var ++ "()"
 
@@ -110,8 +112,8 @@ Would become:
 b = 1
 a = b
 -}
-organizeLetInVariablesOrder : List ( Expression, Expression ) -> List ( Expression, Expression )
-organizeLetInVariablesOrder expressionList =
+organizeLetInVariablesOrder : Context -> List ( Expression, Expression ) -> List ( Expression, Expression )
+organizeLetInVariablesOrder c expressionList =
     case bubbleSelect (\a b -> not <| isIn a b) expressionList of
         Ok list ->
             list
@@ -119,7 +121,7 @@ organizeLetInVariablesOrder expressionList =
         Err list ->
             let
                 _ =
-                    Debug.crash <|
+                    ExContext.crash c <|
                         "Couldn't find a solution to "
                             ++ toString (list |> List.map Tuple.first)
             in
@@ -128,18 +130,18 @@ organizeLetInVariablesOrder expressionList =
 
 {-| Returns a name of a variable, or a name of a function being applied
 -}
-extractName : Expression -> String
-extractName expression =
+extractName : Context -> Expression -> String
+extractName c expression =
     case Helpers.applicationToList expression of
         [ Variable [ name ] ] ->
             name
 
         [ single ] ->
-            Debug.crash (toString single ++ " is not a variable")
+            ExContext.crash c (toString single ++ " is not a variable")
 
         multi ->
             List.head multi
-                |> Maybe.map extractName
+                |> Maybe.map (extractName c)
                 |> Maybe.withDefault ""
 
 

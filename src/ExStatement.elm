@@ -26,7 +26,6 @@ import Helpers
         , translateOperator
         , (=>)
         , modulePath
-        , notImplemented
         , typeApplicationToList
         , filterMaybe
         )
@@ -71,7 +70,7 @@ typeDefinition c name args types isUnion =
                     name
 
                 _ ->
-                    Debug.crash (toString t ++ " is not a type variable")
+                    ExContext.crash c (toString t ++ " is not a type variable")
 
         arguments =
             if args == [] then
@@ -119,11 +118,11 @@ elixirS c s =
             if t == TypeConstructor [ "List" ] [ TypeConstructor [ "Macro" ] [] ] then
                 ( c, "" )
             else
-                Debug.crash "Function `meta` is reserved and its type has to be of List Macro"
+                ExContext.crash c "Function `meta` is reserved and its type has to be of List Macro"
 
         FunctionDeclaration "meta" [] body ->
             if not <| definitionExists "meta" c then
-                Debug.crash "Function `meta` requires type definition of List Macro"
+                ExContext.crash c "Function `meta` requires type definition of List Macro"
             else
                 ( { c | meta = Just body }, "" )
 
@@ -197,7 +196,7 @@ elixirS c s =
             in
                 newC
                     => if (not <| definitionExists name c) && (not isPrivate) then
-                        Debug.crash <|
+                        ExContext.crash c <|
                             "To be able to export it, you need to provide function type for `"
                                 ++ name
                                 ++ "` function in module "
@@ -344,7 +343,7 @@ elixirS c s =
 
         s ->
             (,) c <|
-                notImplemented "statement" s
+                ExContext.notImplemented c "statement" s
 
 
 definitionExists : String -> Context -> Bool
@@ -398,8 +397,8 @@ insertImports mod subset c =
 
 {-| Verify correct flag format
 -}
-verifyFlag : List String -> Maybe ( String, String )
-verifyFlag flag =
+verifyFlag : Context -> List String -> Maybe ( String, String )
+verifyFlag c flag =
     case flag of
         [ k, v ] ->
             Just ( k, v )
@@ -408,7 +407,7 @@ verifyFlag flag =
             Nothing
 
         a ->
-            Debug.crash <| "Wrong flag format " ++ toString a
+            ExContext.crash c <| "Wrong flag format " ++ toString a
 
 
 {-| Encode elixir comment and return a context with updated last doc
@@ -437,7 +436,7 @@ elixirComment c content =
                 (content
                     |> Regex.split All (regex "\\s+")
                     |> List.map (String.split ":+")
-                    |> List.filterMap verifyFlag
+                    |> List.filterMap (verifyFlag c)
                     |> List.foldl (ExContext.addFlag) c
                 )
 
@@ -521,8 +520,11 @@ exportSetToList exp =
         FunctionExport name ->
             [ name ]
 
-        _ ->
-            Debug.crash ("You can't export " ++ toString exp)
+        AllExport ->
+            []
+
+        SubsetExport _ ->
+            []
 
 
 elixirExportList : Context -> List String -> List String

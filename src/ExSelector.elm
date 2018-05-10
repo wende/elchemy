@@ -5,6 +5,7 @@ import Regex
 import Char
 import List.Extra
 import Helpers
+import ExContext exposing (Context)
 
 
 type Selector
@@ -21,33 +22,33 @@ type AccessMacro
     = AccessMacro AccessMacroType Int (List Selector)
 
 
-getSelector : Expression -> Selector
-getSelector expression =
+getSelector : Context -> Expression -> Selector
+getSelector c expression =
     case expression of
         AccessFunction name ->
             Access (Helpers.toSnakeCase True name)
 
         _ ->
-            Debug.crash "The only allowed selectors are: .field"
+            ExContext.crash c "The only allowed selectors are: .field"
 
 
-maybeAccessMacro : Expression -> List Expression -> Maybe ( AccessMacro, List Expression )
-maybeAccessMacro call args =
+maybeAccessMacro : Context -> Expression -> List Expression -> Maybe ( AccessMacro, List Expression )
+maybeAccessMacro c call args =
     let
         accessMacroArgs arity args =
             case compare (List.length args) arity of
                 LT ->
-                    Debug.crash <|
+                    ExContext.crash c <|
                         "Access macros [updateIn/getIn/putIn] cannot be partially applied. Expecting "
                             ++ toString arity
                             ++ " selector arguments."
 
                 EQ ->
-                    ( List.map getSelector args, [] )
+                    ( List.map (getSelector c) args, [] )
 
                 GT ->
                     List.Extra.splitAt arity args
-                        |> Tuple.mapFirst (List.map getSelector)
+                        |> Tuple.mapFirst (List.map <| getSelector c)
     in
         case ( call, args ) of
             ( Variable [ name ], args ) ->

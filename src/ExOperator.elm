@@ -66,7 +66,7 @@ elixirBinop c elixirE op l r =
                         ++ ")"
 
                 None ->
-                    Debug.crash ("Illegal operator " ++ op)
+                    ExContext.crash c ("Illegal operator " ++ op)
 
 
 {-| Flattens pipes into a list of expressions

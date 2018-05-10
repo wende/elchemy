@@ -12,19 +12,6 @@ type MaybeUpper
     | Lower String
 
 
-{-| Throw a nice error saying that this feature is not implemented yet
--}
-notImplemented : String -> a -> String
-notImplemented feature value =
-    " ## ERROR: No "
-        ++ feature
-        ++ " implementation for "
-        ++ toString value
-        ++ " yet"
-        ++ "\n"
-        |> Debug.crash
-
-
 {-| Convert string to snakecase, if the flag is set to true then it won't replace reserved words
 -}
 toSnakeCase : Bool -> String -> String

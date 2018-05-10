@@ -32,6 +32,8 @@ module ExContext
         , importBasicsWithoutShadowed
         , putIntoModule
         , changeCurrentModule
+        , crash
+        , notImplemented
         )
 
 import Set exposing (Set)
@@ -139,9 +141,9 @@ type alias Context =
 {-| Crashes the compiler because the alias was used with wrong arity.
 Shouldn't ever happen if run after elm-make
 -}
-wrongArityAlias : Int -> List Type -> String -> a
-wrongArityAlias arity list name =
-    Debug.crash <|
+wrongArityAlias : Context -> Int -> List Type -> String -> a
+wrongArityAlias c arity list name =
+    crash c <|
         "Expected "
             ++ toString arity
             ++ " arguments for "
@@ -382,7 +384,7 @@ isPrivate context name =
             False
 
         other ->
-            Debug.crash "No such export"
+            crash context "No such export"
 
 
 {-| Merges a set of two variables from two different contexts
@@ -496,7 +498,7 @@ mergeTypes set mod c =
                     c
 
                 _ ->
-                    Debug.crash "You can't import subset of subsets"
+                    crash c "You can't import subset of subsets"
     in
         case set of
             AllExport ->
@@ -508,4 +510,28 @@ mergeTypes set mod c =
                 List.foldl importOne c list
 
             _ ->
-                Debug.crash "You can't import something that's not a subset"
+                crash c "You can't import something that's not a subset"
+
+
+{-| Throw a nice error with the context involving it
+-}
+crash : Context -> String -> a
+crash c prompt =
+    Debug.crash <|
+        "Compilation error:\n\n\t"
+            ++ prompt
+            ++ "\n\nin module: "
+            ++ c.mod
+
+
+{-| Throw a nice error saying that this feature is not implemented yet
+-}
+notImplemented : Context -> String -> a -> String
+notImplemented c feature value =
+    " ## ERROR: No "
+        ++ feature
+        ++ " implementation for "
+        ++ toString value
+        ++ " yet"
+        ++ "\n"
+        |> Debug.crash
