@@ -5,7 +5,7 @@ fi
 if git diff-index --quiet HEAD --; then
     CHANGELOG=`git changelog -x --tag VER`
     npm version $1
-    SEMVER='[0-9][0-9]*\.[0-9][0-9]*\.[0-9]*'
+    SEMVER='[0-9][0-9]*\.[0-9][0-9]*\.[0-9]*-*[0-9]*'
     VER=`npm ls | grep -o elchemy@$SEMVER | grep -o $SEMVER`
     CHANGELOG=${CHANGELOG/VER/$VER}
     echo "$CHANGELOG"
