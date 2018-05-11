@@ -10,9 +10,11 @@ if git diff-index --quiet HEAD --; then
     CHANGELOG=${CHANGELOG/VER/$VER}
     echo "$CHANGELOG"
 
-    CORE_BRANCH=`git branch | grep \* | cut -d ' ' -f2`
     make compile-std
+
     cd elchemy-core
+
+    CORE_BRANCH=`git branch | grep \* | cut -d ' ' -f2`
     sed -i "" "s/$SEMVER/$VER/g" mix.exs
     git pull origin $CORE_BRANCH
     git commit -am "Release $VER"
