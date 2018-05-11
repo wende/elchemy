@@ -17,3 +17,5 @@ example/
 stable/
 _book/
 .elixir_ls/
+.vscode/
+test_project/
