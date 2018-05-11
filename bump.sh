@@ -10,24 +10,27 @@ if git diff-index --quiet HEAD --; then
     CHANGELOG=${CHANGELOG/VER/$VER}
     echo "$CHANGELOG"
 
+    CORE_BRANCH=`git branch | grep \* | cut -d ' ' -f2`
     make compile-std
     cd elchemy-core
     sed -i "" "s/$SEMVER/$VER/g" mix.exs
-    git pull origin master
+    git pull origin $CORE_BRANCH
     git commit -am "Release $VER"
     git tag $VER
 
     if ! [[ $* == *-n* ]]; then
-      git push origin master $VER
+      git push origin $CORE_BRANCH $VER
     fi
 
     cd ..
+
+    ELCHEMY_BRANCH=`git branch | grep \* | cut -d ' ' -f2`
     sed -i "" "s/$SEMVER/$VER/g" mix.exs
     rm -f elchemy-*.ez
     mix archive.build
     mix archive.install "elchemy-$VER.ez" --force
 
-    git pull origin master
+    git pull origin $ELCHEMY_BRANCH
     sed -i "" "s/$SEMVER/$VER/g" src/Compiler.elm
     make compile
     make build-docs
@@ -48,7 +51,7 @@ if git diff-index --quiet HEAD --; then
     git commit -am "$CHANGELOG"
     git tag $VER
     if ! [[ $* == *-n* ]]; then
-      git push origin master $VER
+      git push origin $ELCHEMY_BRANCH $VER
       hub release create -p -a "elchemy-$VER.ez" $VER
     fi
 else
