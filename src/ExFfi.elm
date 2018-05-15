@@ -84,6 +84,9 @@ generateFfi c elixirE name argTypes e =
                 let
                     arguments =
                         generateArguments_ "a" def.arity
+
+                    varArgs =
+                        wrapAllInVar arguments
                 in
                     if ExType.hasReturnedType (TypeConstructor [ "Macro" ] []) def.def then
                         "defmacro"
@@ -98,7 +101,7 @@ generateFfi c elixirE name argTypes e =
                             ++ "."
                             ++ fun
                             ++ "("
-                            ++ (uncurryArguments (rememberVariables (wrapAllInVar arguments) c) |> String.join ", ")
+                            ++ (varArgs |> List.map (elixirE (rememberVariables varArgs c)) |> String.join ", ")
                             ++ ")"
                     else
                         ExContext.crash c "Macro calls have to return a Macro type"

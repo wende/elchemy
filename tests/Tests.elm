@@ -117,8 +117,13 @@ importedFun a b = 1
             , test "macro" <|
                 \() ->
                     "upcase : Macro"
-                        |++ "upcase name = macro \"String\" \"to_upper\" "
+                        |++ "upcase = macro \"String\" \"to_upper\" "
                         |> has "String.to_upper("
+            , test "macro doesn't lambdify arguments" <|
+                \() ->
+                    "upcase : (Int -> Int) -> Macro"
+                        |++ "upcase = macro \"String\" \"to_upper\" "
+                        |> has "String.to_upper(a1)"
             , test "Function names are snakecased" <|
                 \() ->
                     "camelCase = 1" |> has "camel_case()"

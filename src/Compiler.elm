@@ -203,6 +203,7 @@ getCode context statements =
             ++ code
             ++ glueEnd
             ++ ExMeta.metaDefinition { newC | inMeta = True }
+            ++ "\n\n"
 
 
 parse : String -> String -> List Statement
