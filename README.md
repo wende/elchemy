@@ -27,15 +27,10 @@ Elchemy lets you write simple, fast and quality type safe code while leveraging 
 
 # Features
 - **Type inference:** Powerful type inference means you rarely have to annotate types. Everything gets checked for you by the compiler
-- **Easy and type-safe interop**: You can call Elixir/Erlang without any extra boiler-plate. All the calls you make are checked in terms of type-safety as thoroughly as possible
+- **Easy and type-safe interop**: You can call Elixir/Erlang without any extra boiler-plate. All the calls you make are checked in terms of type-safety as thoroughly as possible based on Elixir's typespecs.
 - **All the best of Elm and Elixir**: Elchemy inherits what's best in Elm - type safety, inference and extreme expressiveness, but also what's best in Elixir - Doc-tests, tooling and obviously the entire BEAM platform.
-- **Nearly No runtime errors** - Elchemy's type system **eliminates almost all runtime errors**. With a shrinking set of edge cases, your entire app will be as safe as the parts written in Elixir are.
+- **Nearly no runtime errors** - Elchemy's type system **eliminates almost all runtime errors**. With a shrinking set of edge cases, your entire Elchemy codebase is safe. Elixir parts of the codebase are the only ones to be a suspect in cases of runtime errors happening.
 - **Beautiful and fully readable output** - The produced code is idiomatic, performant and can be easily read and analyzed without taking a single look at the original source.
-
-# Path notes.
-Since version 0.4 all of the patch notes are included in the description of [a release](https://github.com/wende/elchemy/releases):
-
-
 
 # Usage
 
@@ -61,9 +56,9 @@ And follow the instructions
 
 `elchemy` will find all `*.elm` files specified in `elchemy_path` and compile it into corresponding `*.ex` files in `lib` directory.
 
-You can override output directory specifing `elixirc_paths`.
+You can override output directory specifying `elixirc_paths`.
 
-### Instalation as a standalone
+### Installation as a standalone
 ```shell
 npm install -g elchemy
 ```
@@ -71,6 +66,11 @@ Usage
 ```
 elchemy compile source_dir output_dir
 ```
+
+### Recommended editors setup
+- [Atom](https://atom.io/) with [elixir-language](https://atom.io/packages/language-elixir) and [atom-elixir](https://github.com/msaraiva/atom-elixir) or [elixir-ide](https://atom.io/packages/ide-elixir) for Elixir; and [language-elm](https://atom.io/packages/language-elm) + [elmjutsu](https://atom.io/packages/elmjutsu) for Elchemy.
+- [Visual Studio Code](https://code.visualstudio.com/) with [vscode-elixir](https://marketplace.visualstudio.com/items?itemName=mjmcloug.vscode-elixir), [vscode-elixir-ls](https://github.com/JakeBecker/vscode-elixir-ls) and [vscode-elm](https://github.com/Krzysztof-Cieslak/vscode-elm)
+
 ### Build from source
 
 ```
@@ -93,7 +93,7 @@ To launch and test the web demo
 
 ## Targeted values:
 - Fully readable and indented elixir code generated from compilation
-- Seamless and stressless interop with existing Elixir code, preferably with magically working type safety
+- Seamless and stress less interop with existing Elixir code, preferably with magically working type safety
 - Full integration with entire elm syntax for editors and compilers magic
 
 ## Troubleshooting
@@ -133,17 +133,17 @@ Definitely. Yes. Please do.
 ## How are types represented?
 You're a nosy one, aren't you?
 Elchemy represents all type constructors as snake cased atoms, and all type applications as tuples.
-Which means that `MyType 42 "Fourty two" Error` in Elchemy equals to `{:my_type, 42, "Fourty Two", :error}` in Elixir.
+Which means that `MyType 42 "Forty two" Error` in Elchemy equals to `{:my_type, 42, "Forty Two", :error}` in Elixir.
 
 ## Can I use already existing Elm libraries with Elchemy?
 As long as they don't use any Native modules, Ports or Elm runtime they can be safely imported and used
 
 ## Can I use already existing Elixir libraries with Elchemy?
-Yes. You can do an `ffi` call to any function in any module. Whether it's Elixir module, Erlang module, or even a macro you can include it in your code. Ffi calls are a treated specially in Elchemy and they get generated test to analyze the types based on @specs, so that you don't compromise type safety for using Elixir code. 
-In order to increase readbility it's advised no to use `ffi` calls if not necessary and always document and doctest them.
+Yes. You can do an `ffi` call to any function in any module. Whether it's Elixir module, Erlang module, or even a macro you can include it in your code. Ffi calls are a treated specially in Elchemy, and they get generated test to analyze the types based on @specs, so that you don't compromise type safety for using Elixir code. 
+In order to increase readability it's advised not to use `ffi` calls if not necessary and always document and doctest them.
 
 ## But what about out of function macros? Like tests and `use Module`?
-Unfortunatelly you can't write any macros with `do..end` blocks yet. You can write any out of function code using an elixir inline code with:
+Unfortunately you can't write any macros with `do..end` blocks yet. You can write any out of function code using an elixir inline code with:
 ```elm
 {- ex
   code_here
@@ -155,19 +155,19 @@ But it's a last resort solution and shouldn't ever be abused.
 So you want to write an Elm-like code, that will manipulate Elixir code, which generates an Elixir code that manipulates Elixir code? How about no?
 
 ## Do I need to have Elm installed to compile my `.elm` files with Elchemy?
-Elchemy uses Elm to typecheck your program. Although it is possible to use it without Elm on your machine it's not advised.
+Elchemy uses Elm to typecheck your program. It is possible to use it without Elm on your machine, while it's not advised.
 
 
-# Progress of the project
+# Maturity of the project
 
-- Parser - **99%** of Elm's syntax 
-- Compiler - **97%** (still needs some nicer solutions of code generation plus we might come out with some new nice ideas)
-- Elchemy-core - **93** ( We have Basics, Debug, Char, String, List, Result, Tuple, Set, Bitwise, Dict and Maybe) 
-- Interop with Elixir - **90%** - All of the interop is mature and type-safe-verified based on specs 
-- Ideology - **60%** - We've got a pretty solid idea of where Elchemy is going 
-- Documentation - **50%** - There's couple of tutorials online and example projects. Nothing fancy yet, though
-- Elchemy-effects - **15%** - You can't and shouldn't write anything with side-effects in Elchemy yet. We're working on finding the best solution for effects that would fit both Elm's and Elixir's community
-- Elchemy-core for Erlang VM - **5%** (Everything for os related tasks like filesystem, OTP goodies etc has to be done)
+- Parser - **99%** of Elm's syntax (see [elm-ast](https://github.com/Bogdanp/elm-ast/issues))
+- Compiler - **90%** (Sophisticated incremental compilation. No support for Windows yet though ([#287](https://github.com/wende/elchemy/issues/287)) also big reliance on unix tools ([#288](https://github.com/wende/elchemy/issues/288))
+- Elchemy-core - **95%** ( Everything covered except side effects and JSON Decoders) 
+- Interop with Elixir - **90%** - Purity tests ([#162](https://github.com/wende/elchemy/issues/162)) and handling of macro-heavy libraries ([#276](https://github.com/wende/elchemy/issues/276)) to go 
+- Ideology - **70%** - We've got a pretty solid idea of where Elchemy is going 
+- Documentation - **80%** - There are two tutorials and a complete Gitbook documentation. Few entrance level tutorials though
+- Elchemy-effects - **20%** - You can't and shouldn't write anything with side-effects in Elchemy yet. We're working on finding the best solution for effects that would fit both Elm's and Elixir's community (see [#297](https://github.com/wende/elchemy/issues/297) for more info)
+- Elchemy-core for Erlang VM - **5%** (Everything for os related tasks like filesystem, OTP goodies etc are yet to be done)
 
 # Contributor credits:
 

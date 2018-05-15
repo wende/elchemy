@@ -23,5 +23,5 @@ Here is a table of all standard types used in the Elchemy environment and their 
 | `Result x y` | `{:ok, y}` &#124; `{:error, x}`
 | `Ok x` | `{:ok, x}`
 | `Err x` | `{:error, x}`
-| `{x = 1, y = 1}`   | `%{x: 1, y: y}` |
+| `{x = 1, y = 1}`   | `%{x: 1, y: 1}` |
 | `Dict String Int`   |  `%{key(String.t()) => integer())}` |

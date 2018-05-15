@@ -9,7 +9,7 @@ defmodule Mix.Tasks.Compile.Elchemy do
 
     # Crash if elchemy not found globally
     unless 0 == Mix.shell.cmd("which #{elchemy_executable}") do
-      Mix.raise "Elchemy not installed found under #{elchemy_executable}. You might need to run `npm install elchemy -g`"
+      Mix.raise "Elchemy not found under #{elchemy_executable}. You might need to run `npm install elchemy -g`"
     end
 
     # Crash if elchemy not found globally
