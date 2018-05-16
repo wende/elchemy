@@ -1,4 +1,4 @@
-module ExType exposing (typeAliasConstructor, typespec, uniontype, elixirT, getExportedTypeNames)
+module ExType exposing (typeAliasConstructor, typespec, uniontype, elixirT, getExportedTypeNames, hasReturnedType)
 
 import Dict
 import Ast.Statement exposing (Type(..), ExportSet(..))
@@ -132,7 +132,7 @@ typeRecordFields c flatten t =
                 let
                     inherited =
                         ExContext.getAlias c.mod name c
-                            |> Maybe.map (\{ typeBody } -> ExAlias.resolveTypeBody typeBody args)
+                            |> Maybe.map (\{ typeBody } -> ExAlias.resolveTypeBody c typeBody args)
                             |> Maybe.map (typeRecordFields c flatten)
                 in
                     List.map keyValuePair fields
@@ -155,7 +155,7 @@ typeRecordFields c flatten t =
                 List.map keyValuePair fields
 
             any ->
-                Debug.crash ("Wrong type record constructor " ++ toString any)
+                ExContext.crash c ("Wrong type record constructor " ++ toString any)
 
 
 {-| Translate and encode Elm type to Elixir type
@@ -273,7 +273,7 @@ typespec c t =
                 ++ elixirTNoFlat c last
 
         ( Nothing, _ ) ->
-            Debug.crash "impossible"
+            ExContext.crash c "impossible"
 
 
 {-| Encode a union type
@@ -292,7 +292,7 @@ uniontype c t =
                 ++ "}"
 
         other ->
-            Debug.crash ("I am looking for union type constructor. But got " ++ toString other)
+            ExContext.crash c ("I am looking for union type constructor. But got " ++ toString other)
 
 
 {-| Change a constructor of a type alias into an expression after resolving it from contextual alias
@@ -353,14 +353,24 @@ aliasOr c name args default =
         |> (Maybe.map <|
                 \{ parentModule, typeBody, aliasType } ->
                     if parentModule == c.mod then
-                        elixirTNoFlat c (ExAlias.resolveTypeBody typeBody args)
+                        elixirTNoFlat c (ExAlias.resolveTypeBody c typeBody args)
                     else
                         case aliasType of
                             ExContext.Type ->
-                                parentModule ++ "." ++ elixirTNoFlat c (ExAlias.resolveTypeBody typeBody args)
+                                parentModule ++ "." ++ elixirTNoFlat c (ExAlias.resolveTypeBody c typeBody args)
 
                             ExContext.TypeAlias ->
-                                (ExAlias.resolveTypeBody typeBody args)
+                                (ExAlias.resolveTypeBody c typeBody args)
                                     |> elixirTNoFlat { c | mod = parentModule }
            )
         |> Maybe.withDefault default
+
+
+hasReturnedType : Type -> Type -> Bool
+hasReturnedType returned t =
+    case List.reverse (typeApplicationToList t) of
+        [] ->
+            False
+
+        t :: _ ->
+            t == returned

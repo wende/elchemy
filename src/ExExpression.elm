@@ -11,7 +11,6 @@ import Helpers
         , ind
         , applicationToList
         , (=>)
-        , notImplemented
         , lastAndRest
         , maybeOr
         , generateArguments
@@ -105,7 +104,7 @@ elixirControlFlow c e =
 
         Let variables expression ->
             variables
-                |> ExVariable.organizeLetInVariablesOrder
+                |> ExVariable.organizeLetInVariablesOrder c
                 |> ExVariable.groupByCrossDependency
                 |> (flip List.foldl ( c, "" ) <|
                         \varGroup ( cAcc, codeAcc ) ->
@@ -142,7 +141,7 @@ elixirLetInMutualFunctions context expressionsList =
 
         names =
             expressionsList
-                |> List.map (Tuple.first >> ExVariable.extractName >> toSnakeCase True)
+                |> List.map (Tuple.first >> ExVariable.extractName c >> toSnakeCase True)
 
         c =
             rememberVariables vars context
@@ -160,14 +159,14 @@ elixirLetInMutualFunctions context expressionsList =
                     lambda c args body
 
                 _ ->
-                    Debug.crash <| toString head ++ " is not a let in branch"
+                    ExContext.crash c <| toString head ++ " is not a let in branch"
     in
         c
             => "{"
             ++ (names |> String.join ", ")
             ++ "} = let ["
             ++ (expressionsList
-                    |> List.map (\(( var, exp ) as v) -> ( (ExVariable.extractName var), v ))
+                    |> List.map (\(( var, exp ) as v) -> ( (ExVariable.extractName c var), v ))
                     |> List.map (Tuple.mapSecond <| letBranchToLambda (indent c))
                     |> List.map (\( name, body ) -> (ind (c.indent + 1)) ++ toSnakeCase True name ++ ": " ++ body)
                     |> String.join ","
@@ -292,7 +291,7 @@ elixirPrimitve c e =
                 ++ "}"
 
         _ ->
-            notImplemented "expression" e
+            ExContext.notImplemented c "expression" e
 
 
 {-| Change if expression body into list of clauses
@@ -328,6 +327,7 @@ isMacro e =
                 [ "tryFfi"
                 , "ffi"
                 , "lffi"
+                , "macro"
                 , "flambda"
                 , "updateIn"
                 , "updateIn2"
@@ -379,6 +379,8 @@ functionApplication c left right =
             (Variable [ fn ]) :: args ->
                 if areMatchingArity c c.mod fn args then
                     toSnakeCase True fn ++ "(" ++ reduceArgs c args ", " ++ ")"
+                else if c.inMeta then
+                    ExContext.crash c "You need to use full "
                 else
                     elixirE c left ++ ".(" ++ elixirE c right ++ ")"
 
@@ -447,16 +449,19 @@ tupleOrFunction c a =
 
         -- A macro
         (Variable [ "ffi" ]) :: rest ->
-            Debug.crash "Ffi inside function body is deprecated since Elchemy 0.3"
+            ExContext.crash c "Ffi inside function body is deprecated since Elchemy 0.3"
+
+        (Variable [ "macro" ]) :: rest ->
+            ExContext.crash c "You can't use `macro` inside a function body"
 
         (Variable [ "tryFfi" ]) :: rest ->
-            Debug.crash "tryFfi inside function body is deprecated since Elchemy 0.3"
+            ExContext.crash c "tryFfi inside function body is deprecated since Elchemy 0.3"
 
         (Variable [ "lffi" ]) :: rest ->
-            Debug.crash "Lffi inside function body is deprecated since Elchemy 0.3"
+            ExContext.crash c "Lffi inside function body is deprecated since Elchemy 0.3"
 
         (Variable [ "flambda" ]) :: rest ->
-            Debug.crash "Flambda is deprecated since Elchemy 0.3"
+            ExContext.crash c "Flambda is deprecated since Elchemy 0.3"
 
         [ Variable [ "Just" ], arg ] ->
             "{" ++ elixirE c arg ++ "}"
@@ -467,9 +472,12 @@ tupleOrFunction c a =
         [ Variable [ "Err" ], arg ] ->
             "{:error, " ++ elixirE c arg ++ "}"
 
+        [ Variable [ "Do" ], arg ] ->
+            "quote do " ++ elixirE c arg ++ " end"
+
         -- Regular non-macro application
         ((Variable list) as call) :: rest ->
-            ExSelector.maybeAccessMacro call rest
+            ExSelector.maybeAccessMacro c call rest
                 |> Maybe.map (encodeAccessMacroAndRest c)
                 |> Maybe.withDefault
                     (Helpers.moduleAccess c.mod list
@@ -486,7 +494,7 @@ tupleOrFunction c a =
                     )
 
         other ->
-            Debug.crash ("Shouldn't ever work for" ++ toString other)
+            ExContext.crash c ("Shouldn't ever work for" ++ toString other)
 
 
 {-| Return an alias for type alias or union type if it exists, return Nothing otherwise
@@ -555,7 +563,7 @@ typeApplication c name args =
                                 ++ "}"
                                 |> flip (++) (String.repeat dif " end")
                         else
-                            Debug.crash <|
+                            ExContext.crash c <|
                                 "Expected "
                                     ++ toString arity
                                     ++ " arguments for '"

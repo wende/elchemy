@@ -7,6 +7,7 @@ module Compiler exposing (version, tree)
 -}
 
 import Ast
+import ExMeta
 import ExAlias
 import ExStatement
 import Dict exposing (Dict)
@@ -20,7 +21,7 @@ import Regex exposing (Regex, HowMany(..), regex)
 -}
 version : String
 version =
-    "0.6.6"
+    "0.7.1"
 
 
 glueStart : String
@@ -189,6 +190,9 @@ getCode context statements =
     let
         shadowsBasics =
             ExContext.importBasicsWithoutShadowed context
+
+        ( newC, code ) =
+            List.foldl aggregateStatements ( context, "" ) statements
     in
         ("# Compiled using Elchemy v" ++ version)
             ++ "\n"
@@ -196,10 +200,10 @@ getCode context statements =
             ++ glueStart
             ++ (ind context.indent)
             ++ shadowsBasics
-            ++ ((List.foldl (aggregateStatements) ( context, "" ) statements)
-                    |> Tuple.second
-               )
+            ++ code
             ++ glueEnd
+            ++ ExMeta.metaDefinition { newC | inMeta = True }
+            ++ "\n\n"
 
 
 parse : String -> String -> List Statement

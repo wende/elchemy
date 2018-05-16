@@ -4,6 +4,7 @@ import Ast
 import ExFfi
 import ExType
 import ExAlias
+import ExAst
 import ExFunction
 import ExExpression
 import Dict exposing (Dict)
@@ -25,7 +26,6 @@ import Helpers
         , translateOperator
         , (=>)
         , modulePath
-        , notImplemented
         , typeApplicationToList
         , filterMaybe
         )
@@ -70,7 +70,7 @@ typeDefinition c name args types isUnion =
                     name
 
                 _ ->
-                    Debug.crash (toString t ++ " is not a type variable")
+                    ExContext.crash c (toString t ++ " is not a type variable")
 
         arguments =
             if args == [] then
@@ -114,17 +114,35 @@ elixirS c s =
         TypeAliasDeclaration (TypeConstructor [ name ] args) t ->
             typeDefinition c name args [ t ] False
 
-        (FunctionTypeDeclaration name ((TypeApplication _ _) as t)) as def ->
+        FunctionTypeDeclaration "meta" t ->
+            if t == TypeConstructor [ "List" ] [ TypeConstructor [ "Macro" ] [] ] then
+                ( c, "" )
+            else
+                ExContext.crash c "Function `meta` is reserved and its type has to be of List Macro"
+
+        FunctionDeclaration "meta" [] body ->
+            if not <| definitionExists "meta" c then
+                ExContext.crash c "Function `meta` requires type definition of List Macro"
+            else
+                ( { c | meta = Just body }, "" )
+
+        FunctionTypeDeclaration name typedef ->
+            ( c, "" )
+
+        FunctionDeclaration name args body ->
             let
+                definition =
+                    c.commons.modules
+                        |> Dict.get c.mod
+                        |> Maybe.andThen (.definitions >> Dict.get name >> Maybe.map .def)
+                        |> Maybe.map (ExAlias.replaceTypeAliases c)
+
                 ( newC, code ) =
                     c.lastDoc
                         |> Maybe.map (elixirDoc c Fundoc name)
                         |> Maybe.withDefault ( c, "" )
 
-                resolved =
-                    ExAlias.replaceTypeAliases c t
-            in
-                (,) newC <|
+                spec =
                     (onlyWithoutFlag newC "nodef" name code)
                         ++ case operatorType name of
                             Builtin ->
@@ -132,49 +150,29 @@ elixirS c s =
                                 ""
 
                             Custom ->
-                                onlyWithoutFlag newC "nospec" name <|
-                                    (ind newC.indent)
-                                        ++ "@spec "
-                                        ++ translateOperator name
-                                        ++ (ExType.typespec newC resolved)
+                                definition
+                                    |> Maybe.map
+                                        (\def ->
+                                            onlyWithoutFlag newC "nospec" name <|
+                                                (ind newC.indent)
+                                                    ++ "@spec "
+                                                    ++ translateOperator name
+                                                    ++ (ExType.typespec newC def)
+                                        )
+                                    |> Maybe.withDefault ""
 
                             None ->
-                                onlyWithoutFlag newC "nospec" name <|
-                                    (ind newC.indent)
-                                        ++ "@spec "
-                                        ++ toSnakeCase True name
-                                        ++ (ExType.typespec newC resolved)
+                                definition
+                                    |> Maybe.map
+                                        (\def ->
+                                            onlyWithoutFlag newC "nospec" name <|
+                                                (ind newC.indent)
+                                                    ++ "@spec "
+                                                    ++ toSnakeCase True name
+                                                    ++ (ExType.typespec newC def)
+                                        )
+                                    |> Maybe.withDefault ""
 
-        (FunctionTypeDeclaration name t) as def ->
-            let
-                ( newC, code ) =
-                    c.lastDoc
-                        |> Maybe.map (elixirDoc c Fundoc name)
-                        |> Maybe.withDefault ( c, "" )
-            in
-                (,) newC <|
-                    code
-                        ++ case operatorType name of
-                            Builtin ->
-                                -- TODO implement operator specs
-                                ""
-
-                            Custom ->
-                                onlyWithoutFlag newC name "nospec" <|
-                                    (ind c.indent)
-                                        ++ "@spec "
-                                        ++ translateOperator name
-                                        ++ (ExType.typespec newC t)
-
-                            None ->
-                                onlyWithoutFlag newC name "nospec" <|
-                                    (ind c.indent)
-                                        ++ "@spec "
-                                        ++ toSnakeCase True name
-                                        ++ (ExType.typespec newC t)
-
-        (FunctionDeclaration name args body) as fd ->
-            let
                 genFfi =
                     ExFfi.generateFfi c ExExpression.elixirE name <|
                         (c.commons.modules
@@ -195,48 +193,38 @@ elixirS c s =
 
                         _ ->
                             False
-
-                definitionExists =
-                    c.commons.modules
-                        |> Dict.get c.mod
-                        |> Maybe.andThen (.definitions >> Dict.get name)
-                        |> (/=) Nothing
-
-                preCurry =
-                    if not definitionExists && args /= [] then
-                        (ind c.indent) ++ "curryp " ++ toSnakeCase True name ++ "/" ++ toString (List.length args)
-                    else
-                        ""
             in
-                c
-                    => if (not definitionExists) && (not isPrivate) then
-                        Debug.crash <|
-                            "To be able to export it, you need to provide function type for `"
-                                ++ name
-                                ++ "` function in module "
-                                ++ toString c.mod
-                       else
-                        preCurry
-                            ++ case body of
-                                (Application (Application (Variable [ "ffi" ]) _) _) as app ->
-                                    genFfi app
+                newC
+                    => case body of
+                        (Application (Application (Variable [ "ffi" ]) _) _) as app ->
+                            spec
+                                ++ ind (c.indent + 1)
+                                ++ genFfi app
 
-                                (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
-                                    genFfi app
+                        (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
+                            spec
+                                ++ ind (c.indent + 1)
+                                ++ genFfi app
 
-                                -- Case ((Variable [ _ ]) as var) expressions ->
-                                --     if [ var ] == args then
-                                --         ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
-                                --     else
-                                --         ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
-                                --
-                                -- Case (Tuple vars) expressions ->
-                                --     if vars == args && List.all (Tuple.first >> isTuple) expressions then
-                                --         ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
-                                --     else
-                                --         ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
-                                _ ->
-                                    ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
+                        (Application (Application (Variable [ "macro" ]) _) _) as app ->
+                            ind c.indent
+                                ++ genFfi app
+                                ++ "\n"
+
+                        -- Case ((Variable [ _ ]) as var) expressions ->
+                        --     if [ var ] == args then
+                        --         ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
+                        --     else
+                        --         ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
+                        --
+                        -- Case (Tuple vars) expressions ->
+                        --     if vars == args && List.all (Tuple.first >> isTuple) expressions then
+                        --         ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
+                        --     else
+                        --         ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
+                        _ ->
+                            spec
+                                ++ ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
 
         Comment content ->
             elixirComment c content
@@ -296,7 +284,7 @@ elixirS c s =
                         "import "
             in
                 (c
-                    |> insertImportedTypes moduleName subset
+                    |> insertImports moduleName subset
                     |> ExContext.mergeTypes subset (modulePath path)
                 )
                     => (ind c.indent)
@@ -337,7 +325,7 @@ elixirS c s =
                         ]
             in
                 (ExContext.mergeTypes AllExport mod c
-                    |> insertImportedTypes mod AllExport
+                    |> insertImports mod AllExport
                 )
                     => (ind c.indent)
                     ++ "import "
@@ -348,23 +336,62 @@ elixirS c s =
 
         s ->
             (,) c <|
-                notImplemented "statement" s
+                ExContext.notImplemented c "statement" s
 
 
-insertImportedTypes mod subset c =
+definitionExists : String -> Context -> Bool
+definitionExists name c =
+    c.commons.modules
+        |> Dict.get c.mod
+        |> Maybe.andThen (.definitions >> Dict.get name)
+        |> (/=) Nothing
+
+
+{-| Based on ExportSet of the `import` call inserts all of the imported types
+and functions into the current context
+-}
+insertImports : String -> ExportSet -> Context -> Context
+insertImports mod subset c =
     let
         exportNames =
             ExType.getExportedTypeNames c mod subset
+
+        importedFunctions subset =
+            case subset of
+                AllExport ->
+                    c.commons.modules
+                        |> Dict.get mod
+                        |> Maybe.map (.definitions)
+                        |> Maybe.map (Dict.toList)
+                        |> Maybe.withDefault []
+                        |> List.map (\( key, { arity } ) -> ( key, arity ))
+
+                SubsetExport list ->
+                    List.concatMap importedFunctions list
+
+                FunctionExport name ->
+                    c.commons.modules
+                        |> Dict.get mod
+                        |> Maybe.map (.definitions)
+                        |> Maybe.andThen (Dict.get name)
+                        |> Maybe.map (\{ arity } -> [ ( name, arity ) ])
+                        |> Maybe.withDefault ([])
+
+                TypeExport _ _ ->
+                    []
     in
         { c
             | importedTypes = List.foldl (flip Dict.insert mod) c.importedTypes exportNames
+            , importedFunctions =
+                importedFunctions subset
+                    |> List.foldl (\( f, arity ) acc -> Dict.insert f ( mod, arity ) acc) c.importedFunctions
         }
 
 
 {-| Verify correct flag format
 -}
-verifyFlag : List String -> Maybe ( String, String )
-verifyFlag flag =
+verifyFlag : Context -> List String -> Maybe ( String, String )
+verifyFlag c flag =
     case flag of
         [ k, v ] ->
             Just ( k, v )
@@ -373,7 +400,7 @@ verifyFlag flag =
             Nothing
 
         a ->
-            Debug.crash <| "Wrong flag format " ++ toString a
+            ExContext.crash c <| "Wrong flag format " ++ toString a
 
 
 {-| Encode elixir comment and return a context with updated last doc
@@ -391,7 +418,8 @@ elixirComment c content =
             (,) c <|
                 (content
                     |> String.split "\n"
-                    |> List.map String.trim
+                    |> List.map (Regex.replace All (regex "^   ") (always ""))
+                    -- |> List.map String.trim
                     |> String.join "\n"
                     |> indAll c.indent
                 )
@@ -401,7 +429,7 @@ elixirComment c content =
                 (content
                     |> Regex.split All (regex "\\s+")
                     |> List.map (String.split ":+")
-                    |> List.filterMap verifyFlag
+                    |> List.filterMap (verifyFlag c)
                     |> List.foldl (ExContext.addFlag) c
                 )
 
@@ -485,8 +513,11 @@ exportSetToList exp =
         FunctionExport name ->
             [ name ]
 
-        _ ->
-            Debug.crash ("You can't export " ++ toString exp)
+        AllExport ->
+            []
+
+        SubsetExport _ ->
+            []
 
 
 elixirExportList : Context -> List String -> List String
