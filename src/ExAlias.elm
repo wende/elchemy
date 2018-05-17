@@ -35,8 +35,8 @@ registerAlias s c =
             c
 
 
-resolveTypeBody : TypeBody -> List Type -> Type
-resolveTypeBody typeBody givenArgs =
+resolveTypeBody : Context -> TypeBody -> List Type -> Type
+resolveTypeBody c typeBody givenArgs =
     case typeBody of
         SimpleType t ->
             t
@@ -50,9 +50,9 @@ resolveTypeBody typeBody givenArgs =
                     List.length expectedArgs
             in
                 if arity == expected then
-                    resolveTypes expectedArgs givenArgs return
+                    resolveTypes c expectedArgs givenArgs return
                 else
-                    wrongArityAlias expected givenArgs name
+                    wrongArityAlias c expected givenArgs name
 
 
 registerTypeAlias : Context -> Type -> Type -> Context
@@ -72,7 +72,7 @@ registerTypeAlias c tc t =
                 ExContext.addAlias c.mod name ali c
 
         ts ->
-            Debug.crash <| "Wrong type alias declaration " ++ toString ts
+            ExContext.crash c <| "Wrong type alias declaration " ++ toString ts
 
 
 registerUnionType : Context -> Type -> List Type -> Context
@@ -95,7 +95,7 @@ registerUnionType c tc types =
                 ExContext.addAlias c.mod name ali newC
 
         ts ->
-            Debug.crash <| "Wrong type declaration " ++ toString ts
+            ExContext.crash c <| "Wrong type declaration " ++ toString ts
 
 
 registerFunctionDefinition : Context -> String -> Type -> Context
@@ -119,7 +119,7 @@ registerTypes types parentAlias c =
                         => ExContext.addType c.mod parentAlias name (List.length args) context
 
                 any ->
-                    Debug.crash "Type can only start with a tag"
+                    ExContext.crash c "Type can only start with a tag"
     in
         List.foldl addType ( [], c ) types
 
@@ -132,7 +132,7 @@ replaceTypeAliases c t =
         mapOrFunUpdate mod default typeName args =
             ExContext.getAlias mod typeName c
                 |> Helpers.filterMaybe (.aliasType >> (==) ExContext.TypeAlias)
-                |> Maybe.map (\{ typeBody } -> resolveTypeBody typeBody args)
+                |> Maybe.map (\{ typeBody } -> resolveTypeBody c typeBody args)
                 |> Maybe.andThen
                     (\body ->
                         case body of
@@ -162,8 +162,8 @@ replaceTypeAliases c t =
         ExAst.walkTypeOutwards replaceAlias t
 
 
-resolveTypes : List Type -> List Type -> Type -> Type
-resolveTypes expected given return =
+resolveTypes : Context -> List Type -> List Type -> Type -> Type
+resolveTypes c expected given return =
     let
         expectedName n =
             case n of
@@ -171,7 +171,7 @@ resolveTypes expected given return =
                     name
 
                 other ->
-                    Debug.crash <|
+                    ExContext.crash c <|
                         "type can only take variables. "
                             ++ toString other
                             ++ "is incorrect"

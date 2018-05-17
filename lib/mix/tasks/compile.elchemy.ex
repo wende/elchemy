@@ -5,13 +5,19 @@ defmodule Mix.Tasks.Compile.Elchemy do
     project = Mix.Project.config
     src = project[:elchemy_path]
     dests = project[:elixirc_paths] || ["lib"]
+    elchemy_executable = project[:elchemy_executable] || "elchemy"
 
-    #unless src, do: IO.warn "No 'elchemy_path' setting found"
+    # Crash if elchemy not found globally
+    unless 0 == Mix.shell.cmd("which #{elchemy_executable}") do
+      Mix.raise "Elchemy not found under #{elchemy_executable}. You might need to run `npm install elchemy -g`"
+    end
+
+    # Crash if elchemy not found globally
     unless dests, do: IO.warn "No 'elixirc_paths' setting found"
     if src && dests do
       [dest | _] = dests
-      unless 0 == Mix.shell.cmd("elchemy compile #{src} #{dest}") do
-        Mix.raise "Compilation error"
+      unless 0 == Mix.shell.cmd("#{elchemy_executable} compile #{src} #{dest}") do
+        Mix.raise "Elchemy failed the compilation with an error\n"
       end
     end
 
@@ -24,10 +30,5 @@ defmodule Mix.Tasks.Compile.Elchemy do
     Mix.Task.run "deps.get"
     Mix.Task.run "deps.compile"
     IO.puts "-- Elchemy compilation complete --\n"
-
-    unless System.version |> Version.compare("1.6.0") == :lt do
-      Mix.Task.run("format", ["lib/**/*.elchemy.{ex,exs}"])
-    end
-    IO.puts "-- Elchemy format complete --\n"
   end
 end

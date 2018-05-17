@@ -154,7 +154,7 @@ genElixirFunc c elixirE name args missingArgs body =
                 |> String.join ""
 
         ( Builtin, _ ) ->
-            Debug.crash
+            ExContext.crash c
                 ("operator " ++ name ++ " has to have 2 arguments but has " ++ toString args)
 
         ( None, _ ) ->

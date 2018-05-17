@@ -30,7 +30,10 @@ elixirBinop c elixirE op l r =
             elixirBinop c elixirE ">>" r l
 
         "<|" ->
-            elixirBinop c elixirE "|>" r l
+            if l == Variable [ "Do" ] then
+                "quote do " ++ elixirE c r ++ " end"
+            else
+                elixirBinop c elixirE "|>" r l
 
         "|>" ->
             "("
@@ -63,7 +66,7 @@ elixirBinop c elixirE op l r =
                         ++ ")"
 
                 None ->
-                    Debug.crash ("Illegal operator " ++ op)
+                    ExContext.crash c ("Illegal operator " ++ op)
 
 
 {-| Flattens pipes into a list of expressions

@@ -2,9 +2,10 @@ module ExFfi exposing (generateFfi)
 
 import Dict
 import ExFunction
-import Ast.Statement exposing (Type)
+import Ast.Statement exposing (Type(TypeConstructor))
 import ExVariable exposing (rememberVariables)
 import Ast.Expression exposing (Expression(..))
+import ExType
 import ExContext exposing (Context, Parser, onlyWithoutFlag)
 import Helpers
     exposing
@@ -42,8 +43,11 @@ generateFfi c elixirE name argTypes e =
             List.map <| List.singleton >> Variable
     in
         case ( typeDef, applicationToList e ) of
-            ( Nothing, _ ) ->
-                Debug.crash "Ffi requires type definition"
+            ( Nothing, (Variable [ "ffi" ]) :: _ ) ->
+                ExContext.crash c "Ffi requires type definition"
+
+            ( Nothing, (Variable [ "macro" ]) :: _ ) ->
+                ExContext.crash c "Macro requires type definition"
 
             ( Just def, [ Variable [ "ffi" ], String mod, String fun ] ) ->
                 let
@@ -73,8 +77,34 @@ generateFfi c elixirE name argTypes e =
                         ++ "."
                         ++ fun
                         ++ "("
-                        ++ uncurryArguments (rememberVariables (wrapAllInVar arguments) c)
+                        ++ (uncurryArguments (rememberVariables (wrapAllInVar arguments) c) |> String.join ", ")
                         ++ ")"
+
+            ( Just def, [ Variable [ "macro" ], String mod, String fun ] ) ->
+                let
+                    arguments =
+                        generateArguments_ "a" def.arity
+
+                    varArgs =
+                        wrapAllInVar arguments
+                in
+                    if ExType.hasReturnedType (TypeConstructor [ "Macro" ] []) def.def then
+                        "defmacro"
+                            ++ ExFunction.privateOrPublic c name
+                            ++ " "
+                            ++ toSnakeCase True name
+                            ++ "("
+                            ++ (arguments |> String.join ", ")
+                            ++ ")"
+                            ++ ", do: "
+                            ++ mod
+                            ++ "."
+                            ++ fun
+                            ++ "("
+                            ++ (varArgs |> List.map (elixirE (rememberVariables varArgs c)) |> String.join ", ")
+                            ++ ")"
+                    else
+                        ExContext.crash c "Macro calls have to return a Macro type"
 
             ( Just def, [ Variable [ "tryFfi" ], String mod, String fun ] ) ->
                 let
@@ -98,7 +128,7 @@ generateFfi c elixirE name argTypes e =
                         ++ "."
                         ++ fun
                         ++ "("
-                        ++ uncurryArguments (rememberVariables (wrapAllInVar arguments) c)
+                        ++ (uncurryArguments (rememberVariables (wrapAllInVar arguments) c) |> String.join ", ")
                         ++ ")"
                         ++ ind (c.indent + 1)
                         ++ "end"
@@ -106,12 +136,12 @@ generateFfi c elixirE name argTypes e =
                         ++ "end"
 
             _ ->
-                Debug.crash "Wrong ffi definition"
+                ExContext.crash c "Wrong ffi definition"
 
 
 {-| Walk through function definition and uncurry all of the multi argument functions
 -}
-uncurrify : Context -> Parser -> List (List Type) -> String
+uncurrify : Context -> Parser -> List (List Type) -> List String
 uncurrify c elixirE argTypes =
     let
         arity =
@@ -125,7 +155,7 @@ uncurrify c elixirE argTypes =
                 (\( i, arg ) ->
                     case arg of
                         [] ->
-                            Debug.crash "Impossible"
+                            ExContext.crash c "Impossible"
 
                         [ any ] ->
                             "a" ++ toString i
@@ -140,7 +170,6 @@ uncurrify c elixirE argTypes =
                             in
                                 resolveFfi c elixirE (makeFlambda var)
                 )
-            |> String.join ", "
 
 
 type Ffi
@@ -148,6 +177,7 @@ type Ffi
     | Ffi Expression Expression Expression
     | TryFfi Expression Expression Expression
     | Flambda Int Expression
+    | Macro Expression Expression Expression
 
 
 {-| encodes an ffi based on context and a parser
@@ -189,6 +219,14 @@ resolveFfi c elixirE ffi =
                 mod ++ "." ++ fun ++ "(" ++ elixirE c any ++ ")"
 
             -- Elchemy hack
+            Macro (String mod) (String fun) (Tuple args) ->
+                mod ++ "." ++ fun ++ "(" ++ combineComas args ++ ")"
+
+            -- One or many arg fun
+            Macro (String mod) (String fun) any ->
+                mod ++ "." ++ fun ++ "(" ++ elixirE c any ++ ")"
+
+            -- Elchemy hack
             Lffi (String fun) (Tuple args) ->
                 fun ++ "(" ++ combineComas args ++ ")"
 
@@ -211,4 +249,4 @@ resolveFfi c elixirE ffi =
                         ++ " end"
 
             _ ->
-                Debug.crash "Wrong ffi call"
+                ExContext.crash c "Wrong ffi call"
