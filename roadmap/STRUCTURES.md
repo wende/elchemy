@@ -55,4 +55,4 @@ Would resolve to
 }
 ```
 
-But be advised that using this "polymorpic" approach strips us from the ability to use type aliases as constructors.
+But be advised that using this "polymorphic" approach strips us from the ability to use type aliases as constructors.
