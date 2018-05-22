@@ -46,10 +46,10 @@ case "$1" in
     init)
         if [ -a ./mix.exs ]
         then
+            cp $SOURCE_DIR/templates/elchemy.exs ./.elchemy.exs
             mix archive.install "https://github.com/wende/elchemy/releases/download/$version/elchemy-$version.ez"
             mkdir -p elm
             cp $SOURCE_DIR/templates/elm-package.json ./
-            cp $SOURCE_DIR/templates/elchemy.exs ./.elchemy.exs
             cp $SOURCE_DIR/templates/Hello.elm ./elm/
             if [ -d ./test ]; then
                 cp $SOURCE_DIR/templates/elchemy_test.exs ./test/
