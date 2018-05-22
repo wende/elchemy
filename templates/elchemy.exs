@@ -3,7 +3,7 @@ defmodule ElchemyInit do
   @deps_directory_depth 3
 
   def init(project, {__MODULE, _}) do
-    if !project || !project[:name] do
+    if !project || !project[:deps] do
       IO.warn """
         The project structure is invalid. Make sure that
 
