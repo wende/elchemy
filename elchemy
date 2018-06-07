@@ -57,6 +57,8 @@ case "$1" in
             printf  "Elchemy $version initialised. Make sure to add:\n\n\t|> Code.eval_file(\".elchemy.exs\").init\n\nto your mix.exs file as the last line of the project() function.\nThis pipes the project keyword list to the elchemy init function to configure some additional values.\n\nThen run mix test to check if everything went fine\n"
             printf "\nelm-deps" >> .gitignore
             printf "\nelm-stuff" >> .gitignore
+            printf "\node_modules" >> .gitignore
+            printf "\.elchemy" >> .gitignore
         else
             printf  "ERROR: No elixir project found. Make sure to run init in a project"
         fi
