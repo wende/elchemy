@@ -35,7 +35,7 @@ type alias Employee x =
      }
 ```
 Which means any struct that has a field `salary` of type integer.
-That way we can define our psuedo-inheritance and polymorphism for more advanced structures.
+That way we can define our pseudo-inheritance and polymorphism for more advanced structures.
 
 ``` elm
 type alias Human =
@@ -55,4 +55,4 @@ Would resolve to
 }
 ```
 
-But be advised that using this "polymorhpic" approach strips us from the ability to use type aliases as constructors.
+But be advised that using this "polymorphic" approach strips us from the ability to use type aliases as constructors.

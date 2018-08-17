@@ -21,7 +21,7 @@ import Regex exposing (Regex, HowMany(..), regex)
 -}
 version : String
 version =
-    "0.7.2"
+    "0.7.4"
 
 
 glueStart : String
