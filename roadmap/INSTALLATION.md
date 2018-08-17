@@ -22,7 +22,7 @@ cd my_project
 elchemy init
 ```
 
-Then open your `mix.exs` file inside project root directory. 
+Then open your `mix.exs` file inside project root directory. And add:
 ```elixir
 |> Code.eval_file("elchemy.exs").init
 ```
