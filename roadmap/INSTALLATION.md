@@ -22,11 +22,12 @@ cd my_project
 elchemy init
 ```
 
-Then open your `mix.exs` file inside project root directory. And add
+Then open your `mix.exs` file inside project root directory. And add:
 ```elixir
 |> Code.eval_file("elchemy.exs").init
 ```
 At the end of your `project/0` function definition. Like so:  
+(As of OTP 21.0 and above you must also add `@compile :tuple_calls` at the top of the Mix module. It is caused by tuple calls support being removed from newer versions of Erlang)
 Before:
 ```elixir
 defmodule MyProject.Mixfile do
@@ -50,6 +51,7 @@ After:
 ```elixir
 defmodule MyProject.Mixfile do
   use Mix.Project
+  @compile :tuple_calls
 
   def project do
     [
