@@ -1,46 +1,46 @@
-module ExContext
+module Elchemy.Context
     exposing
         ( Alias
         , AliasType(..)
-        , TypeBody(..)
         , Commons
         , Context
-        , Module
         , Definition
+        , Module
         , Parser
-        , empty
-        , emptyCommons
+        , TypeBody(..)
         , addAlias
-        , getAlias
-        , wrongArityAlias
-        , addType
-        , getType
-        , getArity
-        , areMatchingArity
         , addDefinition
-        , indent
-        , deindent
-        , mergeVariables
-        , inArgs
-        , onlyWithoutFlag
-        , hasFlag
         , addFlag
-        , isPrivate
-        , mergeTypes
-        , getShadowedFunctions
-        , listOfImports
-        , importBasicsWithoutShadowed
-        , putIntoModule
+        , addType
+        , areMatchingArity
         , changeCurrentModule
         , crash
+        , deindent
+        , empty
+        , emptyCommons
+        , getAlias
+        , getArity
+        , getShadowedFunctions
+        , getType
+        , hasFlag
+        , importBasicsWithoutShadowed
+        , inArgs
+        , indent
+        , isPrivate
+        , listOfImports
+        , mergeTypes
+        , mergeVariables
         , notImplemented
+        , onlyWithoutFlag
+        , putIntoModule
+        , wrongArityAlias
         )
 
-import Set exposing (Set)
-import Dict exposing (Dict)
 import Ast.Expression exposing (Expression)
-import Ast.Statement exposing (Type(..), Statement, ExportSet(..))
-import Helpers exposing (toSnakeCase)
+import Ast.Statement exposing (ExportSet(..), Statement, Type(..))
+import Dict exposing (Dict)
+import Elchemy.Helpers as Helpers exposing (toSnakeCase)
+import Set exposing (Set)
 
 
 type alias Parser =
@@ -78,7 +78,7 @@ that a Type in here is only a definition of a type like
         = TagA
         | TagB
 
-Where only A is a `ExContext.AliasType.Type`, two separate tags are other instances and
+Where only A is a `Context.AliasType.Type`, two separate tags are other instances and
 belong to Types not Aliases
 
 -}
@@ -256,7 +256,7 @@ getArity ctx m fn =
         imported =
             ctx.importedFunctions
                 |> Dict.get fn
-                |> Maybe.map (Tuple.second)
+                |> Maybe.map Tuple.second
     in
         Helpers.maybeOr local imported
 
@@ -348,7 +348,7 @@ onlyWithoutFlag c key value code =
 getAllFlags : String -> Context -> List String
 getAllFlags key c =
     c.flags
-        |> List.filter (Tuple.first >> ((==) key))
+        |> List.filter (Tuple.first >> (==) key)
         |> List.map Tuple.second
 
 
@@ -403,7 +403,7 @@ getShadowedFunctions context list =
         definitions =
             context.commons.modules
                 |> Dict.get context.mod
-                |> Maybe.map (.definitions)
+                |> Maybe.map .definitions
                 |> Maybe.withDefault Dict.empty
 
         findReserved name =
@@ -472,7 +472,7 @@ mergeTypes set mod c =
             c.commons.modules
                 |> Dict.get mod
                 |> Maybe.map getter
-                |> Maybe.withDefault (Dict.empty)
+                |> Maybe.withDefault Dict.empty
 
         getAlias : String -> Dict String Alias
         getAlias aliasName =

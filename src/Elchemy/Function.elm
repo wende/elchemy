@@ -1,25 +1,25 @@
-module ExFunction
+module Elchemy.Function
     exposing
-        ( privateOrPublic
-        , functionCurry
+        ( functionCurry
         , genFunctionDefinition
         , genOverloadedFunctionDefinition
+        , privateOrPublic
         )
 
-import Dict
-import ExVariable exposing (rememberVariables)
 import Ast.Expression exposing (Expression(..))
 import Ast.Statement exposing (Type)
-import ExContext exposing (Context, Parser, inArgs, indent)
-import Helpers
+import Dict
+import Elchemy.Context as Context exposing (Context, Parser, inArgs, indent)
+import Elchemy.Variable as Variable exposing (rememberVariables)
+import Elchemy.Helpers as Helpers
     exposing
-        ( operatorType
-        , translateOperator
-        , ind
-        , Operator(..)
-        , isCustomOperator
+        ( Operator(..)
         , generateArguments
+        , ind
+        , isCustomOperator
+        , operatorType
         , toSnakeCase
+        , translateOperator
         )
 
 
@@ -45,7 +45,7 @@ genFunctionDefinition c elixirE name args body =
         lambdasAt =
             getLambdaArgumentIndexes (Maybe.map .def typeDef)
     in
-        if ExContext.hasFlag "nodef" name c then
+        if Context.hasFlag "nodef" name c then
             functionCurry c elixirE name arity lambdasAt
         else
             functionCurry c elixirE name arity lambdasAt
@@ -88,7 +88,7 @@ genOverloadedFunctionDefinition c elixirE name args body expressions =
                 _ ->
                     genElixirFunc c elixirE name (pairAsArgs [ left ]) (arity - 1) right
     in
-        if ExContext.hasFlag "nodef" name c then
+        if Context.hasFlag "nodef" name c then
             functionCurry c elixirE name arity lambdasAt
         else
             functionCurry c elixirE name arity lambdasAt
@@ -112,7 +112,7 @@ genElixirFunc :
 genElixirFunc c elixirE name args missingArgs body =
     case ( operatorType name, args ) of
         ( Builtin, [ l, r ] ) ->
-            [ (ind c.indent)
+            [ ind c.indent
             , "def"
             , privateOrPublic c name
             , " "
@@ -122,7 +122,7 @@ genElixirFunc c elixirE name args missingArgs body =
             , " "
             , elixirE (rememberVariables [ r ] c) r
             , " do"
-            , (ind <| c.indent + 1)
+            , ind <| c.indent + 1
             , elixirE (indent c |> rememberVariables args) body
             , ind c.indent
             , "end"
@@ -130,31 +130,29 @@ genElixirFunc c elixirE name args missingArgs body =
                 |> String.join ""
 
         ( Custom, _ ) ->
-            [ (ind c.indent)
+            [ ind c.indent
             , "def"
             , privateOrPublic c name
             , " "
             , translateOperator name
             , "("
-            , (args
+            , args
                 |> List.map (c |> rememberVariables args |> elixirE)
                 |> flip (++) (generateArguments missingArgs)
                 |> String.join ", "
-              )
             , ") do"
-            , (ind <| c.indent + 1)
+            , ind <| c.indent + 1
             , elixirE (indent c |> rememberVariables args) body
-            , (generateArguments missingArgs
+            , generateArguments missingArgs
                 |> List.map (\a -> ".(" ++ a ++ ")")
                 |> String.join ""
-              )
             , ind c.indent
             , "end"
             ]
                 |> String.join ""
 
         ( Builtin, _ ) ->
-            ExContext.crash c
+            Context.crash c
                 ("operator " ++ name ++ " has to have 2 arguments but has " ++ toString args)
 
         ( None, _ ) ->
@@ -199,7 +197,7 @@ genElixirFunc c elixirE name args missingArgs body =
 -}
 privateOrPublic : Context -> String -> String
 privateOrPublic context name =
-    if ExContext.isPrivate context name then
+    if Context.isPrivate context name then
         "p"
     else
         ""
@@ -209,7 +207,7 @@ privateOrPublic context name =
 -}
 functionCurry : Context -> Parser -> String -> Int -> List ( Int, Int ) -> String
 functionCurry c elixirE name arity lambdasAt =
-    case ( arity, ExContext.hasFlag "nocurry" name c ) of
+    case ( arity, Context.hasFlag "nocurry" name c ) of
         ( 0, _ ) ->
             ""
 
@@ -232,7 +230,7 @@ functionCurry c elixirE name arity lambdasAt =
                         |> List.map (\( a, b ) -> "{" ++ toString a ++ ", " ++ toString b ++ "}")
             in
                 if lambdas == [] || p == "p" then
-                    [ (ind c.indent)
+                    [ ind c.indent
                     , "curry"
                     , " "
                     , resolvedName
@@ -241,7 +239,7 @@ functionCurry c elixirE name arity lambdasAt =
                     ]
                         |> String.join ""
                 else
-                    [ (ind c.indent)
+                    [ ind c.indent
                     , "curry"
                     , " "
                     , resolvedName
@@ -261,7 +259,7 @@ getLambdaArgumentIndexes : Maybe Type -> List ( Int, Int )
 getLambdaArgumentIndexes t =
     Maybe.map Helpers.typeApplicationToList t
         |> Maybe.withDefault []
-        |> List.map (Helpers.typeApplicationToList)
+        |> List.map Helpers.typeApplicationToList
         |> List.indexedMap (,)
         -- -1 since a -> b is not 2 arity
         |> List.map (Tuple.mapSecond <| List.length >> (+) -1)

@@ -1,10 +1,53 @@
-module Helpers exposing (..)
+module Elchemy.Helpers
+    exposing
+        ( (=>)
+        , MaybeUpper(..)
+        , Operator(..)
+        , applicationToList
+        , atomize
+        , capitalize
+        , constructApplication
+        , escape
+        , filterMaybe
+        , findInList
+        , generateArguments
+        , generateArguments_
+        , ind
+        , indAll
+        , indNoNewline
+        , isCapitilzed
+        , isCustomOperator
+        , isStdModule
+        , lastAndRest
+        , listNonEmptyOr
+        , listToApplication
+        , maybeOr
+        , maybeReplaceStd
+        , moduleAccess
+        , modulePath
+        , operatorType
+        , operators
+        , ops
+        , prependAll
+        , replaceOp
+        , replaceOp_
+        , replaceReserved
+        , reservedBasicFunctions
+        , reservedKernelFunctions
+        , reservedWords
+        , toSnakeCase
+        , translateOperator
+        , trimIndentations
+        , typeApplicationToList
+        , uncons
+        , unquoteSplicing
+        )
 
+import Ast.Expression exposing (Expression(..))
+import Ast.Statement exposing (Type(..))
 import Char
 import Dict exposing (Dict)
-import Ast.Statement exposing (Type(..))
-import Ast.Expression exposing (Expression(..))
-import Regex exposing (Regex(..), HowMany(..), regex)
+import Regex exposing (HowMany(..), Regex(..), regex)
 
 
 type MaybeUpper
@@ -443,7 +486,7 @@ applicationToList : Expression -> List Expression
 applicationToList application =
     case application of
         Application left right ->
-            (applicationToList left) ++ [ right ]
+            applicationToList left ++ [ right ]
 
         other ->
             [ other ]
@@ -516,12 +559,11 @@ maybeOr m1 m2 =
 filterMaybe : (a -> Bool) -> Maybe a -> Maybe a
 filterMaybe f m =
     flip Maybe.andThen m <|
-        (\a ->
+        \a ->
             if f a then
                 Just a
             else
                 Nothing
-        )
 
 
 {-| Finds a value in a list
@@ -529,9 +571,8 @@ filterMaybe f m =
 findInList : (a -> Bool) -> List a -> Maybe a
 findInList f =
     flip List.foldl Nothing <|
-        (\a acc ->
+        \a acc ->
             if f a then
                 Just a
             else
                 acc
-        )

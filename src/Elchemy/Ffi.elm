@@ -1,13 +1,13 @@
-module ExFfi exposing (generateFfi)
+module Elchemy.Ffi exposing (generateFfi)
 
-import Dict
-import ExFunction
-import Ast.Statement exposing (Type(TypeConstructor))
-import ExVariable exposing (rememberVariables)
 import Ast.Expression exposing (Expression(..))
-import ExType
-import ExContext exposing (Context, Parser, onlyWithoutFlag)
-import Helpers
+import Ast.Statement exposing (Type(TypeConstructor))
+import Dict
+import Elchemy.Context as Context exposing (Context, Parser, onlyWithoutFlag)
+import Elchemy.Function as Function
+import Elchemy.Type as Type
+import Elchemy.Variable as Variable exposing (rememberVariables)
+import Elchemy.Helpers as Helpers
     exposing
         ( applicationToList
         , generateArguments
@@ -44,17 +44,17 @@ generateFfi c elixirE name argTypes e =
     in
         case ( typeDef, applicationToList e ) of
             ( Nothing, (Variable [ "ffi" ]) :: _ ) ->
-                ExContext.crash c "Ffi requires type definition"
+                Context.crash c "Ffi requires type definition"
 
             ( Nothing, (Variable [ "macro" ]) :: _ ) ->
-                ExContext.crash c "Macro requires type definition"
+                Context.crash c "Macro requires type definition"
 
             ( Just def, [ Variable [ "ffi" ], String mod, String fun ] ) ->
                 let
                     arguments =
                         generateArguments_ "a" def.arity
                 in
-                    ExFunction.functionCurry c elixirE name def.arity []
+                    Function.functionCurry c elixirE name def.arity []
                         ++ (onlyWithoutFlag c "noverify" name <|
                                 ind c.indent
                                     ++ "verify as: "
@@ -66,7 +66,7 @@ generateFfi c elixirE name argTypes e =
                            )
                         ++ ind c.indent
                         ++ "def"
-                        ++ ExFunction.privateOrPublic c name
+                        ++ Function.privateOrPublic c name
                         ++ " "
                         ++ toSnakeCase True name
                         ++ "("
@@ -88,9 +88,9 @@ generateFfi c elixirE name argTypes e =
                     varArgs =
                         wrapAllInVar arguments
                 in
-                    if ExType.hasReturnedType (TypeConstructor [ "Macro" ] []) def.def then
+                    if Type.hasReturnedType (TypeConstructor [ "Macro" ] []) def.def then
                         "defmacro"
-                            ++ ExFunction.privateOrPublic c name
+                            ++ Function.privateOrPublic c name
                             ++ " "
                             ++ toSnakeCase True name
                             ++ "("
@@ -104,17 +104,17 @@ generateFfi c elixirE name argTypes e =
                             ++ (varArgs |> List.map (elixirE (rememberVariables varArgs c)) |> String.join ", ")
                             ++ ")"
                     else
-                        ExContext.crash c "Macro calls have to return a Macro type"
+                        Context.crash c "Macro calls have to return a Macro type"
 
             ( Just def, [ Variable [ "tryFfi" ], String mod, String fun ] ) ->
                 let
                     arguments =
                         generateArguments_ "a" def.arity
                 in
-                    ExFunction.functionCurry c elixirE name def.arity []
+                    Function.functionCurry c elixirE name def.arity []
                         ++ ind c.indent
                         ++ "def"
-                        ++ ExFunction.privateOrPublic c name
+                        ++ Function.privateOrPublic c name
                         ++ " "
                         ++ toSnakeCase True name
                         ++ "("
@@ -136,7 +136,7 @@ generateFfi c elixirE name argTypes e =
                         ++ "end"
 
             _ ->
-                ExContext.crash c "Wrong ffi definition"
+                Context.crash c "Wrong ffi definition"
 
 
 {-| Walk through function definition and uncurry all of the multi argument functions
@@ -155,7 +155,7 @@ uncurrify c elixirE argTypes =
                 (\( i, arg ) ->
                     case arg of
                         [] ->
-                            ExContext.crash c "Impossible"
+                            Context.crash c "Impossible"
 
                         [ any ] ->
                             "a" ++ toString i
@@ -186,7 +186,7 @@ resolveFfi : Context -> Parser -> Ffi -> String
 resolveFfi c elixirE ffi =
     let
         combineComas args =
-            (args |> List.map (elixirE c) |> String.join ",")
+            args |> List.map (elixirE c) |> String.join ","
     in
         case ffi of
             TryFfi (String mod) (String fun) (Tuple args) ->
@@ -249,4 +249,4 @@ resolveFfi c elixirE ffi =
                         ++ " end"
 
             _ ->
-                ExContext.crash c "Wrong ffi call"
+                Context.crash c "Wrong ffi call"

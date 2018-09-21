@@ -1,4 +1,4 @@
-module Compiler exposing (version, tree)
+module Elchemy.Compiler exposing (version, tree)
 
 {-| Module responsible for compiling Elm code to Elixir
 
@@ -7,14 +7,14 @@ module Compiler exposing (version, tree)
 -}
 
 import Ast
-import ExMeta
-import ExAlias
-import ExStatement
-import Dict exposing (Dict)
-import Helpers exposing (ind, toSnakeCase)
 import Ast.Statement exposing (Statement)
-import ExContext exposing (Context)
-import Regex exposing (Regex, HowMany(..), regex)
+import Dict exposing (Dict)
+import Elchemy.Alias as Alias
+import Elchemy.Context as Context exposing (Context)
+import Elchemy.Meta as Meta
+import Elchemy.Statement as Statement
+import Elchemy.Helpers as Helpers exposing (ind, toSnakeCase)
+import Regex exposing (HowMany(..), Regex, regex)
 
 
 {-| Returns current version
@@ -26,7 +26,7 @@ version =
 
 glueStart : String
 glueStart =
-    (ind 0) ++ "use Elchemy" ++ "\n"
+    ind 0 ++ "use Elchemy" ++ "\n"
 
 
 glueEnd : String
@@ -59,14 +59,14 @@ tree =
 
 {-| Transforms a code in Elm to code in Elixir and returns commons
 -}
-treeAndCommons : String -> ( String, ExContext.Commons )
+treeAndCommons : String -> ( String, Context.Commons )
 treeAndCommons m =
-    fullTree ExContext.emptyCommons m
+    fullTree Context.emptyCommons m
 
 
 {-| Transforms a code in Elm with cache from previous run to code in Elixir and cache
 -}
-fullTree : ExContext.Commons -> String -> ( String, ExContext.Commons )
+fullTree : Context.Commons -> String -> ( String, Context.Commons )
 fullTree cachedCommons m =
     -- If only no blank characters
     if Regex.contains (Regex.regex "^\\s*$") m then
@@ -153,7 +153,7 @@ fullTree cachedCommons m =
                 |> flip (,) commons
 
 
-getCommonImports : List ExContext.Commons -> Dict String ExContext.Module
+getCommonImports : List Context.Commons -> Dict String Context.Module
 getCommonImports commons =
     let
         merge aliases acc =
@@ -171,16 +171,16 @@ getContext statements =
         mod :: statements ->
             let
                 base =
-                    ExStatement.moduleStatement mod
+                    Statement.moduleStatement mod
             in
-                ( Just (ExAlias.getAliases base statements), statements )
+                ( Just (Alias.getAliases base statements), statements )
 
 
 aggregateStatements : Statement -> ( Context, String ) -> ( Context, String )
 aggregateStatements s ( c, code ) =
     let
         ( newC, newCode ) =
-            ExStatement.elixirS c s
+            Statement.elixirS c s
     in
         ( newC, code ++ newCode )
 
@@ -189,7 +189,7 @@ getCode : Context -> List Statement -> String
 getCode context statements =
     let
         shadowsBasics =
-            ExContext.importBasicsWithoutShadowed context
+            Context.importBasicsWithoutShadowed context
 
         ( newC, code ) =
             List.foldl aggregateStatements ( context, "" ) statements
@@ -198,11 +198,11 @@ getCode context statements =
             ++ "\n"
             ++ ("defmodule " ++ context.mod ++ " do")
             ++ glueStart
-            ++ (ind context.indent)
+            ++ ind context.indent
             ++ shadowsBasics
             ++ code
             ++ glueEnd
-            ++ ExMeta.metaDefinition { newC | inMeta = True }
+            ++ Meta.metaDefinition { newC | inMeta = True }
             ++ "\n\n"
 
 

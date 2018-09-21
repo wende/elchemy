@@ -3,7 +3,7 @@ module Tests exposing (..)
 import Test exposing (..)
 import Expect
 import String
-import Compiler
+import Elchemy.Compiler as Compiler
 import Regex exposing (..)
 
 

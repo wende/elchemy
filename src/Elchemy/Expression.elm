@@ -1,36 +1,36 @@
-module ExExpression exposing (elixirE)
+module Elchemy.Expression exposing (elixirE)
 
-import ExType
-import ExOperator
-import ExVariable exposing (rememberVariables)
 import Ast.Expression exposing (Expression(..))
-import Helpers
-    exposing
-        ( toSnakeCase
-        , modulePath
-        , ind
-        , applicationToList
-        , (=>)
-        , lastAndRest
-        , maybeOr
-        , generateArguments
-        , atomize
-        , isCapitilzed
-        , operatorType
-        , Operator(..)
-        , translateOperator
-        )
-import ExContext
+import Elchemy.Context as Context
     exposing
         ( Context
-        , indent
-        , deindent
-        , onlyWithoutFlag
-        , inArgs
-        , mergeVariables
         , areMatchingArity
+        , deindent
+        , inArgs
+        , indent
+        , mergeVariables
+        , onlyWithoutFlag
         )
-import ExSelector
+import Elchemy.Operator as Operator
+import Elchemy.Selector as Selector
+import Elchemy.Type as Type
+import Elchemy.Variable as Variable exposing (rememberVariables)
+import Elchemy.Helpers as Helpers
+    exposing
+        ( (=>)
+        , Operator(..)
+        , applicationToList
+        , atomize
+        , generateArguments
+        , ind
+        , isCapitilzed
+        , lastAndRest
+        , maybeOr
+        , modulePath
+        , operatorType
+        , toSnakeCase
+        , translateOperator
+        )
 
 
 {-| Encode any given expression
@@ -69,7 +69,7 @@ elixirE c e =
             "(fn a -> a." ++ toSnakeCase True name ++ " end)"
 
         BinOp (Variable [ op ]) l r ->
-            ExOperator.elixirBinop c elixirE op l r
+            Operator.elixirBinop c elixirE op l r
 
         -- Rest
         e ->
@@ -104,8 +104,8 @@ elixirControlFlow c e =
 
         Let variables expression ->
             variables
-                |> ExVariable.organizeLetInVariablesOrder c
-                |> ExVariable.groupByCrossDependency
+                |> Variable.organizeLetInVariablesOrder c
+                |> Variable.groupByCrossDependency
                 |> (flip List.foldl ( c, "" ) <|
                         \varGroup ( cAcc, codeAcc ) ->
                             (case varGroup of
@@ -122,10 +122,10 @@ elixirControlFlow c e =
                                         mergeVariables c cAcc
                                             => codeAcc
                                             ++ string
-                                            ++ (ind c.indent)
+                                            ++ ind c.indent
                                    )
                    )
-                |> (\( c, code ) -> code ++ (elixirE c expression))
+                |> (\( c, code ) -> code ++ elixirE c expression)
 
         _ ->
             elixirPrimitve c e
@@ -141,7 +141,7 @@ elixirLetInMutualFunctions context expressionsList =
 
         names =
             expressionsList
-                |> List.map (Tuple.first >> ExVariable.extractName c >> toSnakeCase True)
+                |> List.map (Tuple.first >> Variable.extractName c >> toSnakeCase True)
 
         c =
             rememberVariables vars context
@@ -159,19 +159,19 @@ elixirLetInMutualFunctions context expressionsList =
                     lambda c args body
 
                 _ ->
-                    ExContext.crash c <| toString head ++ " is not a let in branch"
+                    Context.crash c <| toString head ++ " is not a let in branch"
     in
         c
             => "{"
             ++ (names |> String.join ", ")
             ++ "} = let ["
             ++ (expressionsList
-                    |> List.map (\(( var, exp ) as v) -> ( (ExVariable.extractName c var), v ))
+                    |> List.map (\(( var, exp ) as v) -> ( Variable.extractName c var, v ))
                     |> List.map (Tuple.mapSecond <| letBranchToLambda (indent c))
-                    |> List.map (\( name, body ) -> (ind (c.indent + 1)) ++ toSnakeCase True name ++ ": " ++ body)
+                    |> List.map (\( name, body ) -> ind (c.indent + 1) ++ toSnakeCase True name ++ ": " ++ body)
                     |> String.join ","
                )
-            ++ ind (c.indent)
+            ++ ind c.indent
             ++ "]"
 
 
@@ -291,7 +291,7 @@ elixirPrimitve c e =
                 ++ "}"
 
         _ ->
-            ExContext.notImplemented c "expression" e
+            Context.notImplemented c "expression" e
 
 
 {-| Change if expression body into list of clauses
@@ -358,7 +358,7 @@ flattenTypeApplication application =
     case application of
         Application left right ->
             if isMacro application || isTuple application then
-                (flattenTypeApplication left) ++ [ right ]
+                flattenTypeApplication left ++ [ right ]
             else
                 [ application ]
 
@@ -380,7 +380,7 @@ functionApplication c left right =
                 if areMatchingArity c c.mod fn args then
                     toSnakeCase True fn ++ "(" ++ reduceArgs c args ", " ++ ")"
                 else if c.inMeta then
-                    ExContext.crash c "You need to use full "
+                    Context.crash c "You need to use full "
                 else
                     elixirE c left ++ ".(" ++ elixirE c right ++ ")"
 
@@ -390,7 +390,7 @@ functionApplication c left right =
                         modulePath modules
 
                     fnName =
-                        (toSnakeCase True fn)
+                        toSnakeCase True fn
                 in
                     if areMatchingArity c mod fn args then
                         mod ++ "." ++ fnName ++ "(" ++ reduceArgs c args ", " ++ ")"
@@ -401,10 +401,10 @@ functionApplication c left right =
                 elixirE c left ++ ".(" ++ elixirE c right ++ ")"
 
 
-encodeAccessMacroAndRest : Context -> ( ExSelector.AccessMacro, List Expression ) -> String
-encodeAccessMacroAndRest c ( ExSelector.AccessMacro t arity selectors, rest ) =
+encodeAccessMacroAndRest : Context -> ( Selector.AccessMacro, List Expression ) -> String
+encodeAccessMacroAndRest c ( Selector.AccessMacro t arity selectors, rest ) =
     let
-        encodeSelector (ExSelector.Access s) =
+        encodeSelector (Selector.Access s) =
             ":" ++ toSnakeCase True s
 
         encodedSelectors =
@@ -412,13 +412,13 @@ encodeAccessMacroAndRest c ( ExSelector.AccessMacro t arity selectors, rest ) =
 
         encodedType =
             case t of
-                ExSelector.Update ->
+                Selector.Update ->
                     "update_in_"
 
-                ExSelector.Get ->
+                Selector.Get ->
                     "get_in_"
 
-                ExSelector.Put ->
+                Selector.Put ->
                     "put_in_"
 
         encodedRest =
@@ -449,19 +449,19 @@ tupleOrFunction c a =
 
         -- A macro
         (Variable [ "ffi" ]) :: rest ->
-            ExContext.crash c "Ffi inside function body is deprecated since Elchemy 0.3"
+            Context.crash c "Ffi inside function body is deprecated since Elchemy 0.3"
 
         (Variable [ "macro" ]) :: rest ->
-            ExContext.crash c "You can't use `macro` inside a function body"
+            Context.crash c "You can't use `macro` inside a function body"
 
         (Variable [ "tryFfi" ]) :: rest ->
-            ExContext.crash c "tryFfi inside function body is deprecated since Elchemy 0.3"
+            Context.crash c "tryFfi inside function body is deprecated since Elchemy 0.3"
 
         (Variable [ "lffi" ]) :: rest ->
-            ExContext.crash c "Lffi inside function body is deprecated since Elchemy 0.3"
+            Context.crash c "Lffi inside function body is deprecated since Elchemy 0.3"
 
         (Variable [ "flambda" ]) :: rest ->
-            ExContext.crash c "Flambda is deprecated since Elchemy 0.3"
+            Context.crash c "Flambda is deprecated since Elchemy 0.3"
 
         [ Variable [ "Just" ], arg ] ->
             "{" ++ elixirE c arg ++ "}"
@@ -477,12 +477,12 @@ tupleOrFunction c a =
 
         -- Regular non-macro application
         ((Variable list) as call) :: rest ->
-            ExSelector.maybeAccessMacro c call rest
+            Selector.maybeAccessMacro c call rest
                 |> Maybe.map (encodeAccessMacroAndRest c)
                 |> Maybe.withDefault
                     (Helpers.moduleAccess c.mod list
                         |> (\( mod, last ) ->
-                                aliasFor (ExContext.changeCurrentModule mod c) last rest
+                                aliasFor (Context.changeCurrentModule mod c) last rest
                                     |> Maybe.withDefault
                                         ("{"
                                             ++ elixirE c (Variable [ last ])
@@ -494,7 +494,7 @@ tupleOrFunction c a =
                     )
 
         other ->
-            ExContext.crash c ("Shouldn't ever work for" ++ toString other)
+            Context.crash c ("Shouldn't ever work for" ++ toString other)
 
 
 {-| Return an alias for type alias or union type if it exists, return Nothing otherwise
@@ -506,13 +506,13 @@ aliasFor c name rest =
 
 {-| Returns Just only if the passed alias type is a type alias
 -}
-filterTypeAlias : ExContext.Alias -> Maybe ExContext.Alias
+filterTypeAlias : Context.Alias -> Maybe Context.Alias
 filterTypeAlias ({ aliasType } as ali) =
     case aliasType of
-        ExContext.TypeAlias ->
+        Context.TypeAlias ->
             Just ali
 
-        ExContext.Type ->
+        Context.Type ->
             Nothing
 
 
@@ -520,9 +520,9 @@ filterTypeAlias ({ aliasType } as ali) =
 -}
 typeAliasApplication : Context -> String -> List Expression -> Maybe String
 typeAliasApplication c name args =
-    ExContext.getAlias c.mod name c
+    Context.getAlias c.mod name c
         |> Maybe.andThen filterTypeAlias
-        |> Maybe.andThen (ExType.typeAliasConstructor args)
+        |> Maybe.andThen (Type.typeAliasConstructor args)
         |> Maybe.map (elixirE c)
 
 
@@ -530,7 +530,7 @@ typeAliasApplication c name args =
 -}
 typeApplication : Context -> String -> List Expression -> Maybe String
 typeApplication c name args =
-    ExContext.getType c.mod name c
+    Context.getType c.mod name c
         |> (Maybe.map <|
                 \{ arity } ->
                     let
@@ -563,7 +563,7 @@ typeApplication c name args =
                                 ++ "}"
                                 |> flip (++) (String.repeat dif " end")
                         else
-                            ExContext.crash c <|
+                            Context.crash c <|
                                 "Expected "
                                     ++ toString arity
                                     ++ " arguments for '"
@@ -602,8 +602,8 @@ caseE c var body =
     "case "
         ++ elixirE c var
         ++ " do"
-        ++ (String.join "" (List.map (rememberVariables [ var ] c |> caseBranch) body))
-        ++ ind (c.indent)
+        ++ String.join "" (List.map (rememberVariables [ var ] c |> caseBranch) body)
+        ++ ind c.indent
         ++ "end"
 
 
@@ -613,8 +613,8 @@ caseBranch : Context -> ( Expression, Expression ) -> String
 caseBranch c ( left, right ) =
     (ind (c.indent + 1) ++ elixirE (inArgs c) left)
         ++ " ->"
-        ++ (ind (c.indent + 2))
-        ++ (elixirE (c |> indent |> indent |> rememberVariables [ left ]) right)
+        ++ ind (c.indent + 2)
+        ++ elixirE (c |> indent |> indent |> rememberVariables [ left ]) right
 
 
 {-| Used to encode a function and create a curried function from a lambda expression
@@ -667,7 +667,7 @@ elixirVariable c var =
             Helpers.moduleAccess c.mod list
                 |> (\( mod, name ) ->
                         if isCapitilzed name then
-                            aliasFor (ExContext.changeCurrentModule mod c) name []
+                            aliasFor (Context.changeCurrentModule mod c) name []
                                 |> Maybe.withDefault (atomize name)
                         else if String.startsWith "@" name then
                             String.dropLeft 1 name
@@ -685,5 +685,5 @@ elixirVariable c var =
                                     translateOperator name
 
                                 None ->
-                                    name |> toSnakeCase True |> ExVariable.varOrNah c
+                                    name |> toSnakeCase True |> Variable.varOrNah c
                    )
