@@ -1,7 +1,7 @@
 {
     "version": "1.0.0",
-    "summary": "helpful summary of your project, less than 80 characters",
-    "repository": "https://github.com/user/project.git",
+    "summary": "Elm library version of Elchemy compiler, to use in Elm projects",
+    "repository": "https://github.com/wende/elchemy.git",
     "license": "BSD3",
     "source-directories": [
         ".",
