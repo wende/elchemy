@@ -1,7 +1,7 @@
 {
     "version": "1.0.0",
     "summary": "Elm library version of Elchemy compiler, to use in Elm projects",
-    "repository": "https://github.com/wende/elchemy.git",
+    "repository": "https://github.com/wende/elchemy-as-library.git",
     "license": "BSD3",
     "source-directories": [
         ".",
