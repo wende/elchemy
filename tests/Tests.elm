@@ -430,13 +430,13 @@ a = Foo.Baz 10 20
             \() ->
                 """
 >>>> Foo.elm
-module Foo exposing (Baz)
+module Foo.Fighters exposing (Baz)
 type alias Baz = {a: Int, b: Int}
 
 >>>> Bar.elm
 module Bar exposing (..)
 
-import Foo as Fighters
+import Foo.Fighters as Fighters exposing(a)
 
 a : Fighters.Baz
 a = Fighters.Baz 10 20
