@@ -353,12 +353,12 @@ isMacro e =
 
 {-| Flattens Type application into a List of expressions or returns a singleton if it's not a type
 -}
-flattenTypeApplication : Expression -> List Expression
-flattenTypeApplication application =
+flattenApplication : Expression -> List Expression
+flattenApplication application =
     case application of
         Application left right ->
             if isMacro application || isTuple application then
-                flattenTypeApplication left ++ [ right ]
+                flattenApplication left ++ [ right ]
             else
                 [ application ]
 
@@ -442,7 +442,7 @@ encodeAccessMacroAndRest c ( Selector.AccessMacro t arity selectors, rest ) =
 -}
 tupleOrFunction : Context -> Expression -> String
 tupleOrFunction c a =
-    case flattenTypeApplication a of
+    case flattenApplication a of
         -- Not a macro
         (Application left right) :: [] ->
             functionApplication c left right
@@ -482,7 +482,7 @@ tupleOrFunction c a =
                 |> Maybe.withDefault
                     (Helpers.moduleAccess c.mod list
                         |> (\( mod, last ) ->
-                                aliasFor (Context.changeCurrentModule mod c) last rest
+                                aliasFor (Context.changeCurrentModule (Context.maybeModuleAlias c mod) c) last rest
                                     |> Maybe.withDefault
                                         ("{"
                                             ++ elixirE c (Variable [ last ])

@@ -11,6 +11,7 @@ module Elchemy.Context
         , addAlias
         , addDefinition
         , addFlag
+        , addModuleAlias
         , addType
         , areMatchingArity
         , changeCurrentModule
@@ -28,6 +29,7 @@ module Elchemy.Context
         , indent
         , isPrivate
         , listOfImports
+        , maybeModuleAlias
         , mergeTypes
         , mergeVariables
         , notImplemented
@@ -130,6 +132,7 @@ type alias Context =
     , lastDoc : Maybe String
     , inTypeDefiniton : Bool
     , importedTypes : Dict String String
+    , aliasedModules : Dict String String
 
     -- Dict functionName (moduleName, arity)
     , importedFunctions : Dict String ( String, Int )
@@ -288,6 +291,7 @@ empty name exports =
             , ( "Result", "Elchemy.XResult" )
             ]
     , importedFunctions = Dict.empty
+    , aliasedModules = Dict.empty
     , meta = Nothing
     , inMeta = False
     }
@@ -460,6 +464,20 @@ importBasicsWithoutShadowed c =
     in
         importModule "Elchemy.XBasics" shadowedBasics
             ++ importModule "Kernel" shadowedKernel
+
+
+addModuleAlias : String -> Maybe String -> Context -> Context
+addModuleAlias oldName newName c =
+    newName
+        |> Maybe.map (\name -> { c | aliasedModules = c.aliasedModules |> Dict.insert name oldName })
+        |> Maybe.withDefault c
+
+
+maybeModuleAlias : Context -> String -> String
+maybeModuleAlias c s =
+    c.aliasedModules
+        |> Dict.get s
+        |> Maybe.withDefault s
 
 
 {-| Merges everything that should be imported from given module, based

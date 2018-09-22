@@ -11,7 +11,6 @@ import Elchemy.Context as Context exposing (Context, Definition, deindent, inden
 import Elchemy.Expression as Expression
 import Elchemy.Ffi as Ffi
 import Elchemy.Function as Function
-import Elchemy.Type as Type
 import Elchemy.Helpers as Helpers
     exposing
         ( (=>)
@@ -28,6 +27,7 @@ import Elchemy.Helpers as Helpers
         , translateOperator
         , typeApplicationToList
         )
+import Elchemy.Type as Type
 import Regex exposing (HowMany(..), Regex, regex)
 
 
@@ -232,24 +232,17 @@ elixirS c s =
             elixirComment c content
 
         -- That's not a real import. In elixir it's called alias
-        ImportStatement path Nothing Nothing ->
-            c
+        ImportStatement path aliasedAs Nothing ->
+            (c |> Context.addModuleAlias (modulePath path) aliasedAs)
                 => ind c.indent
                 ++ "alias "
                 ++ modulePath path
+                ++ aliasAs aliasedAs
 
-        ImportStatement path (Just asName) Nothing ->
-            c
-                => ind c.indent
-                ++ "alias "
-                ++ modulePath path
-                ++ ", as: "
-                ++ asName
-
-        ImportStatement path Nothing (Just ((SubsetExport exports) as subset)) ->
+        ImportStatement path aliasedAs (Just ((SubsetExport exports) as subset)) ->
             let
-                moduleName =
-                    path |> String.join "."
+                mod =
+                    modulePath path
 
                 imports =
                     List.map exportSetToList exports
@@ -284,23 +277,27 @@ elixirS c s =
                         "alias "
                     else
                         "import "
+
+                newC =
+                    c
+                        |> Context.addModuleAlias mod aliasedAs
+                        |> insertImports mod subset
+                        |> Context.mergeTypes subset (modulePath path)
             in
-                (c
-                    |> insertImports moduleName subset
-                    |> Context.mergeTypes subset (modulePath path)
-                )
-                    => ind c.indent
+                newC
+                    => ind newC.indent
                     ++ importOrAlias
                     ++ ([ [ modulePath path ], only, except ]
                             |> List.foldr (++) []
                             |> String.join ", "
                        )
+                    ++ aliasAs aliasedAs
 
         -- Suppresses the compiler warning
         ImportStatement [ "Elchemy" ] Nothing (Just AllExport) ->
             ( c, "" )
 
-        ImportStatement modPath Nothing (Just AllExport) ->
+        ImportStatement modPath aliasedAs (Just AllExport) ->
             let
                 mod =
                     modulePath modPath
@@ -325,20 +322,31 @@ elixirS c s =
                             ++ String.join ", " (elixirExportList c excepts)
                             ++ "]"
                         ]
+
+                newC =
+                    c
+                        |> Context.addModuleAlias mod aliasedAs
+                        |> insertImports mod AllExport
+                        |> Context.mergeTypes AllExport mod
             in
-                (Context.mergeTypes AllExport mod c
-                    |> insertImports mod AllExport
-                )
+                newC
                     => ind c.indent
                     ++ "import "
                     ++ ([ [ mod ], except ]
                             |> List.foldr (++) []
                             |> String.join ", "
                        )
+                    ++ aliasAs aliasedAs
 
         s ->
             (,) c <|
                 Context.notImplemented c "statement" s
+
+
+aliasAs : Maybe String -> String
+aliasAs =
+    Maybe.map (\newName -> ", as: " ++ newName)
+        >> Maybe.withDefault ""
 
 
 definitionExists : String -> Context -> Bool

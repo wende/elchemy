@@ -11,9 +11,9 @@ import Ast.Statement exposing (Statement)
 import Dict exposing (Dict)
 import Elchemy.Alias as Alias
 import Elchemy.Context as Context exposing (Context)
+import Elchemy.Helpers as Helpers exposing (ind, toSnakeCase)
 import Elchemy.Meta as Meta
 import Elchemy.Statement as Statement
-import Elchemy.Helpers as Helpers exposing (ind, toSnakeCase)
 import Regex exposing (HowMany(..), Regex, regex)
 
 
@@ -173,7 +173,7 @@ getContext statements =
                 base =
                     Statement.moduleStatement mod
             in
-                ( Just (Alias.getAliases base statements), statements )
+                ( Just (Alias.registerAliases base statements), statements )
 
 
 aggregateStatements : Statement -> ( Context, String ) -> ( Context, String )
