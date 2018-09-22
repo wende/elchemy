@@ -246,13 +246,6 @@ getExportedTypeNames c mod subset =
             []
 
 
-fullImportedType : Context -> String -> String
-fullImportedType c name =
-    Dict.get "name" c.importedTypes
-        |> Maybe.map (\a -> a ++ "." ++ name)
-        |> Maybe.withDefault name
-
-
 {-| Enocde a typespec with 0 arity
 -}
 typespec0 : Context -> Type -> String

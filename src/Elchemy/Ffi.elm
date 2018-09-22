@@ -5,8 +5,6 @@ import Ast.Statement exposing (Type(TypeConstructor))
 import Dict
 import Elchemy.Context as Context exposing (Context, Parser, onlyWithoutFlag)
 import Elchemy.Function as Function
-import Elchemy.Type as Type
-import Elchemy.Variable as Variable exposing (rememberVariables)
 import Elchemy.Helpers as Helpers
     exposing
         ( applicationToList
@@ -15,6 +13,8 @@ import Elchemy.Helpers as Helpers
         , ind
         , toSnakeCase
         )
+import Elchemy.Type as Type
+import Elchemy.Variable as Variable exposing (rememberVariables)
 
 
 {-| Encodes and inlines a foreign function interface macro
@@ -31,7 +31,7 @@ generateFfi c elixirE name argTypes e =
         typeDef =
             c.commons.modules
                 |> Dict.get c.mod
-                |> Maybe.andThen (.definitions >> Dict.get name)
+                |> Maybe.andThen (.functions >> Dict.get name)
 
         appList =
             applicationToList e

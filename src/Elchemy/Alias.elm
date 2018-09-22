@@ -1,4 +1,4 @@
-module Elchemy.Alias exposing (getAliases, replaceTypeAliases, resolveTypeBody)
+module Elchemy.Alias exposing (registerAliases, replaceTypeAliases, resolveTypeBody)
 
 import Ast.Statement exposing (Statement(..), Type(..))
 import Dict exposing (Dict)
@@ -14,8 +14,8 @@ import Elchemy.Context as Context
 import Elchemy.Helpers as Helpers exposing ((=>), lastAndRest)
 
 
-getAliases : Context -> List Statement -> Context
-getAliases c list =
+registerAliases : Context -> List Statement -> Context
+registerAliases c list =
     List.foldl registerAlias c list
 
 
@@ -106,7 +106,7 @@ registerFunctionDefinition c name t =
                 |> Helpers.typeApplicationToList
                 |> List.length
     in
-        Context.addDefinition c name (Context.Definition (arity - 1) t)
+        Context.addFunctionDefinition c name (Context.FunctionDefinition (arity - 1) t)
 
 
 registerTypes : List Type -> String -> Context -> ( List String, Context )
@@ -192,6 +192,8 @@ resolveTypes c expected given return =
         Ast.walkTypeOutwards replace return
 
 
+{-| Resolve an alias from local context
+-}
 localAlias : String -> Context -> Maybe Alias
 localAlias name context =
     Context.getAlias context.mod name context

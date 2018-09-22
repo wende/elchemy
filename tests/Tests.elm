@@ -1,10 +1,10 @@
-module Tests exposing (..)
+module Tests exposing (accessMacros, all, binOps, caseOfs, doctests, fileImports, functions, has, hasFull, letIns, lists, records, specs, tuples, typeAliases, typeConstructors, types)
 
-import Test exposing (..)
-import Expect
-import String
 import Elchemy.Compiler as Compiler
+import Expect
 import Regex exposing (..)
+import String
+import Test exposing (..)
 
 
 (|++) : String -> String -> String
@@ -424,6 +424,22 @@ import Foo
 
 a : Foo.Baz
 a = Foo.Baz 10 20
+            """
+                    |> hasFull "%{a: 10, b: 20}"
+        , test "Named type from another aliased module with as" <|
+            \() ->
+                """
+>>>> Foo.elm
+module Foo.Fighters exposing (Baz)
+type alias Baz = {a: Int, b: Int}
+
+>>>> Bar.elm
+module Bar exposing (..)
+
+import Foo.Fighters as Fighters exposing(a)
+
+a : Fighters.Baz
+a = Fighters.Baz 10 20
             """
                     |> hasFull "%{a: 10, b: 20}"
         , test "Imported specific type from another file" <|

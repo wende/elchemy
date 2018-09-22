@@ -6,12 +6,10 @@ import Ast.Expression exposing (Expression(..))
 import Ast.Statement exposing (ExportSet(..), Statement(..), Type(..))
 import Dict exposing (Dict)
 import Elchemy.Alias as Alias
-import Elchemy.Ast as Ast
-import Elchemy.Context as Context exposing (Context, Definition, deindent, indent, onlyWithoutFlag)
+import Elchemy.Context as Context exposing (Context, deindent, indent, onlyWithoutFlag)
 import Elchemy.Expression as Expression
 import Elchemy.Ffi as Ffi
 import Elchemy.Function as Function
-import Elchemy.Type as Type
 import Elchemy.Helpers as Helpers
     exposing
         ( (=>)
@@ -28,6 +26,7 @@ import Elchemy.Helpers as Helpers
         , translateOperator
         , typeApplicationToList
         )
+import Elchemy.Type as Type
 import Regex exposing (HowMany(..), Regex, regex)
 
 
@@ -134,7 +133,7 @@ elixirS c s =
                 definition =
                     c.commons.modules
                         |> Dict.get c.mod
-                        |> Maybe.andThen (.definitions >> Dict.get name >> Maybe.map .def)
+                        |> Maybe.andThen (.functions >> Dict.get name >> Maybe.map .def)
                         |> Maybe.map (Alias.replaceTypeAliases c)
 
                 ( newC, code ) =
@@ -178,7 +177,7 @@ elixirS c s =
                     Ffi.generateFfi c Expression.elixirE name <|
                         (c.commons.modules
                             |> Dict.get c.mod
-                            |> Maybe.andThen (.definitions >> Dict.get name)
+                            |> Maybe.andThen (.functions >> Dict.get name)
                             |> Maybe.map (.def >> typeApplicationToList)
                             |> Maybe.withDefault []
                             |> List.map typeApplicationToList
@@ -232,24 +231,17 @@ elixirS c s =
             elixirComment c content
 
         -- That's not a real import. In elixir it's called alias
-        ImportStatement path Nothing Nothing ->
-            c
+        ImportStatement path aliasedAs Nothing ->
+            (c |> Context.addModuleAlias (modulePath path) aliasedAs)
                 => ind c.indent
                 ++ "alias "
                 ++ modulePath path
+                ++ aliasAs aliasedAs
 
-        ImportStatement path (Just asName) Nothing ->
-            c
-                => ind c.indent
-                ++ "alias "
-                ++ modulePath path
-                ++ ", as: "
-                ++ asName
-
-        ImportStatement path Nothing (Just ((SubsetExport exports) as subset)) ->
+        ImportStatement path aliasedAs (Just ((SubsetExport exports) as subset)) ->
             let
-                moduleName =
-                    path |> String.join "."
+                mod =
+                    modulePath path
 
                 imports =
                     List.map exportSetToList exports
@@ -258,7 +250,7 @@ elixirS c s =
                 excepts =
                     c.commons.modules
                         |> Dict.get c.mod
-                        |> Maybe.map (.definitions >> Dict.keys >> duplicates imports)
+                        |> Maybe.map (.functions >> Dict.keys >> duplicates imports)
                         |> Maybe.withDefault []
 
                 only =
@@ -284,23 +276,27 @@ elixirS c s =
                         "alias "
                     else
                         "import "
+
+                newC =
+                    c
+                        |> Context.addModuleAlias mod aliasedAs
+                        |> insertImports mod subset
+                        |> Context.mergeTypes subset (modulePath path)
             in
-                (c
-                    |> insertImports moduleName subset
-                    |> Context.mergeTypes subset (modulePath path)
-                )
-                    => ind c.indent
+                newC
+                    => ind newC.indent
                     ++ importOrAlias
                     ++ ([ [ modulePath path ], only, except ]
                             |> List.foldr (++) []
                             |> String.join ", "
                        )
+                    ++ aliasAs aliasedAs
 
         -- Suppresses the compiler warning
         ImportStatement [ "Elchemy" ] Nothing (Just AllExport) ->
             ( c, "" )
 
-        ImportStatement modPath Nothing (Just AllExport) ->
+        ImportStatement modPath aliasedAs (Just AllExport) ->
             let
                 mod =
                     modulePath modPath
@@ -308,13 +304,13 @@ elixirS c s =
                 exports =
                     c.commons.modules
                         |> Dict.get mod
-                        |> Maybe.map (.definitions >> Dict.keys)
+                        |> Maybe.map (.functions >> Dict.keys)
                         |> Maybe.withDefault []
 
                 excepts =
                     c.commons.modules
                         |> Dict.get c.mod
-                        |> Maybe.map (.definitions >> Dict.keys >> duplicates exports)
+                        |> Maybe.map (.functions >> Dict.keys >> duplicates exports)
                         |> Maybe.withDefault []
 
                 except =
@@ -325,27 +321,42 @@ elixirS c s =
                             ++ String.join ", " (elixirExportList c excepts)
                             ++ "]"
                         ]
+
+                newC =
+                    c
+                        |> Context.addModuleAlias mod aliasedAs
+                        |> insertImports mod AllExport
+                        |> Context.mergeTypes AllExport mod
             in
-                (Context.mergeTypes AllExport mod c
-                    |> insertImports mod AllExport
-                )
+                newC
                     => ind c.indent
                     ++ "import "
                     ++ ([ [ mod ], except ]
                             |> List.foldr (++) []
                             |> String.join ", "
                        )
+                    ++ aliasAs aliasedAs
 
         s ->
             (,) c <|
                 Context.notImplemented c "statement" s
 
 
+{-| Returns a String "as: ModuleAlias" or empty string if no module alias
+-}
+aliasAs : Maybe String -> String
+aliasAs =
+    Maybe.map (\newName -> ", as: " ++ newName)
+        >> Maybe.withDefault ""
+
+
+{-| Returns True if
+-}
 definitionExists : String -> Context -> Bool
 definitionExists name c =
     c.commons.modules
         |> Dict.get c.mod
-        |> Maybe.andThen (.definitions >> Dict.get name)
+        |> Maybe.andThen (.functions >> Dict.get name)
         |> (/=) Nothing
 
 
@@ -363,7 +374,7 @@ insertImports mod subset c =
                 AllExport ->
                     c.commons.modules
                         |> Dict.get mod
-                        |> Maybe.map .definitions
+                        |> Maybe.map .functions
                         |> Maybe.map Dict.toList
                         |> Maybe.withDefault []
                         |> List.map (\( key, { arity } ) -> ( key, arity ))
@@ -374,7 +385,7 @@ insertImports mod subset c =
                 FunctionExport name ->
                     c.commons.modules
                         |> Dict.get mod
-                        |> Maybe.map .definitions
+                        |> Maybe.map .functions
                         |> Maybe.andThen (Dict.get name)
                         |> Maybe.map (\{ arity } -> [ ( name, arity ) ])
                         |> Maybe.withDefault []
@@ -543,7 +554,7 @@ elixirExportList c list =
                 defineFor (toSnakeCase True name) 0
                     ++ (c.commons.modules
                             |> Dict.get c.mod
-                            |> Maybe.map .definitions
+                            |> Maybe.map .functions
                             |> Maybe.andThen (Dict.get name)
                             |> Maybe.map .arity
                             |> filterMaybe ((/=) 0)
