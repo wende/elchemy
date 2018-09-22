@@ -12,7 +12,7 @@ release:
 compile:
 	elm-make Main.elm --yes --output compiled.js
 	sed 's/var Elm = {}/&; \
-	require(".\/elchemy_node.js").execute(_user$$project$$Elchemy$$Compiler$$tree, _user$$project$$Elchemy$$Compiler$$fullTree, _user$$project$$Elchemy$$Compiler$$treeAndCommons)/' compiled.js > elchemy.js
+	require(".\/elchemy_node.js").execute(_user$$project$$Elchemy_Compiler$$tree, _user$$project$$Elchemy_Compiler$$fullTree, _user$$project$$Elchemy_Compiler$$treeAndCommons)/' compiled.js > elchemy.js
 	rm compiled.js
 
 compile-watch:
