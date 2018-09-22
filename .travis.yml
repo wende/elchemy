@@ -1,6 +1,6 @@
 language: elixir
 elixir:
-    - 1.4.2
+    - 1.6.4
 os:
   - linux
 
@@ -22,7 +22,7 @@ before_install:
       ./configure --prefix=$TRAVIS_BUILD_DIR/sysconfcpus;
       make && make install;
       cd ..;
-    fi
+    f
 
 install:
   - nvm install 6.11.2
