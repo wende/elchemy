@@ -61,7 +61,7 @@ case "$1" in
             if [ -d ./test ]; then
                 cp $SOURCE_DIR/templates/elchemy_test.exs ./test/
             fi
-            printf  "Elchemy $version initialised. Make sure to add:\n\n\t|> Code.eval_file(\".elchemy.exs\").init\n\nto your mix.exs file as the last line of the project() function.\nThis pipes the project keyword list to the elchemy init function to configure some additional values.\n\nThen run mix test to check if everything went fine\n"
+            printf  "Elchemy $version initialised. Make sure to add:\n\n\t|> elem(Code.eval_file(\".elchemy.exs\"), 0).init\n\nto your mix.exs file as the last line of the project() function.\nThis pipes the project keyword list to the elchemy init function to configure some additional values.\n\nThen run mix test to check if everything went fine\n"
             printf "\nelm-deps" >> .gitignore
             printf "\nelm-stuff" >> .gitignore
             printf "\node_modules" >> .gitignore

@@ -11,7 +11,7 @@ To integrate Elchemy with your project you need to execute:
 elchemy init
 ```
 
-Inside your elixir project directory.  
+Inside your elixir project directory.
 If you don't have a project created, you need to first create it. It's advised to use  [Mix](https://elixir-lang.org/getting-started/mix-otp/introduction-to-mix.html#our-first-project) for that.
 
 Assuming the simplest example project called `my_project` the standard path would be:
@@ -24,9 +24,9 @@ elchemy init
 
 Then open your `mix.exs` file inside project root directory. And add:
 ```elixir
-|> Code.eval_file("elchemy.exs").init
+|> elem(Code.eval_file(".elchemy.exs"), 0).init
 ```
-At the end of your `project/0` function definition. Like so:  
+At the end of your `project/0` function definition. Like so:
 (As of OTP 21.0 and above you must also add `@compile :tuple_calls` at the top of the Mix module. It is caused by tuple calls support being removed from newer versions of Erlang)
 Before:
 ```elixir
@@ -60,7 +60,7 @@ defmodule MyProject.Mixfile do
       elixir: "~> 1.5",
       start_permanent: Mix.env == :prod,
       deps: deps()
-    ] |> Code.eval_file("elchemy.exs").init
+    ] |> elem(Code.eval_file(".elchemy.exs"), 0).init
   end
 
   # Run "mix help compile.app" to learn about applications.
