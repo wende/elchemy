@@ -10,7 +10,6 @@ import Ast.Expression exposing (Expression(..))
 import Ast.Statement exposing (Type)
 import Dict
 import Elchemy.Context as Context exposing (Context, Parser, inArgs, indent)
-import Elchemy.Variable as Variable exposing (rememberVariables)
 import Elchemy.Helpers as Helpers
     exposing
         ( Operator(..)
@@ -21,6 +20,7 @@ import Elchemy.Helpers as Helpers
         , toSnakeCase
         , translateOperator
         )
+import Elchemy.Variable as Variable exposing (rememberVariables)
 
 
 {-| Encodes a function defintion with all decorations like curry and type spec
@@ -37,7 +37,7 @@ genFunctionDefinition c elixirE name args body =
         typeDef =
             c.commons.modules
                 |> Dict.get c.mod
-                |> Maybe.andThen (.definitions >> Dict.get name)
+                |> Maybe.andThen (.functions >> Dict.get name)
 
         arity =
             typeDef |> Maybe.map .arity |> Maybe.withDefault 0
@@ -68,7 +68,7 @@ genOverloadedFunctionDefinition c elixirE name args body expressions =
         typeDef =
             c.commons.modules
                 |> Dict.get c.mod
-                |> Maybe.andThen (.definitions >> Dict.get name)
+                |> Maybe.andThen (.functions >> Dict.get name)
 
         arity =
             typeDef |> Maybe.map .arity |> Maybe.withDefault 0

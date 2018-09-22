@@ -106,7 +106,7 @@ registerFunctionDefinition c name t =
                 |> Helpers.typeApplicationToList
                 |> List.length
     in
-        Context.addDefinition c name (Context.Definition (arity - 1) t)
+        Context.addFunctionDefinition c name (Context.FunctionDefinition (arity - 1) t)
 
 
 registerTypes : List Type -> String -> Context -> ( List String, Context )

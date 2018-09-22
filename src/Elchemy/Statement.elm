@@ -6,8 +6,7 @@ import Ast.Expression exposing (Expression(..))
 import Ast.Statement exposing (ExportSet(..), Statement(..), Type(..))
 import Dict exposing (Dict)
 import Elchemy.Alias as Alias
-import Elchemy.Ast as Ast
-import Elchemy.Context as Context exposing (Context, Definition, deindent, indent, onlyWithoutFlag)
+import Elchemy.Context as Context exposing (Context, deindent, indent, onlyWithoutFlag)
 import Elchemy.Expression as Expression
 import Elchemy.Ffi as Ffi
 import Elchemy.Function as Function
@@ -134,7 +133,7 @@ elixirS c s =
                 definition =
                     c.commons.modules
                         |> Dict.get c.mod
-                        |> Maybe.andThen (.definitions >> Dict.get name >> Maybe.map .def)
+                        |> Maybe.andThen (.functions >> Dict.get name >> Maybe.map .def)
                         |> Maybe.map (Alias.replaceTypeAliases c)
 
                 ( newC, code ) =
@@ -178,7 +177,7 @@ elixirS c s =
                     Ffi.generateFfi c Expression.elixirE name <|
                         (c.commons.modules
                             |> Dict.get c.mod
-                            |> Maybe.andThen (.definitions >> Dict.get name)
+                            |> Maybe.andThen (.functions >> Dict.get name)
                             |> Maybe.map (.def >> typeApplicationToList)
                             |> Maybe.withDefault []
                             |> List.map typeApplicationToList
@@ -251,7 +250,7 @@ elixirS c s =
                 excepts =
                     c.commons.modules
                         |> Dict.get c.mod
-                        |> Maybe.map (.definitions >> Dict.keys >> duplicates imports)
+                        |> Maybe.map (.functions >> Dict.keys >> duplicates imports)
                         |> Maybe.withDefault []
 
                 only =
@@ -305,13 +304,13 @@ elixirS c s =
                 exports =
                     c.commons.modules
                         |> Dict.get mod
-                        |> Maybe.map (.definitions >> Dict.keys)
+                        |> Maybe.map (.functions >> Dict.keys)
                         |> Maybe.withDefault []
 
                 excepts =
                     c.commons.modules
                         |> Dict.get c.mod
-                        |> Maybe.map (.definitions >> Dict.keys >> duplicates exports)
+                        |> Maybe.map (.functions >> Dict.keys >> duplicates exports)
                         |> Maybe.withDefault []
 
                 except =
@@ -343,17 +342,21 @@ elixirS c s =
                 Context.notImplemented c "statement" s
 
 
+{-| Returns a String "as: ModuleAlias" or empty string if no module alias
+-}
 aliasAs : Maybe String -> String
 aliasAs =
     Maybe.map (\newName -> ", as: " ++ newName)
         >> Maybe.withDefault ""
 
 
+{-| Returns True if
+-}
 definitionExists : String -> Context -> Bool
 definitionExists name c =
     c.commons.modules
         |> Dict.get c.mod
-        |> Maybe.andThen (.definitions >> Dict.get name)
+        |> Maybe.andThen (.functions >> Dict.get name)
         |> (/=) Nothing
 
 
@@ -371,7 +374,7 @@ insertImports mod subset c =
                 AllExport ->
                     c.commons.modules
                         |> Dict.get mod
-                        |> Maybe.map .definitions
+                        |> Maybe.map .functions
                         |> Maybe.map Dict.toList
                         |> Maybe.withDefault []
                         |> List.map (\( key, { arity } ) -> ( key, arity ))
@@ -382,7 +385,7 @@ insertImports mod subset c =
                 FunctionExport name ->
                     c.commons.modules
                         |> Dict.get mod
-                        |> Maybe.map .definitions
+                        |> Maybe.map .functions
                         |> Maybe.andThen (Dict.get name)
                         |> Maybe.map (\{ arity } -> [ ( name, arity ) ])
                         |> Maybe.withDefault []
@@ -551,7 +554,7 @@ elixirExportList c list =
                 defineFor (toSnakeCase True name) 0
                     ++ (c.commons.modules
                             |> Dict.get c.mod
-                            |> Maybe.map .definitions
+                            |> Maybe.map .functions
                             |> Maybe.andThen (Dict.get name)
                             |> Maybe.map .arity
                             |> filterMaybe ((/=) 0)
