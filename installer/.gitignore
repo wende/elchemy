@@ -1,0 +1,44 @@
+# -*- mode: gitignore; -*-
+# *~
+ \#*\#
+# /.emacs.desktop
+# /.emacs.desktop.lock
+# *.elc
+# auto-save-list
+# tramp
+.\#*
+#
+# # reftex files
+ *.rel
+#
+# # AUCTeX auto folder
+# /auto/
+#
+# # cask packages
+ .cask/
+ dist/
+#
+# # Flycheck
+ flycheck_*.el
+#
+# # server auth directory
+# /server/
+#
+# # projectiles files
+ .projectile
+
+
+/priv/static/**/*
+
+.DS_Store
+
+
+# App artifacts
+/_build
+/deps
+/doc
+/tmp
+/node_modules
+
+/installer/_build
+/installer/tmp
