@@ -2,7 +2,7 @@ port module Main exposing (main)
 
 import Html exposing (..)
 import Html
-import Compiler
+import Elchemy.Compiler as Compiler
 import Markdown
 
 

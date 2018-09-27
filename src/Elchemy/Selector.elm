@@ -1,11 +1,11 @@
-module ExSelector exposing (Selector(..), maybeAccessMacro, AccessMacro(..), AccessMacroType(..))
+module Elchemy.Selector exposing (AccessMacro(..), AccessMacroType(..), Selector(..), maybeAccessMacro)
 
 import Ast.Expression exposing (Expression(AccessFunction, Application, Variable))
-import Regex
 import Char
+import Elchemy.Context as Context exposing (Context)
+import Elchemy.Helpers as Helpers
 import List.Extra
-import Helpers
-import ExContext exposing (Context)
+import Regex
 
 
 type Selector
@@ -29,7 +29,7 @@ getSelector c expression =
             Access (Helpers.toSnakeCase True name)
 
         _ ->
-            ExContext.crash c "The only allowed selectors are: .field"
+            Context.crash c "The only allowed selectors are: .field"
 
 
 maybeAccessMacro : Context -> Expression -> List Expression -> Maybe ( AccessMacro, List Expression )
@@ -38,7 +38,7 @@ maybeAccessMacro c call args =
         accessMacroArgs arity args =
             case compare (List.length args) arity of
                 LT ->
-                    ExContext.crash c <|
+                    Context.crash c <|
                         "Access macros [updateIn/getIn/putIn] cannot be partially applied. Expecting "
                             ++ toString arity
                             ++ " selector arguments."

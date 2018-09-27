@@ -1,46 +1,48 @@
-module ExContext
+module Elchemy.Context
     exposing
         ( Alias
         , AliasType(..)
-        , TypeBody(..)
         , Commons
         , Context
+        , FunctionDefinition
         , Module
-        , Definition
         , Parser
-        , empty
-        , emptyCommons
+        , TypeBody(..)
         , addAlias
-        , getAlias
-        , wrongArityAlias
-        , addType
-        , getType
-        , getArity
-        , areMatchingArity
-        , addDefinition
-        , indent
-        , deindent
-        , mergeVariables
-        , inArgs
-        , onlyWithoutFlag
-        , hasFlag
         , addFlag
-        , isPrivate
-        , mergeTypes
-        , getShadowedFunctions
-        , listOfImports
-        , importBasicsWithoutShadowed
-        , putIntoModule
+        , addFunctionDefinition
+        , addModuleAlias
+        , addType
+        , areMatchingArity
         , changeCurrentModule
         , crash
+        , deindent
+        , empty
+        , emptyCommons
+        , getAlias
+        , getArity
+        , getShadowedFunctions
+        , getType
+        , hasFlag
+        , importBasicsWithoutShadowed
+        , inArgs
+        , indent
+        , isPrivate
+        , listOfImports
+        , maybeModuleAlias
+        , mergeTypes
+        , mergeVariables
         , notImplemented
+        , onlyWithoutFlag
+        , putIntoModule
+        , wrongArityAlias
         )
 
-import Set exposing (Set)
-import Dict exposing (Dict)
 import Ast.Expression exposing (Expression)
-import Ast.Statement exposing (Type(..), Statement, ExportSet(..))
-import Helpers exposing (toSnakeCase)
+import Ast.Statement exposing (ExportSet(..), Statement, Type(..))
+import Dict exposing (Dict)
+import Elchemy.Helpers as Helpers exposing (toSnakeCase)
+import Set exposing (Set)
 
 
 type alias Parser =
@@ -78,7 +80,7 @@ that a Type in here is only a definition of a type like
         = TagA
         | TagB
 
-Where only A is a `ExContext.AliasType.Type`, two separate tags are other instances and
+Where only A is a `Context.AliasType.Type`, two separate tags are other instances and
 belong to Types not Aliases
 
 -}
@@ -95,7 +97,7 @@ type alias Flag =
 
 {-| Definition of a function and its correspoint Ast.Type structure
 -}
-type alias Definition =
+type alias FunctionDefinition =
     { arity : Int, def : Ast.Statement.Type }
 
 
@@ -104,7 +106,7 @@ type alias Definition =
 type alias Module =
     { aliases : Dict String Alias
     , types : Dict String UnionType
-    , definitions : Dict String Definition
+    , functions : Dict String FunctionDefinition
     , exports : ExportSet
     }
 
@@ -130,6 +132,7 @@ type alias Context =
     , lastDoc : Maybe String
     , inTypeDefiniton : Bool
     , importedTypes : Dict String String
+    , aliasedModules : Dict String String
 
     -- Dict functionName (moduleName, arity)
     , importedFunctions : Dict String ( String, Int )
@@ -203,9 +206,9 @@ addType mod parentAlias name arity =
 
 {-| Add type definition into context
 -}
-addDefinition : Context -> String -> Definition -> Context
-addDefinition c name d =
-    putIntoModule c.mod name .definitions (\m x -> { m | definitions = x }) d c
+addFunctionDefinition : Context -> String -> FunctionDefinition -> Context
+addFunctionDefinition c name d =
+    putIntoModule c.mod name .functions (\m x -> { m | functions = x }) d c
 
 
 {-| Get's either alias or type from context based on `from` accessor
@@ -249,14 +252,14 @@ getArity ctx m fn =
         local =
             ctx.commons.modules
                 |> Dict.get m
-                |> Maybe.map .definitions
+                |> Maybe.map .functions
                 |> Maybe.andThen (Dict.get fn)
                 |> Maybe.map .arity
 
         imported =
             ctx.importedFunctions
                 |> Dict.get fn
-                |> Maybe.map (Tuple.second)
+                |> Maybe.map Tuple.second
     in
         Helpers.maybeOr local imported
 
@@ -288,6 +291,7 @@ empty name exports =
             , ( "Result", "Elchemy.XResult" )
             ]
     , importedFunctions = Dict.empty
+    , aliasedModules = Dict.empty
     , meta = Nothing
     , inMeta = False
     }
@@ -348,7 +352,7 @@ onlyWithoutFlag c key value code =
 getAllFlags : String -> Context -> List String
 getAllFlags key c =
     c.flags
-        |> List.filter (Tuple.first >> ((==) key))
+        |> List.filter (Tuple.first >> (==) key)
         |> List.map Tuple.second
 
 
@@ -397,17 +401,17 @@ mergeVariables left right =
 {-| Finds all defined functions and all auto imported functions (XBasics) and returns
 the commons subset. Return empty list for XBasics
 -}
-getShadowedFunctions : Context -> List String -> List ( String, Definition )
+getShadowedFunctions : Context -> List String -> List ( String, FunctionDefinition )
 getShadowedFunctions context list =
     let
-        definitions =
+        functions =
             context.commons.modules
                 |> Dict.get context.mod
-                |> Maybe.map (.definitions)
+                |> Maybe.map .functions
                 |> Maybe.withDefault Dict.empty
 
         findReserved name =
-            definitions
+            functions
                 |> Dict.get name
                 |> Maybe.map ((,) name >> List.singleton)
                 |> Maybe.withDefault []
@@ -419,9 +423,9 @@ getShadowedFunctions context list =
                 |> List.concatMap findReserved
 
 
-{-| Changes definitions to a list of qualified imports including 0 and full arity
+{-| Changes function definitions to a list of qualified imports including 0 and full arity
 -}
-listOfImports : List ( String, Definition ) -> List String
+listOfImports : List ( String, FunctionDefinition ) -> List String
 listOfImports shadowed =
     let
         importTuple ( name, arity ) =
@@ -462,6 +466,26 @@ importBasicsWithoutShadowed c =
             ++ importModule "Kernel" shadowedKernel
 
 
+{-| Register a new module alias
+import ModuleA as ModuleB
+Would delias all ModuleB calls to ModuleA in case of Type and TypeAlias constructors
+-}
+addModuleAlias : String -> Maybe String -> Context -> Context
+addModuleAlias oldName newName c =
+    newName
+        |> Maybe.map (\name -> { c | aliasedModules = c.aliasedModules |> Dict.insert name oldName })
+        |> Maybe.withDefault c
+
+
+{-| Replace a module name with it's original name it aliases to. Otherwise return the same name
+-}
+maybeModuleAlias : Context -> String -> String
+maybeModuleAlias c s =
+    c.aliasedModules
+        |> Dict.get s
+        |> Maybe.withDefault s
+
+
 {-| Merges everything that should be imported from given module, based
 on given export set value
 -}
@@ -472,7 +496,7 @@ mergeTypes set mod c =
             c.commons.modules
                 |> Dict.get mod
                 |> Maybe.map getter
-                |> Maybe.withDefault (Dict.empty)
+                |> Maybe.withDefault Dict.empty
 
         getAlias : String -> Dict String Alias
         getAlias aliasName =

@@ -1,34 +1,33 @@
-module ExStatement exposing (elixirS, moduleStatement)
+module Elchemy.Statement exposing (elixirS, moduleStatement)
 
 import Ast
-import ExFfi
-import ExType
-import ExAlias
-import ExAst
-import ExFunction
-import ExExpression
-import Dict exposing (Dict)
 import Ast.BinOp exposing (operators)
 import Ast.Expression exposing (Expression(..))
-import Regex exposing (Regex, HowMany(..), regex)
-import Ast.Statement exposing (Statement(..), Type(..), ExportSet(..))
-import ExContext exposing (Context, Definition, indent, deindent, onlyWithoutFlag)
-import Helpers
+import Ast.Statement exposing (ExportSet(..), Statement(..), Type(..))
+import Dict exposing (Dict)
+import Elchemy.Alias as Alias
+import Elchemy.Context as Context exposing (Context, deindent, indent, onlyWithoutFlag)
+import Elchemy.Expression as Expression
+import Elchemy.Ffi as Ffi
+import Elchemy.Function as Function
+import Elchemy.Helpers as Helpers
     exposing
-        ( ind
+        ( (=>)
+        , Operator(..)
+        , filterMaybe
+        , ind
         , indAll
         , indNoNewline
+        , isCustomOperator
+        , modulePath
+        , operatorType
         , prependAll
         , toSnakeCase
-        , operatorType
-        , isCustomOperator
-        , Operator(..)
         , translateOperator
-        , (=>)
-        , modulePath
         , typeApplicationToList
-        , filterMaybe
         )
+import Elchemy.Type as Type
+import Regex exposing (HowMany(..), Regex, regex)
 
 
 type ElchemyComment
@@ -50,7 +49,7 @@ moduleStatement : Statement -> Context
 moduleStatement s =
     case s of
         ModuleDeclaration path exports ->
-            ExContext.empty (modulePath path) exports
+            Context.empty (modulePath path) exports
 
         other ->
             Debug.crash "First statement must be module declaration"
@@ -70,7 +69,7 @@ typeDefinition c name args types isUnion =
                     name
 
                 _ ->
-                    ExContext.crash c (toString t ++ " is not a type variable")
+                    Context.crash c (toString t ++ " is not a type variable")
 
         arguments =
             if args == [] then
@@ -82,16 +81,16 @@ typeDefinition c name args types isUnion =
 
         mapType =
             (if isUnion then
-                ExType.uniontype { c | inTypeDefiniton = True }
+                Type.uniontype { c | inTypeDefiniton = True }
              else
-                ExType.elixirT False { c | inTypeDefiniton = True }
+                Type.elixirT False { c | inTypeDefiniton = True }
             )
-                << ExAlias.replaceTypeAliases c
+                << Alias.replaceTypeAliases c
     in
         (,) newC <|
-            (onlyWithoutFlag c "notype" name) <|
+            onlyWithoutFlag c "notype" name <|
                 code
-                    ++ (ind c.indent)
+                    ++ ind c.indent
                     ++ "@type "
                     ++ toSnakeCase True name
                     ++ arguments
@@ -118,11 +117,11 @@ elixirS c s =
             if t == TypeConstructor [ "List" ] [ TypeConstructor [ "Macro" ] [] ] then
                 ( c, "" )
             else
-                ExContext.crash c "Function `meta` is reserved and its type has to be of List Macro"
+                Context.crash c "Function `meta` is reserved and its type has to be of List Macro"
 
         FunctionDeclaration "meta" [] body ->
             if not <| definitionExists "meta" c then
-                ExContext.crash c "Function `meta` requires type definition of List Macro"
+                Context.crash c "Function `meta` requires type definition of List Macro"
             else
                 ( { c | meta = Just body }, "" )
 
@@ -134,8 +133,8 @@ elixirS c s =
                 definition =
                     c.commons.modules
                         |> Dict.get c.mod
-                        |> Maybe.andThen (.definitions >> Dict.get name >> Maybe.map .def)
-                        |> Maybe.map (ExAlias.replaceTypeAliases c)
+                        |> Maybe.andThen (.functions >> Dict.get name >> Maybe.map .def)
+                        |> Maybe.map (Alias.replaceTypeAliases c)
 
                 ( newC, code ) =
                     c.lastDoc
@@ -143,48 +142,49 @@ elixirS c s =
                         |> Maybe.withDefault ( c, "" )
 
                 spec =
-                    (onlyWithoutFlag newC "nodef" name code)
-                        ++ case operatorType name of
-                            Builtin ->
-                                -- TODO implement operator specs
-                                ""
+                    onlyWithoutFlag newC "nodef" name code
+                        ++ (case operatorType name of
+                                Builtin ->
+                                    -- TODO implement operator specs
+                                    ""
 
-                            Custom ->
-                                definition
-                                    |> Maybe.map
-                                        (\def ->
-                                            onlyWithoutFlag newC "nospec" name <|
-                                                (ind newC.indent)
-                                                    ++ "@spec "
-                                                    ++ translateOperator name
-                                                    ++ (ExType.typespec newC def)
-                                        )
-                                    |> Maybe.withDefault ""
+                                Custom ->
+                                    definition
+                                        |> Maybe.map
+                                            (\def ->
+                                                onlyWithoutFlag newC "nospec" name <|
+                                                    ind newC.indent
+                                                        ++ "@spec "
+                                                        ++ translateOperator name
+                                                        ++ Type.typespec newC def
+                                            )
+                                        |> Maybe.withDefault ""
 
-                            None ->
-                                definition
-                                    |> Maybe.map
-                                        (\def ->
-                                            onlyWithoutFlag newC "nospec" name <|
-                                                (ind newC.indent)
-                                                    ++ "@spec "
-                                                    ++ toSnakeCase True name
-                                                    ++ (ExType.typespec newC def)
-                                        )
-                                    |> Maybe.withDefault ""
+                                None ->
+                                    definition
+                                        |> Maybe.map
+                                            (\def ->
+                                                onlyWithoutFlag newC "nospec" name <|
+                                                    ind newC.indent
+                                                        ++ "@spec "
+                                                        ++ toSnakeCase True name
+                                                        ++ Type.typespec newC def
+                                            )
+                                        |> Maybe.withDefault ""
+                           )
 
                 genFfi =
-                    ExFfi.generateFfi c ExExpression.elixirE name <|
+                    Ffi.generateFfi c Expression.elixirE name <|
                         (c.commons.modules
                             |> Dict.get c.mod
-                            |> Maybe.andThen (.definitions >> Dict.get name)
+                            |> Maybe.andThen (.functions >> Dict.get name)
                             |> Maybe.map (.def >> typeApplicationToList)
                             |> Maybe.withDefault []
                             |> List.map typeApplicationToList
                         )
 
                 isPrivate =
-                    ExContext.isPrivate c name
+                    Context.isPrivate c name
 
                 isTuple t =
                     case t of
@@ -195,59 +195,53 @@ elixirS c s =
                             False
             in
                 newC
-                    => case body of
-                        (Application (Application (Variable [ "ffi" ]) _) _) as app ->
-                            spec
-                                ++ ind (c.indent + 1)
-                                ++ genFfi app
+                    => (case body of
+                            (Application (Application (Variable [ "ffi" ]) _) _) as app ->
+                                spec
+                                    ++ ind (c.indent + 1)
+                                    ++ genFfi app
 
-                        (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
-                            spec
-                                ++ ind (c.indent + 1)
-                                ++ genFfi app
+                            (Application (Application (Variable [ "tryFfi" ]) _) _) as app ->
+                                spec
+                                    ++ ind (c.indent + 1)
+                                    ++ genFfi app
 
-                        (Application (Application (Variable [ "macro" ]) _) _) as app ->
-                            ind c.indent
-                                ++ genFfi app
-                                ++ "\n"
+                            (Application (Application (Variable [ "macro" ]) _) _) as app ->
+                                ind c.indent
+                                    ++ genFfi app
+                                    ++ "\n"
 
-                        -- Case ((Variable [ _ ]) as var) expressions ->
-                        --     if [ var ] == args then
-                        --         ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
-                        --     else
-                        --         ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
-                        --
-                        -- Case (Tuple vars) expressions ->
-                        --     if vars == args && List.all (Tuple.first >> isTuple) expressions then
-                        --         ExFunction.genOverloadedFunctionDefinition c ExExpression.elixirE name args body expressions
-                        --     else
-                        --         ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
-                        _ ->
-                            spec
-                                ++ ExFunction.genFunctionDefinition c ExExpression.elixirE name args body
+                            -- Case ((Variable [ _ ]) as var) expressions ->
+                            --     if [ var ] == args then
+                            --         Function.genOverloadedFunctionDefinition c Expression.elixirE name args body expressions
+                            --     else
+                            --         Function.genFunctionDefinition c Expression.elixirE name args body
+                            --
+                            -- Case (Tuple vars) expressions ->
+                            --     if vars == args && List.all (Tuple.first >> isTuple) expressions then
+                            --         Function.genOverloadedFunctionDefinition c Expression.elixirE name args body expressions
+                            --     else
+                            --         Function.genFunctionDefinition c Expression.elixirE name args body
+                            _ ->
+                                spec
+                                    ++ Function.genFunctionDefinition c Expression.elixirE name args body
+                       )
 
         Comment content ->
             elixirComment c content
 
         -- That's not a real import. In elixir it's called alias
-        ImportStatement path Nothing Nothing ->
-            c
-                => (ind c.indent)
+        ImportStatement path aliasedAs Nothing ->
+            (c |> Context.addModuleAlias (modulePath path) aliasedAs)
+                => ind c.indent
                 ++ "alias "
                 ++ modulePath path
+                ++ aliasAs aliasedAs
 
-        ImportStatement path (Just asName) Nothing ->
-            c
-                => (ind c.indent)
-                ++ "alias "
-                ++ modulePath path
-                ++ ", as: "
-                ++ asName
-
-        ImportStatement path Nothing (Just ((SubsetExport exports) as subset)) ->
+        ImportStatement path aliasedAs (Just ((SubsetExport exports) as subset)) ->
             let
-                moduleName =
-                    (path |> String.join ".")
+                mod =
+                    modulePath path
 
                 imports =
                     List.map exportSetToList exports
@@ -256,7 +250,7 @@ elixirS c s =
                 excepts =
                     c.commons.modules
                         |> Dict.get c.mod
-                        |> Maybe.map (.definitions >> Dict.keys >> duplicates imports)
+                        |> Maybe.map (.functions >> Dict.keys >> duplicates imports)
                         |> Maybe.withDefault []
 
                 only =
@@ -282,23 +276,27 @@ elixirS c s =
                         "alias "
                     else
                         "import "
+
+                newC =
+                    c
+                        |> Context.addModuleAlias mod aliasedAs
+                        |> insertImports mod subset
+                        |> Context.mergeTypes subset (modulePath path)
             in
-                (c
-                    |> insertImports moduleName subset
-                    |> ExContext.mergeTypes subset (modulePath path)
-                )
-                    => (ind c.indent)
+                newC
+                    => ind newC.indent
                     ++ importOrAlias
                     ++ ([ [ modulePath path ], only, except ]
                             |> List.foldr (++) []
                             |> String.join ", "
                        )
+                    ++ aliasAs aliasedAs
 
         -- Suppresses the compiler warning
         ImportStatement [ "Elchemy" ] Nothing (Just AllExport) ->
             ( c, "" )
 
-        ImportStatement modPath Nothing (Just AllExport) ->
+        ImportStatement modPath aliasedAs (Just AllExport) ->
             let
                 mod =
                     modulePath modPath
@@ -306,13 +304,13 @@ elixirS c s =
                 exports =
                     c.commons.modules
                         |> Dict.get mod
-                        |> Maybe.map (.definitions >> Dict.keys)
+                        |> Maybe.map (.functions >> Dict.keys)
                         |> Maybe.withDefault []
 
                 excepts =
                     c.commons.modules
                         |> Dict.get c.mod
-                        |> Maybe.map (.definitions >> Dict.keys >> duplicates exports)
+                        |> Maybe.map (.functions >> Dict.keys >> duplicates exports)
                         |> Maybe.withDefault []
 
                 except =
@@ -323,27 +321,42 @@ elixirS c s =
                             ++ String.join ", " (elixirExportList c excepts)
                             ++ "]"
                         ]
+
+                newC =
+                    c
+                        |> Context.addModuleAlias mod aliasedAs
+                        |> insertImports mod AllExport
+                        |> Context.mergeTypes AllExport mod
             in
-                (ExContext.mergeTypes AllExport mod c
-                    |> insertImports mod AllExport
-                )
-                    => (ind c.indent)
+                newC
+                    => ind c.indent
                     ++ "import "
                     ++ ([ [ mod ], except ]
                             |> List.foldr (++) []
                             |> String.join ", "
                        )
+                    ++ aliasAs aliasedAs
 
         s ->
             (,) c <|
-                ExContext.notImplemented c "statement" s
+                Context.notImplemented c "statement" s
 
 
+{-| Returns a String "as: ModuleAlias" or empty string if no module alias
+-}
+aliasAs : Maybe String -> String
+aliasAs =
+    Maybe.map (\newName -> ", as: " ++ newName)
+        >> Maybe.withDefault ""
+
+
+{-| Returns True if
+-}
 definitionExists : String -> Context -> Bool
 definitionExists name c =
     c.commons.modules
         |> Dict.get c.mod
-        |> Maybe.andThen (.definitions >> Dict.get name)
+        |> Maybe.andThen (.functions >> Dict.get name)
         |> (/=) Nothing
 
 
@@ -354,15 +367,15 @@ insertImports : String -> ExportSet -> Context -> Context
 insertImports mod subset c =
     let
         exportNames =
-            ExType.getExportedTypeNames c mod subset
+            Type.getExportedTypeNames c mod subset
 
         importedFunctions subset =
             case subset of
                 AllExport ->
                     c.commons.modules
                         |> Dict.get mod
-                        |> Maybe.map (.definitions)
-                        |> Maybe.map (Dict.toList)
+                        |> Maybe.map .functions
+                        |> Maybe.map Dict.toList
                         |> Maybe.withDefault []
                         |> List.map (\( key, { arity } ) -> ( key, arity ))
 
@@ -372,10 +385,10 @@ insertImports mod subset c =
                 FunctionExport name ->
                     c.commons.modules
                         |> Dict.get mod
-                        |> Maybe.map (.definitions)
+                        |> Maybe.map .functions
                         |> Maybe.andThen (Dict.get name)
                         |> Maybe.map (\{ arity } -> [ ( name, arity ) ])
-                        |> Maybe.withDefault ([])
+                        |> Maybe.withDefault []
 
                 TypeExport _ _ ->
                     []
@@ -400,7 +413,7 @@ verifyFlag c flag =
             Nothing
 
         a ->
-            ExContext.crash c <| "Wrong flag format " ++ toString a
+            Context.crash c <| "Wrong flag format " ++ toString a
 
 
 {-| Encode elixir comment and return a context with updated last doc
@@ -430,13 +443,13 @@ elixirComment c content =
                     |> Regex.split All (regex "\\s+")
                     |> List.map (String.split ":+")
                     |> List.filterMap (verifyFlag c)
-                    |> List.foldl (ExContext.addFlag) c
+                    |> List.foldl Context.addFlag c
                 )
 
         Normal content ->
             (,) c <|
                 (content
-                    |> prependAll ("# ")
+                    |> prependAll "# "
                     |> indAll c.indent
                 )
 
@@ -460,13 +473,13 @@ elixirDoc c doctype name content =
                 , lastDoc = Nothing
             }
         <|
-            (ind c.indent)
+            ind c.indent
                 ++ prefix
                 ++ " \"\"\"\n "
                 ++ (content
                         |> String.lines
                         |> List.map (maybeDoctest c name)
-                        |> List.map (Helpers.escape)
+                        |> List.map Helpers.escape
                         |> List.map (Regex.replace All (regex "\"\"\"") (always "\\\"\\\"\\\""))
                         -- |> map trimIndentations
                         |> String.join (ind c.indent)
@@ -494,9 +507,9 @@ getCommentType comment =
                 other ->
                     other
     in
-        [ ( "^\\sex\\b", (Ex) )
-        , ( "^\\|", (Doc) )
-        , ( "^\\sflag\\b", (Flag) )
+        [ ( "^\\sex\\b", Ex )
+        , ( "^\\|", Doc )
+        , ( "^\\sflag\\b", Flag )
         ]
             |> List.map (\( a, b ) -> ( Regex.regex a, b ))
             |> List.foldl (uncurry findCommentType) (Normal comment)
@@ -541,9 +554,9 @@ elixirExportList c list =
                 defineFor (toSnakeCase True name) 0
                     ++ (c.commons.modules
                             |> Dict.get c.mod
-                            |> Maybe.map .definitions
+                            |> Maybe.map .functions
                             |> Maybe.andThen (Dict.get name)
-                            |> Maybe.map (.arity)
+                            |> Maybe.map .arity
                             |> filterMaybe ((/=) 0)
                             |> Maybe.map (defineFor (toSnakeCase True name))
                             |> Maybe.map ((++) ", ")
@@ -567,15 +580,15 @@ maybeDoctest c forName line =
             Ok ( _, _, BinOp (Variable [ "==" ]) l r ) ->
                 let
                     shadowed =
-                        ExContext.getShadowedFunctions c Helpers.reservedBasicFunctions
-                            ++ ExContext.getShadowedFunctions c Helpers.reservedKernelFunctions
+                        Context.getShadowedFunctions c Helpers.reservedBasicFunctions
+                            ++ Context.getShadowedFunctions c Helpers.reservedKernelFunctions
                             |> List.filter (Tuple.first >> (==) forName)
 
                     importBasics =
                         if shadowed == [] then
                             ""
                         else
-                            ExContext.importBasicsWithoutShadowed c
+                            Context.importBasicsWithoutShadowed c
                                 |> String.trimRight
                                 |> String.split "\n"
                                 |> String.join (ind (c.indent + 2) ++ "iex> ")
@@ -588,9 +601,9 @@ maybeDoctest c forName line =
                         ++ c.mod
                         ++ ind (c.indent + 2)
                         ++ "iex> "
-                        ++ ExExpression.elixirE c l
+                        ++ Expression.elixirE c l
                         ++ ind (c.indent + 2)
-                        ++ ExExpression.elixirE c r
+                        ++ Expression.elixirE c r
                         ++ "\n"
 
             _ ->
