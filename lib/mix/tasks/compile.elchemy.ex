@@ -32,6 +32,6 @@ defmodule Mix.Tasks.Compile.Elchemy do
     Mix.Task.run "deps.compile"
     IO.puts "-- Elchemy compilation complete --\n"
 
-    if Regex.match?(~r/1.[7-9].[0-9]+$/, version), do: IO.warn "Elixir 1.7 version doesn't work with Elchemy. You have to use lower."
+    if Regex.match?(~r/1.7.[0-9]+$/, version), do: IO.warn "Elchemy's functionality is limited in Elixit 1.7. To support the full experience please use different Elixir version"
   end
 end
