@@ -1,3 +1,7 @@
+ #!/bin/bash
+
+ set -e
+
  if [ -z "$1" ]; then
     echo 'usage ./bump.sh [<newversion> | major | minor | patch | premajor | preminor | prepatch | prerelease | from-git]'
     exit 0
