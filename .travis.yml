@@ -1,11 +1,13 @@
 language: elixir
 elixir:
+  - 1.5.0
   - 1.6.4
+  - 1.7.0
 otp_release:
   - 20.0
+  - 21.0
 os:
   - linux
-
 cache:
   directories:
     - test/elm-stuff/build-artifacts
