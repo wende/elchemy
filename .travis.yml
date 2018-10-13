@@ -6,6 +6,14 @@ elixir:
 otp_release:
   - 20.0
   - 21.0
+matrix:
+  exclude:
+  # Elixir 1.5.0 doesn't work with OTP 21
+  - elixir: 1.5.0
+    otp_release: 21.0
+  # Elixir 1.6.4 doesn't work with OTP 21
+  - elixir: 1.6.4
+    otp_release: 21.0
 os:
   - linux
 cache:
