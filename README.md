@@ -98,7 +98,7 @@ To launch and test the web demo
 - Full integration with entire elm syntax for editors and compilers magic
 
 ## Troubleshooting
-If anything doesn't work, try 
+If something doesn't work, try 
 ```
 npm install -g elchemy
 elchemy clean
