@@ -1,10 +1,10 @@
-module ExAst exposing (walkTypeOutwards, walkTypeInwards, walkExpressionOutwards, walkExpressionInwards, foldExpression)
+module Elchemy.Ast exposing (foldExpression, walkExpressionInwards, walkExpressionOutwards, walkTypeInwards, walkTypeOutwards)
 
 {-| Contains helper functions to manage Elm Expression and Statement.Type ASTs
 -}
 
-import Ast.Statement exposing (Type(..))
 import Ast.Expression exposing (Expression(..))
+import Ast.Statement exposing (Type(..))
 
 
 {-| Walks a tree of Ast.Statement.Type starting from the bottom branches and goes to the top using a replacer function

@@ -1,17 +1,17 @@
-module ExVariable
+module Elchemy.Variable
     exposing
-        ( varOrNah
-        , rememberVariables
-        , organizeLetInVariablesOrder
+        ( extractName
         , groupByCrossDependency
-        , extractName
+        , organizeLetInVariablesOrder
+        , rememberVariables
+        , varOrNah
         )
 
-import Set
 import Ast.Expression exposing (..)
-import Helpers exposing (toSnakeCase)
-import ExContext exposing (Context, inArgs)
+import Elchemy.Context as Context exposing (Context, inArgs)
+import Elchemy.Helpers as Helpers exposing (toSnakeCase)
 import List.Extra
+import Set
 
 
 {-| Put variables into context so they are treated like variables in future
@@ -21,11 +21,11 @@ rememberVariables list c =
     let
         addToContext var context =
             { context
-                | variables = Set.insert (toSnakeCase True var) (context.variables)
+                | variables = Set.insert (toSnakeCase True var) context.variables
             }
     in
         list
-            |> List.map (extractVariablesUsed)
+            |> List.map extractVariablesUsed
             |> List.foldr (++) []
             |> List.foldl addToContext c
 
@@ -61,7 +61,7 @@ extractVariablesUsed exp =
         case exp of
             Record vars ->
                 vars
-                    |> List.map (Tuple.second)
+                    |> List.map Tuple.second
                     |> many
 
             Tuple vars ->
@@ -121,7 +121,7 @@ organizeLetInVariablesOrder c expressionList =
         Err list ->
             let
                 _ =
-                    ExContext.crash c <|
+                    Context.crash c <|
                         "Couldn't find a solution to "
                             ++ toString (list |> List.map Tuple.first)
             in
@@ -137,7 +137,7 @@ extractName c expression =
             name
 
         [ single ] ->
-            ExContext.crash c (toString single ++ " is not a variable")
+            Context.crash c (toString single ++ " is not a variable")
 
         multi ->
             List.head multi
@@ -234,7 +234,7 @@ bubbleSelect f list =
                     if discarded == [] then
                         Ok <| List.reverse acc
                     else
-                        (Err discarded)
+                        Err discarded
 
                 -- Trick to allow mutual recursion
                 -- case findIndex discarded acc of

@@ -1,7 +1,14 @@
 #!/bin/bash
 
 
-version="0.7.4"
+version="0.8.0"
+
+if ! $(elm -v 2> /dev/null | grep 0.18 > /dev/null ); then
+    echo "Elchemy requires elm 0.18. Install it and make sure it's available system-wide."
+    echo "For 0.19 support visit https://github.com/wende/elchemy/issues/348"
+    exit 1
+fi
+
 set -e
 
 VERBOSE=false
@@ -54,7 +61,7 @@ case "$1" in
             if [ -d ./test ]; then
                 cp $SOURCE_DIR/templates/elchemy_test.exs ./test/
             fi
-            printf  "Elchemy $version initialised. Make sure to add:\n\n\t|> Code.eval_file(\".elchemy.exs\").init\n\nto your mix.exs file as the last line of the project() function.\nThis pipes the project keyword list to the elchemy init function to configure some additional values.\n\nThen run mix test to check if everything went fine\n"
+            printf  "Elchemy $version initialised. Make sure to add:\n\n\t|> elem(Code.eval_file(\".elchemy.exs\"), 0).init\n\nto your mix.exs file as the last line of the project() function.\nThis pipes the project keyword list to the elchemy init function to configure some additional values.\n\nThen run mix test to check if everything went fine\n"
             printf "\nelm-deps" >> .gitignore
             printf "\nelm-stuff" >> .gitignore
             printf "\node_modules" >> .gitignore
