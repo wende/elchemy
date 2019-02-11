@@ -19,7 +19,7 @@ npm install -g elchemy
 # What is it?
 Elchemy lets you write simple, fast and quality type safe code while leveraging both the Elm's safety and Elixir's ecosystem
 
-## [Test Elchemy online here](http://elchemy-live.herokuapp.com/) or here [Old (stable, no type checking) version](https://wende.github.io/elchemy/stable)
+## [Test Elchemy online here](http://elchemy.neontree.pl) or here [Old (stable, no type checking) version](https://wende.github.io/elchemy/stable)
 ## [Read Elchemy documentation here](https://wende.gitbooks.io/elchemy/content/)
 ## [Read a tutorial on using Elchemy here](https://medium.com/@krzysztof.wende/elmchemy-write-type-safe-elixir-code-with-elms-syntax-part-1-introduction-8968b76d721d)
 ## [Read our DevBlog on Medium here](https://medium.com/elchemy)
@@ -38,7 +38,7 @@ Elchemy lets you write simple, fast and quality type safe code while leveraging 
 ### Prerequisites
 - [elixir@1.4.0-1.6.x](https://elixir-lang.org/install.html)
 - [node@5+](https://nodejs.org/en/)
-- [elm-lang@0.18](https://guide.elm-lang.org/install.html)
+- [elm-lang@0.18.0](https://guide.elm-lang.org/install.html) (`npm install -g elm@0.18.0`)
 - [elm-github-install@0.1.2](https://github.com/gdotdesign/elm-github-install) - Compiler will install it automatically for you, if you don't have it yet
 
 ### Installation in Elixir project
@@ -98,7 +98,7 @@ To launch and test the web demo
 - Full integration with entire elm syntax for editors and compilers magic
 
 ## Troubleshooting
-If anything doesn't work, try 
+If something doesn't work, try 
 ```
 npm install -g elchemy
 elchemy clean

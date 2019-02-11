@@ -1,14 +1,14 @@
-module ExMeta exposing (metaDefinition)
+module Elchemy.Meta exposing (metaDefinition)
 
 {-| Defines a meta module for macro interactions
 -}
 
-import Dict
-import ExAst
-import ExExpression
-import Helpers exposing (ind, modulePath)
-import ExContext exposing (Context)
 import Ast.Expression exposing (Expression(..))
+import Dict
+import Elchemy.Ast as Ast
+import Elchemy.Context as Context exposing (Context)
+import Elchemy.Expression as Expression
+import Elchemy.Helpers as Helpers exposing (ind, modulePath)
 
 
 type ImportOrRequire
@@ -25,15 +25,15 @@ metaDefinition c =
             "defmodule "
                 ++ c.mod
                 ++ ".Meta do"
-                ++ ind (c.indent)
+                ++ ind c.indent
                 ++ requiredImports
                 ++ "\n"
-                ++ ind (c.indent)
-                ++ ExExpression.elixirE c meta
+                ++ ind c.indent
+                ++ Expression.elixirE c meta
                 ++ "\nend"
 
         getUsedFunctions =
-            ExAst.walkExpressionOutwards
+            Ast.walkExpressionOutwards
 
         addMacro t acc =
             case t of
@@ -52,7 +52,7 @@ metaDefinition c =
 
         requiredImports =
             c.meta
-                |> Maybe.map (ExAst.foldExpression addMacro [])
+                |> Maybe.map (Ast.foldExpression addMacro [])
                 |> Maybe.withDefault []
                 |> List.foldl insertRequirement Dict.empty
                 |> Dict.toList

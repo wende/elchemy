@@ -6,6 +6,7 @@ defmodule Mix.Tasks.Compile.Elchemy do
     src = project[:elchemy_path]
     dests = project[:elixirc_paths] || ["lib"]
     elchemy_executable = project[:elchemy_executable] || "elchemy"
+    version = System.version
 
     # Crash if elchemy not found globally
     unless 0 == Mix.shell.cmd("which #{elchemy_executable}") do
@@ -30,5 +31,7 @@ defmodule Mix.Tasks.Compile.Elchemy do
     Mix.Task.run "deps.get"
     Mix.Task.run "deps.compile"
     IO.puts "-- Elchemy compilation complete --\n"
+
+    if Regex.match?(~r/1.7.[0-9]+$/, version), do: IO.warn "Elchemy's functionality is limited in Elixit 1.7. To support the full experience please use different Elixir version"
   end
 end

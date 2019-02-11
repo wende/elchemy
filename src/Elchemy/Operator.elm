@@ -1,8 +1,8 @@
-module ExOperator exposing (elixirBinop)
+module Elchemy.Operator exposing (elixirBinop)
 
-import ExContext exposing (Context, Parser)
 import Ast.Expression exposing (Expression(..))
-import Helpers exposing (ind, operatorType, Operator(..), translateOperator)
+import Elchemy.Context as Context exposing (Context, Parser)
+import Elchemy.Helpers as Helpers exposing (Operator(..), ind, operatorType, translateOperator)
 
 
 {-| Encode binary operator inlcuding the researved ones
@@ -58,7 +58,7 @@ elixirBinop c elixirE op l r =
                         |> String.join ""
 
                 Custom ->
-                    (translateOperator op)
+                    translateOperator op
                         ++ "("
                         ++ elixirE c l
                         ++ ", "
@@ -66,7 +66,7 @@ elixirBinop c elixirE op l r =
                         ++ ")"
 
                 None ->
-                    ExContext.crash c ("Illegal operator " ++ op)
+                    Context.crash c ("Illegal operator " ++ op)
 
 
 {-| Flattens pipes into a list of expressions

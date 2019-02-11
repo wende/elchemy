@@ -2,12 +2,12 @@ defmodule ElchemyInit do
 
   @deps_directory_depth 3
 
-  def init(project, {__MODULE, _}) do
+  def init(project) do
     if !project || !project[:deps] do
       IO.warn """
         The project structure is invalid. Make sure that
 
-          |> Code.eval_file(\".elchemy.exs\").init
+          |> elem(Code.eval_file(".elchemy.exs"), 0).init
 
         Line was put __after__ the closing bracked `]`
       """
