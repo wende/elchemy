@@ -24,7 +24,6 @@ if git diff-index --quiet HEAD --; then
 
     git pull origin $CORE_BRANCH
 
-    sed -i "" "s/elchemy-core\": \"0.0.0 <= v < $SEMVER/elchemy-core\": \"0.0.0 <= v < $VER/g" ./templates/elm-package.json
     git commit -am "Release $VER"
     git tag $VER
 
@@ -35,7 +34,10 @@ if git diff-index --quiet HEAD --; then
     cd ..
 
     ELCHEMY_BRANCH=`git branch | grep \* | cut -d ' ' -f2`
+
     sed -i "" "s/$SEMVER/$VER/g" mix.exs
+    sed -i "" "s/elchemy-core\": \"0.0.0 <= v < $SEMVER/elchemy-core\": \"0.0.0 <= v < $VER/g" ./templates/elm-package.json
+
     rm -f elchemy-*.ez
     mix archive.build
     mix archive.install "elchemy-$VER.ez" --force
