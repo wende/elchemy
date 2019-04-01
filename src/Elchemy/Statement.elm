@@ -266,7 +266,7 @@ elixirS c s =
                     if excepts == [] then
                         []
                     else
-                        [ "#wende \n except: ["
+                        [ "except: ["
                             ++ String.join ", " (elixirExportList c excepts)
                             ++ "]"
                         ]
@@ -317,8 +317,8 @@ elixirS c s =
                     if excepts == [] then
                         []
                     else
-                        [ "#wende \n except: ["
-                            ++ String.join ", " (elixirExportList c (Debug.log "GOTCHA" excepts))
+                        [ "except: ["
+                            ++ String.join ", " (elixirExportList c excepts)
                             ++ "]"
                         ]
 
