@@ -19,8 +19,12 @@ if git diff-index --quiet HEAD --; then
     cd elchemy-core
 
     CORE_BRANCH=`git branch | grep \* | cut -d ' ' -f2`
+
     sed -i "" "s/$SEMVER/$VER/g" mix.exs
+
     git pull origin $CORE_BRANCH
+
+    sed -i "" "s/elchemy-core\": \"0.0.0 <= v < $SEMVER/elchemy-core\": \"0.0.0 <= v < $VER/g" ./templates/elm-package.json
     git commit -am "Release $VER"
     git tag $VER
 
@@ -49,11 +53,12 @@ if git diff-index --quiet HEAD --; then
       npm publish
     fi
     sed -i "" "s/name\": \"elmchemy\"/name\": \"elchemy\"/g" package.json
+
     if ! [[ $* == *-n* ]]; then
       npm publish
     fi
 
-    git tag -d $VER
+    git tag -d "$VER"
     git commit -am "$CHANGELOG"
     git tag $VER
     if ! [[ $* == *-n* ]]; then
