@@ -37,7 +37,7 @@ if git diff-index --quiet HEAD --; then
     mix archive.install "elchemy-$VER.ez" --force
 
     git pull origin $ELCHEMY_BRANCH
-    sed -i "" "s/$SEMVER/$VER/g" src/Compiler.elm
+    sed -i "" "s/$SEMVER/$VER/g" src/Elchemy/Compiler.elm
     make compile
     make build-docs
     make release
