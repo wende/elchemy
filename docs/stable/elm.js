@@ -5350,6 +5350,10 @@ var _Bogdanp$elm_ast$Ast_Helpers$exactIndentation = function ($int) {
 				_elm_lang$core$Basics$toString($int),
 				'}\n*')));
 };
+var _Bogdanp$elm_ast$Ast_Helpers$notWhitespace_ = A2(
+	_elm_community$parser_combinators$Combine_ops['<?>'],
+	_elm_community$parser_combinators$Combine$regex('[^ \t\r\n]*'),
+	'whitespace');
 var _Bogdanp$elm_ast$Ast_Helpers$spaces_ = _elm_community$parser_combinators$Combine$regex('[ \\t]+');
 var _Bogdanp$elm_ast$Ast_Helpers$initialSymbol = function (k) {
 	return A2(
@@ -5700,1345 +5704,6 @@ var _elm_community$parser_combinators$Combine_Num$float = A2(
 			_elm_community$parser_combinators$Combine$regex('(0|[1-9][0-9]*)(\\.[0-9]+)')),
 		'expected a float'));
 
-var _elm_lang$core$Set$foldr = F3(
-	function (f, b, _p0) {
-		var _p1 = _p0;
-		return A3(
-			_elm_lang$core$Dict$foldr,
-			F3(
-				function (k, _p2, b) {
-					return A2(f, k, b);
-				}),
-			b,
-			_p1._0);
-	});
-var _elm_lang$core$Set$foldl = F3(
-	function (f, b, _p3) {
-		var _p4 = _p3;
-		return A3(
-			_elm_lang$core$Dict$foldl,
-			F3(
-				function (k, _p5, b) {
-					return A2(f, k, b);
-				}),
-			b,
-			_p4._0);
-	});
-var _elm_lang$core$Set$toList = function (_p6) {
-	var _p7 = _p6;
-	return _elm_lang$core$Dict$keys(_p7._0);
-};
-var _elm_lang$core$Set$size = function (_p8) {
-	var _p9 = _p8;
-	return _elm_lang$core$Dict$size(_p9._0);
-};
-var _elm_lang$core$Set$member = F2(
-	function (k, _p10) {
-		var _p11 = _p10;
-		return A2(_elm_lang$core$Dict$member, k, _p11._0);
-	});
-var _elm_lang$core$Set$isEmpty = function (_p12) {
-	var _p13 = _p12;
-	return _elm_lang$core$Dict$isEmpty(_p13._0);
-};
-var _elm_lang$core$Set$Set_elm_builtin = function (a) {
-	return {ctor: 'Set_elm_builtin', _0: a};
-};
-var _elm_lang$core$Set$empty = _elm_lang$core$Set$Set_elm_builtin(_elm_lang$core$Dict$empty);
-var _elm_lang$core$Set$singleton = function (k) {
-	return _elm_lang$core$Set$Set_elm_builtin(
-		A2(
-			_elm_lang$core$Dict$singleton,
-			k,
-			{ctor: '_Tuple0'}));
-};
-var _elm_lang$core$Set$insert = F2(
-	function (k, _p14) {
-		var _p15 = _p14;
-		return _elm_lang$core$Set$Set_elm_builtin(
-			A3(
-				_elm_lang$core$Dict$insert,
-				k,
-				{ctor: '_Tuple0'},
-				_p15._0));
-	});
-var _elm_lang$core$Set$fromList = function (xs) {
-	return A3(_elm_lang$core$List$foldl, _elm_lang$core$Set$insert, _elm_lang$core$Set$empty, xs);
-};
-var _elm_lang$core$Set$map = F2(
-	function (f, s) {
-		return _elm_lang$core$Set$fromList(
-			A2(
-				_elm_lang$core$List$map,
-				f,
-				_elm_lang$core$Set$toList(s)));
-	});
-var _elm_lang$core$Set$remove = F2(
-	function (k, _p16) {
-		var _p17 = _p16;
-		return _elm_lang$core$Set$Set_elm_builtin(
-			A2(_elm_lang$core$Dict$remove, k, _p17._0));
-	});
-var _elm_lang$core$Set$union = F2(
-	function (_p19, _p18) {
-		var _p20 = _p19;
-		var _p21 = _p18;
-		return _elm_lang$core$Set$Set_elm_builtin(
-			A2(_elm_lang$core$Dict$union, _p20._0, _p21._0));
-	});
-var _elm_lang$core$Set$intersect = F2(
-	function (_p23, _p22) {
-		var _p24 = _p23;
-		var _p25 = _p22;
-		return _elm_lang$core$Set$Set_elm_builtin(
-			A2(_elm_lang$core$Dict$intersect, _p24._0, _p25._0));
-	});
-var _elm_lang$core$Set$diff = F2(
-	function (_p27, _p26) {
-		var _p28 = _p27;
-		var _p29 = _p26;
-		return _elm_lang$core$Set$Set_elm_builtin(
-			A2(_elm_lang$core$Dict$diff, _p28._0, _p29._0));
-	});
-var _elm_lang$core$Set$filter = F2(
-	function (p, _p30) {
-		var _p31 = _p30;
-		return _elm_lang$core$Set$Set_elm_builtin(
-			A2(
-				_elm_lang$core$Dict$filter,
-				F2(
-					function (k, _p32) {
-						return p(k);
-					}),
-				_p31._0));
-	});
-var _elm_lang$core$Set$partition = F2(
-	function (p, _p33) {
-		var _p34 = _p33;
-		var _p35 = A2(
-			_elm_lang$core$Dict$partition,
-			F2(
-				function (k, _p36) {
-					return p(k);
-				}),
-			_p34._0);
-		var p1 = _p35._0;
-		var p2 = _p35._1;
-		return {
-			ctor: '_Tuple2',
-			_0: _elm_lang$core$Set$Set_elm_builtin(p1),
-			_1: _elm_lang$core$Set$Set_elm_builtin(p2)
-		};
-	});
-
-var _elm_community$list_extra$List_Extra$greedyGroupsOfWithStep = F3(
-	function (size, step, xs) {
-		var okayXs = _elm_lang$core$Native_Utils.cmp(
-			_elm_lang$core$List$length(xs),
-			0) > 0;
-		var okayArgs = (_elm_lang$core$Native_Utils.cmp(size, 0) > 0) && (_elm_lang$core$Native_Utils.cmp(step, 0) > 0);
-		var xs_ = A2(_elm_lang$core$List$drop, step, xs);
-		var group = A2(_elm_lang$core$List$take, size, xs);
-		return (okayArgs && okayXs) ? {
-			ctor: '::',
-			_0: group,
-			_1: A3(_elm_community$list_extra$List_Extra$greedyGroupsOfWithStep, size, step, xs_)
-		} : {ctor: '[]'};
-	});
-var _elm_community$list_extra$List_Extra$greedyGroupsOf = F2(
-	function (size, xs) {
-		return A3(_elm_community$list_extra$List_Extra$greedyGroupsOfWithStep, size, size, xs);
-	});
-var _elm_community$list_extra$List_Extra$groupsOfWithStep = F3(
-	function (size, step, xs) {
-		var okayArgs = (_elm_lang$core$Native_Utils.cmp(size, 0) > 0) && (_elm_lang$core$Native_Utils.cmp(step, 0) > 0);
-		var xs_ = A2(_elm_lang$core$List$drop, step, xs);
-		var group = A2(_elm_lang$core$List$take, size, xs);
-		var okayLength = _elm_lang$core$Native_Utils.eq(
-			size,
-			_elm_lang$core$List$length(group));
-		return (okayArgs && okayLength) ? {
-			ctor: '::',
-			_0: group,
-			_1: A3(_elm_community$list_extra$List_Extra$groupsOfWithStep, size, step, xs_)
-		} : {ctor: '[]'};
-	});
-var _elm_community$list_extra$List_Extra$groupsOf = F2(
-	function (size, xs) {
-		return A3(_elm_community$list_extra$List_Extra$groupsOfWithStep, size, size, xs);
-	});
-var _elm_community$list_extra$List_Extra$zip5 = _elm_lang$core$List$map5(
-	F5(
-		function (v0, v1, v2, v3, v4) {
-			return {ctor: '_Tuple5', _0: v0, _1: v1, _2: v2, _3: v3, _4: v4};
-		}));
-var _elm_community$list_extra$List_Extra$zip4 = _elm_lang$core$List$map4(
-	F4(
-		function (v0, v1, v2, v3) {
-			return {ctor: '_Tuple4', _0: v0, _1: v1, _2: v2, _3: v3};
-		}));
-var _elm_community$list_extra$List_Extra$zip3 = _elm_lang$core$List$map3(
-	F3(
-		function (v0, v1, v2) {
-			return {ctor: '_Tuple3', _0: v0, _1: v1, _2: v2};
-		}));
-var _elm_community$list_extra$List_Extra$zip = _elm_lang$core$List$map2(
-	F2(
-		function (v0, v1) {
-			return {ctor: '_Tuple2', _0: v0, _1: v1};
-		}));
-var _elm_community$list_extra$List_Extra$isPrefixOf = F2(
-	function (prefix, xs) {
-		var _p0 = {ctor: '_Tuple2', _0: prefix, _1: xs};
-		if (_p0._0.ctor === '[]') {
-			return true;
-		} else {
-			if (_p0._1.ctor === '[]') {
-				return false;
-			} else {
-				return _elm_lang$core$Native_Utils.eq(_p0._0._0, _p0._1._0) && A2(_elm_community$list_extra$List_Extra$isPrefixOf, _p0._0._1, _p0._1._1);
-			}
-		}
-	});
-var _elm_community$list_extra$List_Extra$isSuffixOf = F2(
-	function (suffix, xs) {
-		return A2(
-			_elm_community$list_extra$List_Extra$isPrefixOf,
-			_elm_lang$core$List$reverse(suffix),
-			_elm_lang$core$List$reverse(xs));
-	});
-var _elm_community$list_extra$List_Extra$selectSplit = function (xs) {
-	var _p1 = xs;
-	if (_p1.ctor === '[]') {
-		return {ctor: '[]'};
-	} else {
-		var _p5 = _p1._1;
-		var _p4 = _p1._0;
-		return {
-			ctor: '::',
-			_0: {
-				ctor: '_Tuple3',
-				_0: {ctor: '[]'},
-				_1: _p4,
-				_2: _p5
-			},
-			_1: A2(
-				_elm_lang$core$List$map,
-				function (_p2) {
-					var _p3 = _p2;
-					return {
-						ctor: '_Tuple3',
-						_0: {ctor: '::', _0: _p4, _1: _p3._0},
-						_1: _p3._1,
-						_2: _p3._2
-					};
-				},
-				_elm_community$list_extra$List_Extra$selectSplit(_p5))
-		};
-	}
-};
-var _elm_community$list_extra$List_Extra$select = function (xs) {
-	var _p6 = xs;
-	if (_p6.ctor === '[]') {
-		return {ctor: '[]'};
-	} else {
-		var _p10 = _p6._1;
-		var _p9 = _p6._0;
-		return {
-			ctor: '::',
-			_0: {ctor: '_Tuple2', _0: _p9, _1: _p10},
-			_1: A2(
-				_elm_lang$core$List$map,
-				function (_p7) {
-					var _p8 = _p7;
-					return {
-						ctor: '_Tuple2',
-						_0: _p8._0,
-						_1: {ctor: '::', _0: _p9, _1: _p8._1}
-					};
-				},
-				_elm_community$list_extra$List_Extra$select(_p10))
-		};
-	}
-};
-var _elm_community$list_extra$List_Extra$tailsHelp = F2(
-	function (e, list) {
-		var _p11 = list;
-		if (_p11.ctor === '::') {
-			var _p12 = _p11._0;
-			return {
-				ctor: '::',
-				_0: {ctor: '::', _0: e, _1: _p12},
-				_1: {ctor: '::', _0: _p12, _1: _p11._1}
-			};
-		} else {
-			return {ctor: '[]'};
-		}
-	});
-var _elm_community$list_extra$List_Extra$tails = A2(
-	_elm_lang$core$List$foldr,
-	_elm_community$list_extra$List_Extra$tailsHelp,
-	{
-		ctor: '::',
-		_0: {ctor: '[]'},
-		_1: {ctor: '[]'}
-	});
-var _elm_community$list_extra$List_Extra$isInfixOf = F2(
-	function (infix, xs) {
-		return A2(
-			_elm_lang$core$List$any,
-			_elm_community$list_extra$List_Extra$isPrefixOf(infix),
-			_elm_community$list_extra$List_Extra$tails(xs));
-	});
-var _elm_community$list_extra$List_Extra$inits = A2(
-	_elm_lang$core$List$foldr,
-	F2(
-		function (e, acc) {
-			return {
-				ctor: '::',
-				_0: {ctor: '[]'},
-				_1: A2(
-					_elm_lang$core$List$map,
-					F2(
-						function (x, y) {
-							return {ctor: '::', _0: x, _1: y};
-						})(e),
-					acc)
-			};
-		}),
-	{
-		ctor: '::',
-		_0: {ctor: '[]'},
-		_1: {ctor: '[]'}
-	});
-var _elm_community$list_extra$List_Extra$groupWhileTransitively = F2(
-	function (cmp, xs_) {
-		var _p13 = xs_;
-		if (_p13.ctor === '[]') {
-			return {ctor: '[]'};
-		} else {
-			if (_p13._1.ctor === '[]') {
-				return {
-					ctor: '::',
-					_0: {
-						ctor: '::',
-						_0: _p13._0,
-						_1: {ctor: '[]'}
-					},
-					_1: {ctor: '[]'}
-				};
-			} else {
-				var _p15 = _p13._0;
-				var _p14 = A2(_elm_community$list_extra$List_Extra$groupWhileTransitively, cmp, _p13._1);
-				if (_p14.ctor === '::') {
-					return A2(cmp, _p15, _p13._1._0) ? {
-						ctor: '::',
-						_0: {ctor: '::', _0: _p15, _1: _p14._0},
-						_1: _p14._1
-					} : {
-						ctor: '::',
-						_0: {
-							ctor: '::',
-							_0: _p15,
-							_1: {ctor: '[]'}
-						},
-						_1: _p14
-					};
-				} else {
-					return {ctor: '[]'};
-				}
-			}
-		}
-	});
-var _elm_community$list_extra$List_Extra$stripPrefix = F2(
-	function (prefix, xs) {
-		var step = F2(
-			function (e, m) {
-				var _p16 = m;
-				if (_p16.ctor === 'Nothing') {
-					return _elm_lang$core$Maybe$Nothing;
-				} else {
-					if (_p16._0.ctor === '[]') {
-						return _elm_lang$core$Maybe$Nothing;
-					} else {
-						return _elm_lang$core$Native_Utils.eq(e, _p16._0._0) ? _elm_lang$core$Maybe$Just(_p16._0._1) : _elm_lang$core$Maybe$Nothing;
-					}
-				}
-			});
-		return A3(
-			_elm_lang$core$List$foldl,
-			step,
-			_elm_lang$core$Maybe$Just(xs),
-			prefix);
-	});
-var _elm_community$list_extra$List_Extra$dropWhileRight = function (p) {
-	return A2(
-		_elm_lang$core$List$foldr,
-		F2(
-			function (x, xs) {
-				return (p(x) && _elm_lang$core$List$isEmpty(xs)) ? {ctor: '[]'} : {ctor: '::', _0: x, _1: xs};
-			}),
-		{ctor: '[]'});
-};
-var _elm_community$list_extra$List_Extra$takeWhileRight = function (p) {
-	var step = F2(
-		function (x, _p17) {
-			var _p18 = _p17;
-			var _p19 = _p18._0;
-			return (p(x) && _p18._1) ? {
-				ctor: '_Tuple2',
-				_0: {ctor: '::', _0: x, _1: _p19},
-				_1: true
-			} : {ctor: '_Tuple2', _0: _p19, _1: false};
-		});
-	return function (_p20) {
-		return _elm_lang$core$Tuple$first(
-			A3(
-				_elm_lang$core$List$foldr,
-				step,
-				{
-					ctor: '_Tuple2',
-					_0: {ctor: '[]'},
-					_1: true
-				},
-				_p20));
-	};
-};
-var _elm_community$list_extra$List_Extra$splitAt = F2(
-	function (n, xs) {
-		return {
-			ctor: '_Tuple2',
-			_0: A2(_elm_lang$core$List$take, n, xs),
-			_1: A2(_elm_lang$core$List$drop, n, xs)
-		};
-	});
-var _elm_community$list_extra$List_Extra$groupsOfVarying_ = F3(
-	function (listOflengths, list, accu) {
-		groupsOfVarying_:
-		while (true) {
-			var _p21 = {ctor: '_Tuple2', _0: listOflengths, _1: list};
-			if (((_p21.ctor === '_Tuple2') && (_p21._0.ctor === '::')) && (_p21._1.ctor === '::')) {
-				var _p22 = A2(_elm_community$list_extra$List_Extra$splitAt, _p21._0._0, list);
-				var head = _p22._0;
-				var tail = _p22._1;
-				var _v11 = _p21._0._1,
-					_v12 = tail,
-					_v13 = {ctor: '::', _0: head, _1: accu};
-				listOflengths = _v11;
-				list = _v12;
-				accu = _v13;
-				continue groupsOfVarying_;
-			} else {
-				return _elm_lang$core$List$reverse(accu);
-			}
-		}
-	});
-var _elm_community$list_extra$List_Extra$groupsOfVarying = F2(
-	function (listOflengths, list) {
-		return A3(
-			_elm_community$list_extra$List_Extra$groupsOfVarying_,
-			listOflengths,
-			list,
-			{ctor: '[]'});
-	});
-var _elm_community$list_extra$List_Extra$unfoldr = F2(
-	function (f, seed) {
-		var _p23 = f(seed);
-		if (_p23.ctor === 'Nothing') {
-			return {ctor: '[]'};
-		} else {
-			return {
-				ctor: '::',
-				_0: _p23._0._0,
-				_1: A2(_elm_community$list_extra$List_Extra$unfoldr, f, _p23._0._1)
-			};
-		}
-	});
-var _elm_community$list_extra$List_Extra$scanr1 = F2(
-	function (f, xs_) {
-		var _p24 = xs_;
-		if (_p24.ctor === '[]') {
-			return {ctor: '[]'};
-		} else {
-			if (_p24._1.ctor === '[]') {
-				return {
-					ctor: '::',
-					_0: _p24._0,
-					_1: {ctor: '[]'}
-				};
-			} else {
-				var _p25 = A2(_elm_community$list_extra$List_Extra$scanr1, f, _p24._1);
-				if (_p25.ctor === '::') {
-					return {
-						ctor: '::',
-						_0: A2(f, _p24._0, _p25._0),
-						_1: _p25
-					};
-				} else {
-					return {ctor: '[]'};
-				}
-			}
-		}
-	});
-var _elm_community$list_extra$List_Extra$scanr = F3(
-	function (f, acc, xs_) {
-		var _p26 = xs_;
-		if (_p26.ctor === '[]') {
-			return {
-				ctor: '::',
-				_0: acc,
-				_1: {ctor: '[]'}
-			};
-		} else {
-			var _p27 = A3(_elm_community$list_extra$List_Extra$scanr, f, acc, _p26._1);
-			if (_p27.ctor === '::') {
-				return {
-					ctor: '::',
-					_0: A2(f, _p26._0, _p27._0),
-					_1: _p27
-				};
-			} else {
-				return {ctor: '[]'};
-			}
-		}
-	});
-var _elm_community$list_extra$List_Extra$scanl1 = F2(
-	function (f, xs_) {
-		var _p28 = xs_;
-		if (_p28.ctor === '[]') {
-			return {ctor: '[]'};
-		} else {
-			return A3(_elm_lang$core$List$scanl, f, _p28._0, _p28._1);
-		}
-	});
-var _elm_community$list_extra$List_Extra$indexedFoldr = F3(
-	function (func, acc, list) {
-		var step = F2(
-			function (x, _p29) {
-				var _p30 = _p29;
-				var _p31 = _p30._0;
-				return {
-					ctor: '_Tuple2',
-					_0: _p31 - 1,
-					_1: A3(func, _p31, x, _p30._1)
-				};
-			});
-		return _elm_lang$core$Tuple$second(
-			A3(
-				_elm_lang$core$List$foldr,
-				step,
-				{
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$List$length(list) - 1,
-					_1: acc
-				},
-				list));
-	});
-var _elm_community$list_extra$List_Extra$indexedFoldl = F3(
-	function (func, acc, list) {
-		var step = F2(
-			function (x, _p32) {
-				var _p33 = _p32;
-				var _p34 = _p33._0;
-				return {
-					ctor: '_Tuple2',
-					_0: _p34 + 1,
-					_1: A3(func, _p34, x, _p33._1)
-				};
-			});
-		return _elm_lang$core$Tuple$second(
-			A3(
-				_elm_lang$core$List$foldl,
-				step,
-				{ctor: '_Tuple2', _0: 0, _1: acc},
-				list));
-	});
-var _elm_community$list_extra$List_Extra$foldr1 = F2(
-	function (f, xs) {
-		var mf = F2(
-			function (x, m) {
-				return _elm_lang$core$Maybe$Just(
-					function () {
-						var _p35 = m;
-						if (_p35.ctor === 'Nothing') {
-							return x;
-						} else {
-							return A2(f, x, _p35._0);
-						}
-					}());
-			});
-		return A3(_elm_lang$core$List$foldr, mf, _elm_lang$core$Maybe$Nothing, xs);
-	});
-var _elm_community$list_extra$List_Extra$foldl1 = F2(
-	function (f, xs) {
-		var mf = F2(
-			function (x, m) {
-				return _elm_lang$core$Maybe$Just(
-					function () {
-						var _p36 = m;
-						if (_p36.ctor === 'Nothing') {
-							return x;
-						} else {
-							return A2(f, _p36._0, x);
-						}
-					}());
-			});
-		return A3(_elm_lang$core$List$foldl, mf, _elm_lang$core$Maybe$Nothing, xs);
-	});
-var _elm_community$list_extra$List_Extra$interweaveHelp = F3(
-	function (l1, l2, acc) {
-		interweaveHelp:
-		while (true) {
-			var _p37 = {ctor: '_Tuple2', _0: l1, _1: l2};
-			_v24_1:
-			do {
-				if (_p37._0.ctor === '::') {
-					if (_p37._1.ctor === '::') {
-						var _v25 = _p37._0._1,
-							_v26 = _p37._1._1,
-							_v27 = A2(
-							_elm_lang$core$Basics_ops['++'],
-							acc,
-							{
-								ctor: '::',
-								_0: _p37._0._0,
-								_1: {
-									ctor: '::',
-									_0: _p37._1._0,
-									_1: {ctor: '[]'}
-								}
-							});
-						l1 = _v25;
-						l2 = _v26;
-						acc = _v27;
-						continue interweaveHelp;
-					} else {
-						break _v24_1;
-					}
-				} else {
-					if (_p37._1.ctor === '[]') {
-						break _v24_1;
-					} else {
-						return A2(_elm_lang$core$Basics_ops['++'], acc, _p37._1);
-					}
-				}
-			} while(false);
-			return A2(_elm_lang$core$Basics_ops['++'], acc, _p37._0);
-		}
-	});
-var _elm_community$list_extra$List_Extra$interweave = F2(
-	function (l1, l2) {
-		return A3(
-			_elm_community$list_extra$List_Extra$interweaveHelp,
-			l1,
-			l2,
-			{ctor: '[]'});
-	});
-var _elm_community$list_extra$List_Extra$permutations = function (xs_) {
-	var _p38 = xs_;
-	if (_p38.ctor === '[]') {
-		return {
-			ctor: '::',
-			_0: {ctor: '[]'},
-			_1: {ctor: '[]'}
-		};
-	} else {
-		var f = function (_p39) {
-			var _p40 = _p39;
-			return A2(
-				_elm_lang$core$List$map,
-				F2(
-					function (x, y) {
-						return {ctor: '::', _0: x, _1: y};
-					})(_p40._0),
-				_elm_community$list_extra$List_Extra$permutations(_p40._1));
-		};
-		return A2(
-			_elm_lang$core$List$concatMap,
-			f,
-			_elm_community$list_extra$List_Extra$select(_p38));
-	}
-};
-var _elm_community$list_extra$List_Extra$isPermutationOf = F2(
-	function (permut, xs) {
-		return A2(
-			_elm_lang$core$List$member,
-			permut,
-			_elm_community$list_extra$List_Extra$permutations(xs));
-	});
-var _elm_community$list_extra$List_Extra$subsequencesNonEmpty = function (xs) {
-	var _p41 = xs;
-	if (_p41.ctor === '[]') {
-		return {ctor: '[]'};
-	} else {
-		var _p42 = _p41._0;
-		var f = F2(
-			function (ys, r) {
-				return {
-					ctor: '::',
-					_0: ys,
-					_1: {
-						ctor: '::',
-						_0: {ctor: '::', _0: _p42, _1: ys},
-						_1: r
-					}
-				};
-			});
-		return {
-			ctor: '::',
-			_0: {
-				ctor: '::',
-				_0: _p42,
-				_1: {ctor: '[]'}
-			},
-			_1: A3(
-				_elm_lang$core$List$foldr,
-				f,
-				{ctor: '[]'},
-				_elm_community$list_extra$List_Extra$subsequencesNonEmpty(_p41._1))
-		};
-	}
-};
-var _elm_community$list_extra$List_Extra$subsequences = function (xs) {
-	return {
-		ctor: '::',
-		_0: {ctor: '[]'},
-		_1: _elm_community$list_extra$List_Extra$subsequencesNonEmpty(xs)
-	};
-};
-var _elm_community$list_extra$List_Extra$isSubsequenceOf = F2(
-	function (subseq, xs) {
-		return A2(
-			_elm_lang$core$List$member,
-			subseq,
-			_elm_community$list_extra$List_Extra$subsequences(xs));
-	});
-var _elm_community$list_extra$List_Extra$transpose = function (ll) {
-	transpose:
-	while (true) {
-		var _p43 = ll;
-		if (_p43.ctor === '[]') {
-			return {ctor: '[]'};
-		} else {
-			if (_p43._0.ctor === '[]') {
-				var _v32 = _p43._1;
-				ll = _v32;
-				continue transpose;
-			} else {
-				var _p44 = _p43._1;
-				var tails = A2(_elm_lang$core$List$filterMap, _elm_lang$core$List$tail, _p44);
-				var heads = A2(_elm_lang$core$List$filterMap, _elm_lang$core$List$head, _p44);
-				return {
-					ctor: '::',
-					_0: {ctor: '::', _0: _p43._0._0, _1: heads},
-					_1: _elm_community$list_extra$List_Extra$transpose(
-						{ctor: '::', _0: _p43._0._1, _1: tails})
-				};
-			}
-		}
-	}
-};
-var _elm_community$list_extra$List_Extra$intercalate = function (xs) {
-	return function (_p45) {
-		return _elm_lang$core$List$concat(
-			A2(_elm_lang$core$List$intersperse, xs, _p45));
-	};
-};
-var _elm_community$list_extra$List_Extra$filterNot = F2(
-	function (pred, list) {
-		return A2(
-			_elm_lang$core$List$filter,
-			function (_p46) {
-				return !pred(_p46);
-			},
-			list);
-	});
-var _elm_community$list_extra$List_Extra$removeAt = F2(
-	function (index, l) {
-		if (_elm_lang$core$Native_Utils.cmp(index, 0) < 0) {
-			return l;
-		} else {
-			var tail = _elm_lang$core$List$tail(
-				A2(_elm_lang$core$List$drop, index, l));
-			var head = A2(_elm_lang$core$List$take, index, l);
-			var _p47 = tail;
-			if (_p47.ctor === 'Nothing') {
-				return l;
-			} else {
-				return A2(_elm_lang$core$List$append, head, _p47._0);
-			}
-		}
-	});
-var _elm_community$list_extra$List_Extra$stableSortWith = F2(
-	function (pred, list) {
-		var predWithIndex = F2(
-			function (_p49, _p48) {
-				var _p50 = _p49;
-				var _p51 = _p48;
-				var result = A2(pred, _p50._0, _p51._0);
-				var _p52 = result;
-				if (_p52.ctor === 'EQ') {
-					return A2(_elm_lang$core$Basics$compare, _p50._1, _p51._1);
-				} else {
-					return result;
-				}
-			});
-		var listWithIndex = A2(
-			_elm_lang$core$List$indexedMap,
-			F2(
-				function (i, a) {
-					return {ctor: '_Tuple2', _0: a, _1: i};
-				}),
-			list);
-		return A2(
-			_elm_lang$core$List$map,
-			_elm_lang$core$Tuple$first,
-			A2(_elm_lang$core$List$sortWith, predWithIndex, listWithIndex));
-	});
-var _elm_community$list_extra$List_Extra$setAt = F3(
-	function (index, value, l) {
-		if (_elm_lang$core$Native_Utils.cmp(index, 0) < 0) {
-			return _elm_lang$core$Maybe$Nothing;
-		} else {
-			var tail = _elm_lang$core$List$tail(
-				A2(_elm_lang$core$List$drop, index, l));
-			var head = A2(_elm_lang$core$List$take, index, l);
-			var _p53 = tail;
-			if (_p53.ctor === 'Nothing') {
-				return _elm_lang$core$Maybe$Nothing;
-			} else {
-				return _elm_lang$core$Maybe$Just(
-					A2(
-						_elm_lang$core$List$append,
-						head,
-						{ctor: '::', _0: value, _1: _p53._0}));
-			}
-		}
-	});
-var _elm_community$list_extra$List_Extra$remove = F2(
-	function (x, xs) {
-		var _p54 = xs;
-		if (_p54.ctor === '[]') {
-			return {ctor: '[]'};
-		} else {
-			var _p56 = _p54._1;
-			var _p55 = _p54._0;
-			return _elm_lang$core$Native_Utils.eq(x, _p55) ? _p56 : {
-				ctor: '::',
-				_0: _p55,
-				_1: A2(_elm_community$list_extra$List_Extra$remove, x, _p56)
-			};
-		}
-	});
-var _elm_community$list_extra$List_Extra$updateIfIndex = F3(
-	function (predicate, update, list) {
-		return A2(
-			_elm_lang$core$List$indexedMap,
-			F2(
-				function (i, x) {
-					return predicate(i) ? update(x) : x;
-				}),
-			list);
-	});
-var _elm_community$list_extra$List_Extra$updateAt = F3(
-	function (index, update, list) {
-		return ((_elm_lang$core$Native_Utils.cmp(index, 0) < 0) || (_elm_lang$core$Native_Utils.cmp(
-			index,
-			_elm_lang$core$List$length(list)) > -1)) ? _elm_lang$core$Maybe$Nothing : _elm_lang$core$Maybe$Just(
-			A3(
-				_elm_community$list_extra$List_Extra$updateIfIndex,
-				F2(
-					function (x, y) {
-						return _elm_lang$core$Native_Utils.eq(x, y);
-					})(index),
-				update,
-				list));
-	});
-var _elm_community$list_extra$List_Extra$updateIf = F3(
-	function (predicate, update, list) {
-		return A2(
-			_elm_lang$core$List$map,
-			function (item) {
-				return predicate(item) ? update(item) : item;
-			},
-			list);
-	});
-var _elm_community$list_extra$List_Extra$replaceIf = F3(
-	function (predicate, replacement, list) {
-		return A3(
-			_elm_community$list_extra$List_Extra$updateIf,
-			predicate,
-			_elm_lang$core$Basics$always(replacement),
-			list);
-	});
-var _elm_community$list_extra$List_Extra$findIndices = function (p) {
-	return function (_p57) {
-		return A2(
-			_elm_lang$core$List$map,
-			_elm_lang$core$Tuple$first,
-			A2(
-				_elm_lang$core$List$filter,
-				function (_p58) {
-					var _p59 = _p58;
-					return p(_p59._1);
-				},
-				A2(
-					_elm_lang$core$List$indexedMap,
-					F2(
-						function (v0, v1) {
-							return {ctor: '_Tuple2', _0: v0, _1: v1};
-						}),
-					_p57)));
-	};
-};
-var _elm_community$list_extra$List_Extra$findIndex = function (p) {
-	return function (_p60) {
-		return _elm_lang$core$List$head(
-			A2(_elm_community$list_extra$List_Extra$findIndices, p, _p60));
-	};
-};
-var _elm_community$list_extra$List_Extra$splitWhen = F2(
-	function (predicate, list) {
-		return A2(
-			_elm_lang$core$Maybe$map,
-			function (i) {
-				return A2(_elm_community$list_extra$List_Extra$splitAt, i, list);
-			},
-			A2(_elm_community$list_extra$List_Extra$findIndex, predicate, list));
-	});
-var _elm_community$list_extra$List_Extra$elemIndices = function (x) {
-	return _elm_community$list_extra$List_Extra$findIndices(
-		F2(
-			function (x, y) {
-				return _elm_lang$core$Native_Utils.eq(x, y);
-			})(x));
-};
-var _elm_community$list_extra$List_Extra$elemIndex = function (x) {
-	return _elm_community$list_extra$List_Extra$findIndex(
-		F2(
-			function (x, y) {
-				return _elm_lang$core$Native_Utils.eq(x, y);
-			})(x));
-};
-var _elm_community$list_extra$List_Extra$find = F2(
-	function (predicate, list) {
-		find:
-		while (true) {
-			var _p61 = list;
-			if (_p61.ctor === '[]') {
-				return _elm_lang$core$Maybe$Nothing;
-			} else {
-				var _p62 = _p61._0;
-				if (predicate(_p62)) {
-					return _elm_lang$core$Maybe$Just(_p62);
-				} else {
-					var _v41 = predicate,
-						_v42 = _p61._1;
-					predicate = _v41;
-					list = _v42;
-					continue find;
-				}
-			}
-		}
-	});
-var _elm_community$list_extra$List_Extra$notMember = function (x) {
-	return function (_p63) {
-		return !A2(_elm_lang$core$List$member, x, _p63);
-	};
-};
-var _elm_community$list_extra$List_Extra$andThen = _elm_lang$core$List$concatMap;
-var _elm_community$list_extra$List_Extra$lift2 = F3(
-	function (f, la, lb) {
-		return A2(
-			_elm_community$list_extra$List_Extra$andThen,
-			function (a) {
-				return A2(
-					_elm_community$list_extra$List_Extra$andThen,
-					function (b) {
-						return {
-							ctor: '::',
-							_0: A2(f, a, b),
-							_1: {ctor: '[]'}
-						};
-					},
-					lb);
-			},
-			la);
-	});
-var _elm_community$list_extra$List_Extra$lift3 = F4(
-	function (f, la, lb, lc) {
-		return A2(
-			_elm_community$list_extra$List_Extra$andThen,
-			function (a) {
-				return A2(
-					_elm_community$list_extra$List_Extra$andThen,
-					function (b) {
-						return A2(
-							_elm_community$list_extra$List_Extra$andThen,
-							function (c) {
-								return {
-									ctor: '::',
-									_0: A3(f, a, b, c),
-									_1: {ctor: '[]'}
-								};
-							},
-							lc);
-					},
-					lb);
-			},
-			la);
-	});
-var _elm_community$list_extra$List_Extra$lift4 = F5(
-	function (f, la, lb, lc, ld) {
-		return A2(
-			_elm_community$list_extra$List_Extra$andThen,
-			function (a) {
-				return A2(
-					_elm_community$list_extra$List_Extra$andThen,
-					function (b) {
-						return A2(
-							_elm_community$list_extra$List_Extra$andThen,
-							function (c) {
-								return A2(
-									_elm_community$list_extra$List_Extra$andThen,
-									function (d) {
-										return {
-											ctor: '::',
-											_0: A4(f, a, b, c, d),
-											_1: {ctor: '[]'}
-										};
-									},
-									ld);
-							},
-							lc);
-					},
-					lb);
-			},
-			la);
-	});
-var _elm_community$list_extra$List_Extra$andMap = F2(
-	function (l, fl) {
-		return A3(
-			_elm_lang$core$List$map2,
-			F2(
-				function (x, y) {
-					return x(y);
-				}),
-			fl,
-			l);
-	});
-var _elm_community$list_extra$List_Extra$uniqueHelp = F3(
-	function (f, existing, remaining) {
-		uniqueHelp:
-		while (true) {
-			var _p64 = remaining;
-			if (_p64.ctor === '[]') {
-				return {ctor: '[]'};
-			} else {
-				var _p66 = _p64._1;
-				var _p65 = _p64._0;
-				var computedFirst = f(_p65);
-				if (A2(_elm_lang$core$Set$member, computedFirst, existing)) {
-					var _v44 = f,
-						_v45 = existing,
-						_v46 = _p66;
-					f = _v44;
-					existing = _v45;
-					remaining = _v46;
-					continue uniqueHelp;
-				} else {
-					return {
-						ctor: '::',
-						_0: _p65,
-						_1: A3(
-							_elm_community$list_extra$List_Extra$uniqueHelp,
-							f,
-							A2(_elm_lang$core$Set$insert, computedFirst, existing),
-							_p66)
-					};
-				}
-			}
-		}
-	});
-var _elm_community$list_extra$List_Extra$uniqueBy = F2(
-	function (f, list) {
-		return A3(_elm_community$list_extra$List_Extra$uniqueHelp, f, _elm_lang$core$Set$empty, list);
-	});
-var _elm_community$list_extra$List_Extra$allDifferentBy = F2(
-	function (f, list) {
-		return _elm_lang$core$Native_Utils.eq(
-			_elm_lang$core$List$length(list),
-			_elm_lang$core$List$length(
-				A2(_elm_community$list_extra$List_Extra$uniqueBy, f, list)));
-	});
-var _elm_community$list_extra$List_Extra$allDifferent = function (list) {
-	return A2(_elm_community$list_extra$List_Extra$allDifferentBy, _elm_lang$core$Basics$identity, list);
-};
-var _elm_community$list_extra$List_Extra$unique = function (list) {
-	return A3(_elm_community$list_extra$List_Extra$uniqueHelp, _elm_lang$core$Basics$identity, _elm_lang$core$Set$empty, list);
-};
-var _elm_community$list_extra$List_Extra$dropWhile = F2(
-	function (predicate, list) {
-		dropWhile:
-		while (true) {
-			var _p67 = list;
-			if (_p67.ctor === '[]') {
-				return {ctor: '[]'};
-			} else {
-				if (predicate(_p67._0)) {
-					var _v48 = predicate,
-						_v49 = _p67._1;
-					predicate = _v48;
-					list = _v49;
-					continue dropWhile;
-				} else {
-					return list;
-				}
-			}
-		}
-	});
-var _elm_community$list_extra$List_Extra$takeWhile = function (predicate) {
-	var takeWhileMemo = F2(
-		function (memo, list) {
-			takeWhileMemo:
-			while (true) {
-				var _p68 = list;
-				if (_p68.ctor === '[]') {
-					return _elm_lang$core$List$reverse(memo);
-				} else {
-					var _p69 = _p68._0;
-					if (predicate(_p69)) {
-						var _v51 = {ctor: '::', _0: _p69, _1: memo},
-							_v52 = _p68._1;
-						memo = _v51;
-						list = _v52;
-						continue takeWhileMemo;
-					} else {
-						return _elm_lang$core$List$reverse(memo);
-					}
-				}
-			}
-		});
-	return takeWhileMemo(
-		{ctor: '[]'});
-};
-var _elm_community$list_extra$List_Extra$span = F2(
-	function (p, xs) {
-		return {
-			ctor: '_Tuple2',
-			_0: A2(_elm_community$list_extra$List_Extra$takeWhile, p, xs),
-			_1: A2(_elm_community$list_extra$List_Extra$dropWhile, p, xs)
-		};
-	});
-var _elm_community$list_extra$List_Extra$break = function (p) {
-	return _elm_community$list_extra$List_Extra$span(
-		function (_p70) {
-			return !p(_p70);
-		});
-};
-var _elm_community$list_extra$List_Extra$groupWhile = F2(
-	function (eq, xs_) {
-		var _p71 = xs_;
-		if (_p71.ctor === '[]') {
-			return {ctor: '[]'};
-		} else {
-			var _p73 = _p71._0;
-			var _p72 = A2(
-				_elm_community$list_extra$List_Extra$span,
-				eq(_p73),
-				_p71._1);
-			var ys = _p72._0;
-			var zs = _p72._1;
-			return {
-				ctor: '::',
-				_0: {ctor: '::', _0: _p73, _1: ys},
-				_1: A2(_elm_community$list_extra$List_Extra$groupWhile, eq, zs)
-			};
-		}
-	});
-var _elm_community$list_extra$List_Extra$group = _elm_community$list_extra$List_Extra$groupWhile(
-	F2(
-		function (x, y) {
-			return _elm_lang$core$Native_Utils.eq(x, y);
-		}));
-var _elm_community$list_extra$List_Extra$minimumBy = F2(
-	function (f, ls) {
-		var minBy = F2(
-			function (x, _p74) {
-				var _p75 = _p74;
-				var _p76 = _p75._1;
-				var fx = f(x);
-				return (_elm_lang$core$Native_Utils.cmp(fx, _p76) < 0) ? {ctor: '_Tuple2', _0: x, _1: fx} : {ctor: '_Tuple2', _0: _p75._0, _1: _p76};
-			});
-		var _p77 = ls;
-		if (_p77.ctor === '::') {
-			if (_p77._1.ctor === '[]') {
-				return _elm_lang$core$Maybe$Just(_p77._0);
-			} else {
-				var _p78 = _p77._0;
-				return _elm_lang$core$Maybe$Just(
-					_elm_lang$core$Tuple$first(
-						A3(
-							_elm_lang$core$List$foldl,
-							minBy,
-							{
-								ctor: '_Tuple2',
-								_0: _p78,
-								_1: f(_p78)
-							},
-							_p77._1)));
-			}
-		} else {
-			return _elm_lang$core$Maybe$Nothing;
-		}
-	});
-var _elm_community$list_extra$List_Extra$maximumBy = F2(
-	function (f, ls) {
-		var maxBy = F2(
-			function (x, _p79) {
-				var _p80 = _p79;
-				var _p81 = _p80._1;
-				var fx = f(x);
-				return (_elm_lang$core$Native_Utils.cmp(fx, _p81) > 0) ? {ctor: '_Tuple2', _0: x, _1: fx} : {ctor: '_Tuple2', _0: _p80._0, _1: _p81};
-			});
-		var _p82 = ls;
-		if (_p82.ctor === '::') {
-			if (_p82._1.ctor === '[]') {
-				return _elm_lang$core$Maybe$Just(_p82._0);
-			} else {
-				var _p83 = _p82._0;
-				return _elm_lang$core$Maybe$Just(
-					_elm_lang$core$Tuple$first(
-						A3(
-							_elm_lang$core$List$foldl,
-							maxBy,
-							{
-								ctor: '_Tuple2',
-								_0: _p83,
-								_1: f(_p83)
-							},
-							_p82._1)));
-			}
-		} else {
-			return _elm_lang$core$Maybe$Nothing;
-		}
-	});
-var _elm_community$list_extra$List_Extra$uncons = function (xs) {
-	var _p84 = xs;
-	if (_p84.ctor === '[]') {
-		return _elm_lang$core$Maybe$Nothing;
-	} else {
-		return _elm_lang$core$Maybe$Just(
-			{ctor: '_Tuple2', _0: _p84._0, _1: _p84._1});
-	}
-};
-var _elm_community$list_extra$List_Extra$swapAt = F3(
-	function (index1, index2, l) {
-		swapAt:
-		while (true) {
-			if (_elm_lang$core$Native_Utils.eq(index1, index2)) {
-				return _elm_lang$core$Maybe$Just(l);
-			} else {
-				if (_elm_lang$core$Native_Utils.cmp(index1, index2) > 0) {
-					var _v59 = index2,
-						_v60 = index1,
-						_v61 = l;
-					index1 = _v59;
-					index2 = _v60;
-					l = _v61;
-					continue swapAt;
-				} else {
-					if (_elm_lang$core$Native_Utils.cmp(index1, 0) < 0) {
-						return _elm_lang$core$Maybe$Nothing;
-					} else {
-						var _p85 = A2(_elm_community$list_extra$List_Extra$splitAt, index1, l);
-						var part1 = _p85._0;
-						var tail1 = _p85._1;
-						var _p86 = A2(_elm_community$list_extra$List_Extra$splitAt, index2 - index1, tail1);
-						var head2 = _p86._0;
-						var tail2 = _p86._1;
-						return A3(
-							_elm_lang$core$Maybe$map2,
-							F2(
-								function (_p88, _p87) {
-									var _p89 = _p88;
-									var _p90 = _p87;
-									return _elm_lang$core$List$concat(
-										{
-											ctor: '::',
-											_0: part1,
-											_1: {
-												ctor: '::',
-												_0: {ctor: '::', _0: _p90._0, _1: _p89._1},
-												_1: {
-													ctor: '::',
-													_0: {ctor: '::', _0: _p89._0, _1: _p90._1},
-													_1: {ctor: '[]'}
-												}
-											}
-										});
-								}),
-							_elm_community$list_extra$List_Extra$uncons(head2),
-							_elm_community$list_extra$List_Extra$uncons(tail2));
-					}
-				}
-			}
-		}
-	});
-var _elm_community$list_extra$List_Extra$iterate = F2(
-	function (f, x) {
-		var _p91 = f(x);
-		if (_p91.ctor === 'Just') {
-			return {
-				ctor: '::',
-				_0: x,
-				_1: A2(_elm_community$list_extra$List_Extra$iterate, f, _p91._0)
-			};
-		} else {
-			return {
-				ctor: '::',
-				_0: x,
-				_1: {ctor: '[]'}
-			};
-		}
-	});
-var _elm_community$list_extra$List_Extra$getAt = F2(
-	function (idx, xs) {
-		return (_elm_lang$core$Native_Utils.cmp(idx, 0) < 0) ? _elm_lang$core$Maybe$Nothing : _elm_lang$core$List$head(
-			A2(_elm_lang$core$List$drop, idx, xs));
-	});
-var _elm_community$list_extra$List_Extra_ops = _elm_community$list_extra$List_Extra_ops || {};
-_elm_community$list_extra$List_Extra_ops['!!'] = _elm_lang$core$Basics$flip(_elm_community$list_extra$List_Extra$getAt);
-var _elm_community$list_extra$List_Extra$init = function () {
-	var maybe = F2(
-		function (d, f) {
-			return function (_p92) {
-				return A2(
-					_elm_lang$core$Maybe$withDefault,
-					d,
-					A2(_elm_lang$core$Maybe$map, f, _p92));
-			};
-		});
-	return A2(
-		_elm_lang$core$List$foldr,
-		function (x) {
-			return function (_p93) {
-				return _elm_lang$core$Maybe$Just(
-					A3(
-						maybe,
-						{ctor: '[]'},
-						F2(
-							function (x, y) {
-								return {ctor: '::', _0: x, _1: y};
-							})(x),
-						_p93));
-			};
-		},
-		_elm_lang$core$Maybe$Nothing);
-}();
-var _elm_community$list_extra$List_Extra$last = _elm_community$list_extra$List_Extra$foldl1(
-	_elm_lang$core$Basics$flip(_elm_lang$core$Basics$always));
-
 var _rtfeldman$hex$Hex$toString = function (num) {
 	return _elm_lang$core$String$fromList(
 		(_elm_lang$core$Native_Utils.cmp(num, 0) < 0) ? {
@@ -7234,6 +5899,1574 @@ var _rtfeldman$hex$Hex$fromString = function (str) {
 	}
 };
 
+var _elm_lang$core$Set$foldr = F3(
+	function (f, b, _p0) {
+		var _p1 = _p0;
+		return A3(
+			_elm_lang$core$Dict$foldr,
+			F3(
+				function (k, _p2, b) {
+					return A2(f, k, b);
+				}),
+			b,
+			_p1._0);
+	});
+var _elm_lang$core$Set$foldl = F3(
+	function (f, b, _p3) {
+		var _p4 = _p3;
+		return A3(
+			_elm_lang$core$Dict$foldl,
+			F3(
+				function (k, _p5, b) {
+					return A2(f, k, b);
+				}),
+			b,
+			_p4._0);
+	});
+var _elm_lang$core$Set$toList = function (_p6) {
+	var _p7 = _p6;
+	return _elm_lang$core$Dict$keys(_p7._0);
+};
+var _elm_lang$core$Set$size = function (_p8) {
+	var _p9 = _p8;
+	return _elm_lang$core$Dict$size(_p9._0);
+};
+var _elm_lang$core$Set$member = F2(
+	function (k, _p10) {
+		var _p11 = _p10;
+		return A2(_elm_lang$core$Dict$member, k, _p11._0);
+	});
+var _elm_lang$core$Set$isEmpty = function (_p12) {
+	var _p13 = _p12;
+	return _elm_lang$core$Dict$isEmpty(_p13._0);
+};
+var _elm_lang$core$Set$Set_elm_builtin = function (a) {
+	return {ctor: 'Set_elm_builtin', _0: a};
+};
+var _elm_lang$core$Set$empty = _elm_lang$core$Set$Set_elm_builtin(_elm_lang$core$Dict$empty);
+var _elm_lang$core$Set$singleton = function (k) {
+	return _elm_lang$core$Set$Set_elm_builtin(
+		A2(
+			_elm_lang$core$Dict$singleton,
+			k,
+			{ctor: '_Tuple0'}));
+};
+var _elm_lang$core$Set$insert = F2(
+	function (k, _p14) {
+		var _p15 = _p14;
+		return _elm_lang$core$Set$Set_elm_builtin(
+			A3(
+				_elm_lang$core$Dict$insert,
+				k,
+				{ctor: '_Tuple0'},
+				_p15._0));
+	});
+var _elm_lang$core$Set$fromList = function (xs) {
+	return A3(_elm_lang$core$List$foldl, _elm_lang$core$Set$insert, _elm_lang$core$Set$empty, xs);
+};
+var _elm_lang$core$Set$map = F2(
+	function (f, s) {
+		return _elm_lang$core$Set$fromList(
+			A2(
+				_elm_lang$core$List$map,
+				f,
+				_elm_lang$core$Set$toList(s)));
+	});
+var _elm_lang$core$Set$remove = F2(
+	function (k, _p16) {
+		var _p17 = _p16;
+		return _elm_lang$core$Set$Set_elm_builtin(
+			A2(_elm_lang$core$Dict$remove, k, _p17._0));
+	});
+var _elm_lang$core$Set$union = F2(
+	function (_p19, _p18) {
+		var _p20 = _p19;
+		var _p21 = _p18;
+		return _elm_lang$core$Set$Set_elm_builtin(
+			A2(_elm_lang$core$Dict$union, _p20._0, _p21._0));
+	});
+var _elm_lang$core$Set$intersect = F2(
+	function (_p23, _p22) {
+		var _p24 = _p23;
+		var _p25 = _p22;
+		return _elm_lang$core$Set$Set_elm_builtin(
+			A2(_elm_lang$core$Dict$intersect, _p24._0, _p25._0));
+	});
+var _elm_lang$core$Set$diff = F2(
+	function (_p27, _p26) {
+		var _p28 = _p27;
+		var _p29 = _p26;
+		return _elm_lang$core$Set$Set_elm_builtin(
+			A2(_elm_lang$core$Dict$diff, _p28._0, _p29._0));
+	});
+var _elm_lang$core$Set$filter = F2(
+	function (p, _p30) {
+		var _p31 = _p30;
+		return _elm_lang$core$Set$Set_elm_builtin(
+			A2(
+				_elm_lang$core$Dict$filter,
+				F2(
+					function (k, _p32) {
+						return p(k);
+					}),
+				_p31._0));
+	});
+var _elm_lang$core$Set$partition = F2(
+	function (p, _p33) {
+		var _p34 = _p33;
+		var _p35 = A2(
+			_elm_lang$core$Dict$partition,
+			F2(
+				function (k, _p36) {
+					return p(k);
+				}),
+			_p34._0);
+		var p1 = _p35._0;
+		var p2 = _p35._1;
+		return {
+			ctor: '_Tuple2',
+			_0: _elm_lang$core$Set$Set_elm_builtin(p1),
+			_1: _elm_lang$core$Set$Set_elm_builtin(p2)
+		};
+	});
+
+var _elm_community$list_extra$List_Extra$greedyGroupsOfWithStep = F3(
+	function (size, step, xs) {
+		var okayXs = _elm_lang$core$Native_Utils.cmp(
+			_elm_lang$core$List$length(xs),
+			0) > 0;
+		var okayArgs = (_elm_lang$core$Native_Utils.cmp(size, 0) > 0) && (_elm_lang$core$Native_Utils.cmp(step, 0) > 0);
+		var xs_ = A2(_elm_lang$core$List$drop, step, xs);
+		var group = A2(_elm_lang$core$List$take, size, xs);
+		return (okayArgs && okayXs) ? {
+			ctor: '::',
+			_0: group,
+			_1: A3(_elm_community$list_extra$List_Extra$greedyGroupsOfWithStep, size, step, xs_)
+		} : {ctor: '[]'};
+	});
+var _elm_community$list_extra$List_Extra$greedyGroupsOf = F2(
+	function (size, xs) {
+		return A3(_elm_community$list_extra$List_Extra$greedyGroupsOfWithStep, size, size, xs);
+	});
+var _elm_community$list_extra$List_Extra$groupsOfWithStep = F3(
+	function (size, step, xs) {
+		var okayArgs = (_elm_lang$core$Native_Utils.cmp(size, 0) > 0) && (_elm_lang$core$Native_Utils.cmp(step, 0) > 0);
+		var xs_ = A2(_elm_lang$core$List$drop, step, xs);
+		var group = A2(_elm_lang$core$List$take, size, xs);
+		var okayLength = _elm_lang$core$Native_Utils.eq(
+			size,
+			_elm_lang$core$List$length(group));
+		return (okayArgs && okayLength) ? {
+			ctor: '::',
+			_0: group,
+			_1: A3(_elm_community$list_extra$List_Extra$groupsOfWithStep, size, step, xs_)
+		} : {ctor: '[]'};
+	});
+var _elm_community$list_extra$List_Extra$groupsOf = F2(
+	function (size, xs) {
+		return A3(_elm_community$list_extra$List_Extra$groupsOfWithStep, size, size, xs);
+	});
+var _elm_community$list_extra$List_Extra$zip5 = _elm_lang$core$List$map5(
+	F5(
+		function (v0, v1, v2, v3, v4) {
+			return {ctor: '_Tuple5', _0: v0, _1: v1, _2: v2, _3: v3, _4: v4};
+		}));
+var _elm_community$list_extra$List_Extra$zip4 = _elm_lang$core$List$map4(
+	F4(
+		function (v0, v1, v2, v3) {
+			return {ctor: '_Tuple4', _0: v0, _1: v1, _2: v2, _3: v3};
+		}));
+var _elm_community$list_extra$List_Extra$zip3 = _elm_lang$core$List$map3(
+	F3(
+		function (v0, v1, v2) {
+			return {ctor: '_Tuple3', _0: v0, _1: v1, _2: v2};
+		}));
+var _elm_community$list_extra$List_Extra$zip = _elm_lang$core$List$map2(
+	F2(
+		function (v0, v1) {
+			return {ctor: '_Tuple2', _0: v0, _1: v1};
+		}));
+var _elm_community$list_extra$List_Extra$isSubsequenceOf = F2(
+	function (subseq, list) {
+		isSubsequenceOf:
+		while (true) {
+			var _p0 = {ctor: '_Tuple2', _0: subseq, _1: list};
+			if (_p0._0.ctor === '[]') {
+				return true;
+			} else {
+				if (_p0._1.ctor === '[]') {
+					return false;
+				} else {
+					var _p1 = _p0._1._1;
+					if (_elm_lang$core$Native_Utils.eq(_p0._0._0, _p0._1._0)) {
+						var _v1 = _p0._0._1,
+							_v2 = _p1;
+						subseq = _v1;
+						list = _v2;
+						continue isSubsequenceOf;
+					} else {
+						var _v3 = subseq,
+							_v4 = _p1;
+						subseq = _v3;
+						list = _v4;
+						continue isSubsequenceOf;
+					}
+				}
+			}
+		}
+	});
+var _elm_community$list_extra$List_Extra$isPrefixOf = F2(
+	function (prefix, xs) {
+		var _p2 = {ctor: '_Tuple2', _0: prefix, _1: xs};
+		if (_p2._0.ctor === '[]') {
+			return true;
+		} else {
+			if (_p2._1.ctor === '[]') {
+				return false;
+			} else {
+				return _elm_lang$core$Native_Utils.eq(_p2._0._0, _p2._1._0) && A2(_elm_community$list_extra$List_Extra$isPrefixOf, _p2._0._1, _p2._1._1);
+			}
+		}
+	});
+var _elm_community$list_extra$List_Extra$isSuffixOf = F2(
+	function (suffix, xs) {
+		return A2(
+			_elm_community$list_extra$List_Extra$isPrefixOf,
+			_elm_lang$core$List$reverse(suffix),
+			_elm_lang$core$List$reverse(xs));
+	});
+var _elm_community$list_extra$List_Extra$isInfixOfHelp = F3(
+	function (infixHead, infixTail, list) {
+		isInfixOfHelp:
+		while (true) {
+			var _p3 = list;
+			if (_p3.ctor === '[]') {
+				return false;
+			} else {
+				var _p4 = _p3._1;
+				if (_elm_lang$core$Native_Utils.eq(_p3._0, infixHead)) {
+					return A2(_elm_community$list_extra$List_Extra$isPrefixOf, infixTail, _p4);
+				} else {
+					var _v7 = infixHead,
+						_v8 = infixTail,
+						_v9 = _p4;
+					infixHead = _v7;
+					infixTail = _v8;
+					list = _v9;
+					continue isInfixOfHelp;
+				}
+			}
+		}
+	});
+var _elm_community$list_extra$List_Extra$isInfixOf = F2(
+	function (infixList, list) {
+		var _p5 = infixList;
+		if (_p5.ctor === '[]') {
+			return true;
+		} else {
+			return A3(_elm_community$list_extra$List_Extra$isInfixOfHelp, _p5._0, _p5._1, list);
+		}
+	});
+var _elm_community$list_extra$List_Extra$selectSplit = function (xs) {
+	var _p6 = xs;
+	if (_p6.ctor === '[]') {
+		return {ctor: '[]'};
+	} else {
+		var _p10 = _p6._1;
+		var _p9 = _p6._0;
+		return {
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple3',
+				_0: {ctor: '[]'},
+				_1: _p9,
+				_2: _p10
+			},
+			_1: A2(
+				_elm_lang$core$List$map,
+				function (_p7) {
+					var _p8 = _p7;
+					return {
+						ctor: '_Tuple3',
+						_0: {ctor: '::', _0: _p9, _1: _p8._0},
+						_1: _p8._1,
+						_2: _p8._2
+					};
+				},
+				_elm_community$list_extra$List_Extra$selectSplit(_p10))
+		};
+	}
+};
+var _elm_community$list_extra$List_Extra$select = function (xs) {
+	var _p11 = xs;
+	if (_p11.ctor === '[]') {
+		return {ctor: '[]'};
+	} else {
+		var _p15 = _p11._1;
+		var _p14 = _p11._0;
+		return {
+			ctor: '::',
+			_0: {ctor: '_Tuple2', _0: _p14, _1: _p15},
+			_1: A2(
+				_elm_lang$core$List$map,
+				function (_p12) {
+					var _p13 = _p12;
+					return {
+						ctor: '_Tuple2',
+						_0: _p13._0,
+						_1: {ctor: '::', _0: _p14, _1: _p13._1}
+					};
+				},
+				_elm_community$list_extra$List_Extra$select(_p15))
+		};
+	}
+};
+var _elm_community$list_extra$List_Extra$tailsHelp = F2(
+	function (e, list) {
+		var _p16 = list;
+		if (_p16.ctor === '::') {
+			var _p17 = _p16._0;
+			return {
+				ctor: '::',
+				_0: {ctor: '::', _0: e, _1: _p17},
+				_1: {ctor: '::', _0: _p17, _1: _p16._1}
+			};
+		} else {
+			return {ctor: '[]'};
+		}
+	});
+var _elm_community$list_extra$List_Extra$tails = A2(
+	_elm_lang$core$List$foldr,
+	_elm_community$list_extra$List_Extra$tailsHelp,
+	{
+		ctor: '::',
+		_0: {ctor: '[]'},
+		_1: {ctor: '[]'}
+	});
+var _elm_community$list_extra$List_Extra$inits = A2(
+	_elm_lang$core$List$foldr,
+	F2(
+		function (e, acc) {
+			return {
+				ctor: '::',
+				_0: {ctor: '[]'},
+				_1: A2(
+					_elm_lang$core$List$map,
+					F2(
+						function (x, y) {
+							return {ctor: '::', _0: x, _1: y};
+						})(e),
+					acc)
+			};
+		}),
+	{
+		ctor: '::',
+		_0: {ctor: '[]'},
+		_1: {ctor: '[]'}
+	});
+var _elm_community$list_extra$List_Extra$groupWhileTransitivelyHelp = F4(
+	function (result, currentGroup, compare, list) {
+		groupWhileTransitivelyHelp:
+		while (true) {
+			var _p18 = list;
+			if (_p18.ctor === '[]') {
+				return _elm_lang$core$List$reverse(
+					_elm_lang$core$List$isEmpty(currentGroup) ? result : _elm_lang$core$List$reverse(
+						{ctor: '::', _0: currentGroup, _1: result}));
+			} else {
+				if (_p18._1.ctor === '[]') {
+					return _elm_lang$core$List$reverse(
+						{
+							ctor: '::',
+							_0: _elm_lang$core$List$reverse(
+								{ctor: '::', _0: _p18._0, _1: currentGroup}),
+							_1: result
+						});
+				} else {
+					var _p20 = _p18._1;
+					var _p19 = _p18._0;
+					if (A2(compare, _p19, _p18._1._0)) {
+						var _v17 = result,
+							_v18 = {ctor: '::', _0: _p19, _1: currentGroup},
+							_v19 = compare,
+							_v20 = _p20;
+						result = _v17;
+						currentGroup = _v18;
+						compare = _v19;
+						list = _v20;
+						continue groupWhileTransitivelyHelp;
+					} else {
+						var _v21 = {
+							ctor: '::',
+							_0: _elm_lang$core$List$reverse(
+								{ctor: '::', _0: _p19, _1: currentGroup}),
+							_1: result
+						},
+							_v22 = {ctor: '[]'},
+							_v23 = compare,
+							_v24 = _p20;
+						result = _v21;
+						currentGroup = _v22;
+						compare = _v23;
+						list = _v24;
+						continue groupWhileTransitivelyHelp;
+					}
+				}
+			}
+		}
+	});
+var _elm_community$list_extra$List_Extra$groupWhileTransitively = F2(
+	function (compare, list) {
+		return A4(
+			_elm_community$list_extra$List_Extra$groupWhileTransitivelyHelp,
+			{ctor: '[]'},
+			{ctor: '[]'},
+			compare,
+			list);
+	});
+var _elm_community$list_extra$List_Extra$stripPrefix = F2(
+	function (prefix, xs) {
+		var step = F2(
+			function (e, m) {
+				var _p21 = m;
+				if (_p21.ctor === 'Nothing') {
+					return _elm_lang$core$Maybe$Nothing;
+				} else {
+					if (_p21._0.ctor === '[]') {
+						return _elm_lang$core$Maybe$Nothing;
+					} else {
+						return _elm_lang$core$Native_Utils.eq(e, _p21._0._0) ? _elm_lang$core$Maybe$Just(_p21._0._1) : _elm_lang$core$Maybe$Nothing;
+					}
+				}
+			});
+		return A3(
+			_elm_lang$core$List$foldl,
+			step,
+			_elm_lang$core$Maybe$Just(xs),
+			prefix);
+	});
+var _elm_community$list_extra$List_Extra$dropWhileRight = function (p) {
+	return A2(
+		_elm_lang$core$List$foldr,
+		F2(
+			function (x, xs) {
+				return (p(x) && _elm_lang$core$List$isEmpty(xs)) ? {ctor: '[]'} : {ctor: '::', _0: x, _1: xs};
+			}),
+		{ctor: '[]'});
+};
+var _elm_community$list_extra$List_Extra$takeWhileRight = function (p) {
+	var step = F2(
+		function (x, _p22) {
+			var _p23 = _p22;
+			var _p24 = _p23._0;
+			return (p(x) && _p23._1) ? {
+				ctor: '_Tuple2',
+				_0: {ctor: '::', _0: x, _1: _p24},
+				_1: true
+			} : {ctor: '_Tuple2', _0: _p24, _1: false};
+		});
+	return function (_p25) {
+		return _elm_lang$core$Tuple$first(
+			A3(
+				_elm_lang$core$List$foldr,
+				step,
+				{
+					ctor: '_Tuple2',
+					_0: {ctor: '[]'},
+					_1: true
+				},
+				_p25));
+	};
+};
+var _elm_community$list_extra$List_Extra$splitAt = F2(
+	function (n, xs) {
+		return {
+			ctor: '_Tuple2',
+			_0: A2(_elm_lang$core$List$take, n, xs),
+			_1: A2(_elm_lang$core$List$drop, n, xs)
+		};
+	});
+var _elm_community$list_extra$List_Extra$groupsOfVarying_ = F3(
+	function (listOflengths, list, accu) {
+		groupsOfVarying_:
+		while (true) {
+			var _p26 = {ctor: '_Tuple2', _0: listOflengths, _1: list};
+			if (((_p26.ctor === '_Tuple2') && (_p26._0.ctor === '::')) && (_p26._1.ctor === '::')) {
+				var _p27 = A2(_elm_community$list_extra$List_Extra$splitAt, _p26._0._0, list);
+				var head = _p27._0;
+				var tail = _p27._1;
+				var _v28 = _p26._0._1,
+					_v29 = tail,
+					_v30 = {ctor: '::', _0: head, _1: accu};
+				listOflengths = _v28;
+				list = _v29;
+				accu = _v30;
+				continue groupsOfVarying_;
+			} else {
+				return _elm_lang$core$List$reverse(accu);
+			}
+		}
+	});
+var _elm_community$list_extra$List_Extra$groupsOfVarying = F2(
+	function (listOflengths, list) {
+		return A3(
+			_elm_community$list_extra$List_Extra$groupsOfVarying_,
+			listOflengths,
+			list,
+			{ctor: '[]'});
+	});
+var _elm_community$list_extra$List_Extra$unfoldr = F2(
+	function (f, seed) {
+		var _p28 = f(seed);
+		if (_p28.ctor === 'Nothing') {
+			return {ctor: '[]'};
+		} else {
+			return {
+				ctor: '::',
+				_0: _p28._0._0,
+				_1: A2(_elm_community$list_extra$List_Extra$unfoldr, f, _p28._0._1)
+			};
+		}
+	});
+var _elm_community$list_extra$List_Extra$mapAccumr = F3(
+	function (f, acc0, list) {
+		return A3(
+			_elm_lang$core$List$foldr,
+			F2(
+				function (x, _p29) {
+					var _p30 = _p29;
+					var _p31 = A2(f, _p30._0, x);
+					var acc2 = _p31._0;
+					var y = _p31._1;
+					return {
+						ctor: '_Tuple2',
+						_0: acc2,
+						_1: {ctor: '::', _0: y, _1: _p30._1}
+					};
+				}),
+			{
+				ctor: '_Tuple2',
+				_0: acc0,
+				_1: {ctor: '[]'}
+			},
+			list);
+	});
+var _elm_community$list_extra$List_Extra$mapAccuml = F3(
+	function (f, acc0, list) {
+		var _p32 = A3(
+			_elm_lang$core$List$foldl,
+			F2(
+				function (x, _p33) {
+					var _p34 = _p33;
+					var _p35 = A2(f, _p34._0, x);
+					var acc2 = _p35._0;
+					var y = _p35._1;
+					return {
+						ctor: '_Tuple2',
+						_0: acc2,
+						_1: {ctor: '::', _0: y, _1: _p34._1}
+					};
+				}),
+			{
+				ctor: '_Tuple2',
+				_0: acc0,
+				_1: {ctor: '[]'}
+			},
+			list);
+		var accFinal = _p32._0;
+		var generatedList = _p32._1;
+		return {
+			ctor: '_Tuple2',
+			_0: accFinal,
+			_1: _elm_lang$core$List$reverse(generatedList)
+		};
+	});
+var _elm_community$list_extra$List_Extra$scanr1 = F2(
+	function (f, xs_) {
+		var _p36 = xs_;
+		if (_p36.ctor === '[]') {
+			return {ctor: '[]'};
+		} else {
+			if (_p36._1.ctor === '[]') {
+				return {
+					ctor: '::',
+					_0: _p36._0,
+					_1: {ctor: '[]'}
+				};
+			} else {
+				var _p37 = A2(_elm_community$list_extra$List_Extra$scanr1, f, _p36._1);
+				if (_p37.ctor === '::') {
+					return {
+						ctor: '::',
+						_0: A2(f, _p36._0, _p37._0),
+						_1: _p37
+					};
+				} else {
+					return {ctor: '[]'};
+				}
+			}
+		}
+	});
+var _elm_community$list_extra$List_Extra$scanr = F3(
+	function (f, acc, xs_) {
+		var _p38 = xs_;
+		if (_p38.ctor === '[]') {
+			return {
+				ctor: '::',
+				_0: acc,
+				_1: {ctor: '[]'}
+			};
+		} else {
+			var _p39 = A3(_elm_community$list_extra$List_Extra$scanr, f, acc, _p38._1);
+			if (_p39.ctor === '::') {
+				return {
+					ctor: '::',
+					_0: A2(f, _p38._0, _p39._0),
+					_1: _p39
+				};
+			} else {
+				return {ctor: '[]'};
+			}
+		}
+	});
+var _elm_community$list_extra$List_Extra$scanl1 = F2(
+	function (f, xs_) {
+		var _p40 = xs_;
+		if (_p40.ctor === '[]') {
+			return {ctor: '[]'};
+		} else {
+			return A3(_elm_lang$core$List$scanl, f, _p40._0, _p40._1);
+		}
+	});
+var _elm_community$list_extra$List_Extra$indexedFoldr = F3(
+	function (func, acc, list) {
+		var step = F2(
+			function (x, _p41) {
+				var _p42 = _p41;
+				var _p43 = _p42._0;
+				return {
+					ctor: '_Tuple2',
+					_0: _p43 - 1,
+					_1: A3(func, _p43, x, _p42._1)
+				};
+			});
+		return _elm_lang$core$Tuple$second(
+			A3(
+				_elm_lang$core$List$foldr,
+				step,
+				{
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$List$length(list) - 1,
+					_1: acc
+				},
+				list));
+	});
+var _elm_community$list_extra$List_Extra$indexedFoldl = F3(
+	function (func, acc, list) {
+		var step = F2(
+			function (x, _p44) {
+				var _p45 = _p44;
+				var _p46 = _p45._0;
+				return {
+					ctor: '_Tuple2',
+					_0: _p46 + 1,
+					_1: A3(func, _p46, x, _p45._1)
+				};
+			});
+		return _elm_lang$core$Tuple$second(
+			A3(
+				_elm_lang$core$List$foldl,
+				step,
+				{ctor: '_Tuple2', _0: 0, _1: acc},
+				list));
+	});
+var _elm_community$list_extra$List_Extra$foldr1 = F2(
+	function (f, xs) {
+		var mf = F2(
+			function (x, m) {
+				return _elm_lang$core$Maybe$Just(
+					function () {
+						var _p47 = m;
+						if (_p47.ctor === 'Nothing') {
+							return x;
+						} else {
+							return A2(f, x, _p47._0);
+						}
+					}());
+			});
+		return A3(_elm_lang$core$List$foldr, mf, _elm_lang$core$Maybe$Nothing, xs);
+	});
+var _elm_community$list_extra$List_Extra$foldl1 = F2(
+	function (f, xs) {
+		var mf = F2(
+			function (x, m) {
+				return _elm_lang$core$Maybe$Just(
+					function () {
+						var _p48 = m;
+						if (_p48.ctor === 'Nothing') {
+							return x;
+						} else {
+							return A2(f, _p48._0, x);
+						}
+					}());
+			});
+		return A3(_elm_lang$core$List$foldl, mf, _elm_lang$core$Maybe$Nothing, xs);
+	});
+var _elm_community$list_extra$List_Extra$reverseAppend = F2(
+	function (list1, list2) {
+		return A3(
+			_elm_lang$core$List$foldl,
+			F2(
+				function (x, y) {
+					return {ctor: '::', _0: x, _1: y};
+				}),
+			list2,
+			list1);
+	});
+var _elm_community$list_extra$List_Extra$interweaveHelp = F3(
+	function (acc, list1, list2) {
+		interweaveHelp:
+		while (true) {
+			var _p49 = {ctor: '_Tuple2', _0: list1, _1: list2};
+			if (_p49._0.ctor === '::') {
+				if (_p49._1.ctor === '::') {
+					var _v44 = {
+						ctor: '::',
+						_0: _p49._1._0,
+						_1: {ctor: '::', _0: _p49._0._0, _1: acc}
+					},
+						_v45 = _p49._0._1,
+						_v46 = _p49._1._1;
+					acc = _v44;
+					list1 = _v45;
+					list2 = _v46;
+					continue interweaveHelp;
+				} else {
+					return A2(_elm_community$list_extra$List_Extra$reverseAppend, acc, list1);
+				}
+			} else {
+				return A2(_elm_community$list_extra$List_Extra$reverseAppend, acc, list2);
+			}
+		}
+	});
+var _elm_community$list_extra$List_Extra$interweave = _elm_community$list_extra$List_Extra$interweaveHelp(
+	{ctor: '[]'});
+var _elm_community$list_extra$List_Extra$permutations = function (xs_) {
+	var _p50 = xs_;
+	if (_p50.ctor === '[]') {
+		return {
+			ctor: '::',
+			_0: {ctor: '[]'},
+			_1: {ctor: '[]'}
+		};
+	} else {
+		var f = function (_p51) {
+			var _p52 = _p51;
+			return A2(
+				_elm_lang$core$List$map,
+				F2(
+					function (x, y) {
+						return {ctor: '::', _0: x, _1: y};
+					})(_p52._0),
+				_elm_community$list_extra$List_Extra$permutations(_p52._1));
+		};
+		return A2(
+			_elm_lang$core$List$concatMap,
+			f,
+			_elm_community$list_extra$List_Extra$select(_p50));
+	}
+};
+var _elm_community$list_extra$List_Extra$isPermutationOf = F2(
+	function (permut, xs) {
+		return A2(
+			_elm_lang$core$List$member,
+			permut,
+			_elm_community$list_extra$List_Extra$permutations(xs));
+	});
+var _elm_community$list_extra$List_Extra$subsequencesNonEmpty = function (xs) {
+	var _p53 = xs;
+	if (_p53.ctor === '[]') {
+		return {ctor: '[]'};
+	} else {
+		var _p54 = _p53._0;
+		var f = F2(
+			function (ys, r) {
+				return {
+					ctor: '::',
+					_0: ys,
+					_1: {
+						ctor: '::',
+						_0: {ctor: '::', _0: _p54, _1: ys},
+						_1: r
+					}
+				};
+			});
+		return {
+			ctor: '::',
+			_0: {
+				ctor: '::',
+				_0: _p54,
+				_1: {ctor: '[]'}
+			},
+			_1: A3(
+				_elm_lang$core$List$foldr,
+				f,
+				{ctor: '[]'},
+				_elm_community$list_extra$List_Extra$subsequencesNonEmpty(_p53._1))
+		};
+	}
+};
+var _elm_community$list_extra$List_Extra$subsequences = function (xs) {
+	return {
+		ctor: '::',
+		_0: {ctor: '[]'},
+		_1: _elm_community$list_extra$List_Extra$subsequencesNonEmpty(xs)
+	};
+};
+var _elm_community$list_extra$List_Extra$rowsLength = function (listOfLists) {
+	var _p55 = listOfLists;
+	if (_p55.ctor === '[]') {
+		return 0;
+	} else {
+		return _elm_lang$core$List$length(_p55._0);
+	}
+};
+var _elm_community$list_extra$List_Extra$transpose = function (listOfLists) {
+	return A3(
+		_elm_lang$core$List$foldr,
+		_elm_lang$core$List$map2(
+			F2(
+				function (x, y) {
+					return {ctor: '::', _0: x, _1: y};
+				})),
+		A2(
+			_elm_lang$core$List$repeat,
+			_elm_community$list_extra$List_Extra$rowsLength(listOfLists),
+			{ctor: '[]'}),
+		listOfLists);
+};
+var _elm_community$list_extra$List_Extra$intercalate = function (xs) {
+	return function (_p56) {
+		return _elm_lang$core$List$concat(
+			A2(_elm_lang$core$List$intersperse, xs, _p56));
+	};
+};
+var _elm_community$list_extra$List_Extra$filterNot = F2(
+	function (pred, list) {
+		return A2(
+			_elm_lang$core$List$filter,
+			function (_p57) {
+				return !pred(_p57);
+			},
+			list);
+	});
+var _elm_community$list_extra$List_Extra$removeIfIndex = function (predicate) {
+	return A2(
+		_elm_community$list_extra$List_Extra$indexedFoldr,
+		F3(
+			function (index, item, acc) {
+				return predicate(index) ? acc : {ctor: '::', _0: item, _1: acc};
+			}),
+		{ctor: '[]'});
+};
+var _elm_community$list_extra$List_Extra$removeAt = F2(
+	function (index, l) {
+		if (_elm_lang$core$Native_Utils.cmp(index, 0) < 0) {
+			return l;
+		} else {
+			var tail = _elm_lang$core$List$tail(
+				A2(_elm_lang$core$List$drop, index, l));
+			var head = A2(_elm_lang$core$List$take, index, l);
+			var _p58 = tail;
+			if (_p58.ctor === 'Nothing') {
+				return l;
+			} else {
+				return A2(_elm_lang$core$List$append, head, _p58._0);
+			}
+		}
+	});
+var _elm_community$list_extra$List_Extra$stableSortWith = F2(
+	function (pred, list) {
+		var predWithIndex = F2(
+			function (_p60, _p59) {
+				var _p61 = _p60;
+				var _p62 = _p59;
+				var result = A2(pred, _p61._0, _p62._0);
+				var _p63 = result;
+				if (_p63.ctor === 'EQ') {
+					return A2(_elm_lang$core$Basics$compare, _p61._1, _p62._1);
+				} else {
+					return result;
+				}
+			});
+		var listWithIndex = A2(
+			_elm_lang$core$List$indexedMap,
+			F2(
+				function (i, a) {
+					return {ctor: '_Tuple2', _0: a, _1: i};
+				}),
+			list);
+		return A2(
+			_elm_lang$core$List$map,
+			_elm_lang$core$Tuple$first,
+			A2(_elm_lang$core$List$sortWith, predWithIndex, listWithIndex));
+	});
+var _elm_community$list_extra$List_Extra$remove = F2(
+	function (x, xs) {
+		var _p64 = xs;
+		if (_p64.ctor === '[]') {
+			return {ctor: '[]'};
+		} else {
+			var _p66 = _p64._1;
+			var _p65 = _p64._0;
+			return _elm_lang$core$Native_Utils.eq(x, _p65) ? _p66 : {
+				ctor: '::',
+				_0: _p65,
+				_1: A2(_elm_community$list_extra$List_Extra$remove, x, _p66)
+			};
+		}
+	});
+var _elm_community$list_extra$List_Extra$updateIfIndex = F3(
+	function (predicate, update, list) {
+		return A2(
+			_elm_lang$core$List$indexedMap,
+			F2(
+				function (i, x) {
+					return predicate(i) ? update(x) : x;
+				}),
+			list);
+	});
+var _elm_community$list_extra$List_Extra$updateAt = F3(
+	function (index, fn, list) {
+		if (_elm_lang$core$Native_Utils.cmp(index, 0) < 0) {
+			return list;
+		} else {
+			var tail = A2(_elm_lang$core$List$drop, index, list);
+			var head = A2(_elm_lang$core$List$take, index, list);
+			var _p67 = tail;
+			if (_p67.ctor === '::') {
+				return A2(
+					_elm_lang$core$Basics_ops['++'],
+					head,
+					{
+						ctor: '::',
+						_0: fn(_p67._0),
+						_1: _p67._1
+					});
+			} else {
+				return list;
+			}
+		}
+	});
+var _elm_community$list_extra$List_Extra$setAt = F2(
+	function (index, value) {
+		return A2(
+			_elm_community$list_extra$List_Extra$updateAt,
+			index,
+			_elm_lang$core$Basics$always(value));
+	});
+var _elm_community$list_extra$List_Extra$updateIf = F3(
+	function (predicate, update, list) {
+		return A2(
+			_elm_lang$core$List$map,
+			function (item) {
+				return predicate(item) ? update(item) : item;
+			},
+			list);
+	});
+var _elm_community$list_extra$List_Extra$replaceIf = F3(
+	function (predicate, replacement, list) {
+		return A3(
+			_elm_community$list_extra$List_Extra$updateIf,
+			predicate,
+			_elm_lang$core$Basics$always(replacement),
+			list);
+	});
+var _elm_community$list_extra$List_Extra$count = function (predicate) {
+	return A2(
+		_elm_lang$core$List$foldl,
+		F2(
+			function (x, acc) {
+				return predicate(x) ? (acc + 1) : acc;
+			}),
+		0);
+};
+var _elm_community$list_extra$List_Extra$findIndices = function (predicate) {
+	var consIndexIf = F3(
+		function (index, x, acc) {
+			return predicate(x) ? {ctor: '::', _0: index, _1: acc} : acc;
+		});
+	return A2(
+		_elm_community$list_extra$List_Extra$indexedFoldr,
+		consIndexIf,
+		{ctor: '[]'});
+};
+var _elm_community$list_extra$List_Extra$findIndexHelp = F3(
+	function (index, predicate, list) {
+		findIndexHelp:
+		while (true) {
+			var _p68 = list;
+			if (_p68.ctor === '[]') {
+				return _elm_lang$core$Maybe$Nothing;
+			} else {
+				if (predicate(_p68._0)) {
+					return _elm_lang$core$Maybe$Just(index);
+				} else {
+					var _v58 = index + 1,
+						_v59 = predicate,
+						_v60 = _p68._1;
+					index = _v58;
+					predicate = _v59;
+					list = _v60;
+					continue findIndexHelp;
+				}
+			}
+		}
+	});
+var _elm_community$list_extra$List_Extra$findIndex = _elm_community$list_extra$List_Extra$findIndexHelp(0);
+var _elm_community$list_extra$List_Extra$splitWhen = F2(
+	function (predicate, list) {
+		return A2(
+			_elm_lang$core$Maybe$map,
+			function (i) {
+				return A2(_elm_community$list_extra$List_Extra$splitAt, i, list);
+			},
+			A2(_elm_community$list_extra$List_Extra$findIndex, predicate, list));
+	});
+var _elm_community$list_extra$List_Extra$elemIndices = function (x) {
+	return _elm_community$list_extra$List_Extra$findIndices(
+		F2(
+			function (x, y) {
+				return _elm_lang$core$Native_Utils.eq(x, y);
+			})(x));
+};
+var _elm_community$list_extra$List_Extra$elemIndex = function (x) {
+	return _elm_community$list_extra$List_Extra$findIndex(
+		F2(
+			function (x, y) {
+				return _elm_lang$core$Native_Utils.eq(x, y);
+			})(x));
+};
+var _elm_community$list_extra$List_Extra$find = F2(
+	function (predicate, list) {
+		find:
+		while (true) {
+			var _p69 = list;
+			if (_p69.ctor === '[]') {
+				return _elm_lang$core$Maybe$Nothing;
+			} else {
+				var _p70 = _p69._0;
+				if (predicate(_p70)) {
+					return _elm_lang$core$Maybe$Just(_p70);
+				} else {
+					var _v62 = predicate,
+						_v63 = _p69._1;
+					predicate = _v62;
+					list = _v63;
+					continue find;
+				}
+			}
+		}
+	});
+var _elm_community$list_extra$List_Extra$notMember = function (x) {
+	return function (_p71) {
+		return !A2(_elm_lang$core$List$member, x, _p71);
+	};
+};
+var _elm_community$list_extra$List_Extra$reverseMap = F2(
+	function (f, xs) {
+		return A3(
+			_elm_lang$core$List$foldl,
+			F2(
+				function (x, acc) {
+					return {
+						ctor: '::',
+						_0: f(x),
+						_1: acc
+					};
+				}),
+			{ctor: '[]'},
+			xs);
+	});
+var _elm_community$list_extra$List_Extra$andThen = _elm_lang$core$List$concatMap;
+var _elm_community$list_extra$List_Extra$lift2 = F3(
+	function (f, la, lb) {
+		return A2(
+			_elm_community$list_extra$List_Extra$andThen,
+			function (a) {
+				return A2(
+					_elm_community$list_extra$List_Extra$andThen,
+					function (b) {
+						return {
+							ctor: '::',
+							_0: A2(f, a, b),
+							_1: {ctor: '[]'}
+						};
+					},
+					lb);
+			},
+			la);
+	});
+var _elm_community$list_extra$List_Extra$cartesianProduct = function (ll) {
+	var _p72 = ll;
+	if (_p72.ctor === '[]') {
+		return {
+			ctor: '::',
+			_0: {ctor: '[]'},
+			_1: {ctor: '[]'}
+		};
+	} else {
+		return A3(
+			_elm_community$list_extra$List_Extra$lift2,
+			F2(
+				function (x, y) {
+					return {ctor: '::', _0: x, _1: y};
+				}),
+			_p72._0,
+			_elm_community$list_extra$List_Extra$cartesianProduct(_p72._1));
+	}
+};
+var _elm_community$list_extra$List_Extra$lift3 = F4(
+	function (f, la, lb, lc) {
+		return A2(
+			_elm_community$list_extra$List_Extra$andThen,
+			function (a) {
+				return A2(
+					_elm_community$list_extra$List_Extra$andThen,
+					function (b) {
+						return A2(
+							_elm_community$list_extra$List_Extra$andThen,
+							function (c) {
+								return {
+									ctor: '::',
+									_0: A3(f, a, b, c),
+									_1: {ctor: '[]'}
+								};
+							},
+							lc);
+					},
+					lb);
+			},
+			la);
+	});
+var _elm_community$list_extra$List_Extra$lift4 = F5(
+	function (f, la, lb, lc, ld) {
+		return A2(
+			_elm_community$list_extra$List_Extra$andThen,
+			function (a) {
+				return A2(
+					_elm_community$list_extra$List_Extra$andThen,
+					function (b) {
+						return A2(
+							_elm_community$list_extra$List_Extra$andThen,
+							function (c) {
+								return A2(
+									_elm_community$list_extra$List_Extra$andThen,
+									function (d) {
+										return {
+											ctor: '::',
+											_0: A4(f, a, b, c, d),
+											_1: {ctor: '[]'}
+										};
+									},
+									ld);
+							},
+							lc);
+					},
+					lb);
+			},
+			la);
+	});
+var _elm_community$list_extra$List_Extra$andMap = F2(
+	function (l, fl) {
+		return A3(
+			_elm_lang$core$List$map2,
+			F2(
+				function (x, y) {
+					return x(y);
+				}),
+			fl,
+			l);
+	});
+var _elm_community$list_extra$List_Extra$uniqueHelp = F4(
+	function (f, existing, remaining, accumulator) {
+		uniqueHelp:
+		while (true) {
+			var _p73 = remaining;
+			if (_p73.ctor === '[]') {
+				return _elm_lang$core$List$reverse(accumulator);
+			} else {
+				var _p75 = _p73._1;
+				var _p74 = _p73._0;
+				var computedFirst = f(_p74);
+				if (A2(_elm_lang$core$Set$member, computedFirst, existing)) {
+					var _v66 = f,
+						_v67 = existing,
+						_v68 = _p75,
+						_v69 = accumulator;
+					f = _v66;
+					existing = _v67;
+					remaining = _v68;
+					accumulator = _v69;
+					continue uniqueHelp;
+				} else {
+					var _v70 = f,
+						_v71 = A2(_elm_lang$core$Set$insert, computedFirst, existing),
+						_v72 = _p75,
+						_v73 = {ctor: '::', _0: _p74, _1: accumulator};
+					f = _v70;
+					existing = _v71;
+					remaining = _v72;
+					accumulator = _v73;
+					continue uniqueHelp;
+				}
+			}
+		}
+	});
+var _elm_community$list_extra$List_Extra$uniqueBy = F2(
+	function (f, list) {
+		return A4(
+			_elm_community$list_extra$List_Extra$uniqueHelp,
+			f,
+			_elm_lang$core$Set$empty,
+			list,
+			{ctor: '[]'});
+	});
+var _elm_community$list_extra$List_Extra$allDifferentBy = F2(
+	function (f, list) {
+		return _elm_lang$core$Native_Utils.eq(
+			_elm_lang$core$List$length(list),
+			_elm_lang$core$List$length(
+				A2(_elm_community$list_extra$List_Extra$uniqueBy, f, list)));
+	});
+var _elm_community$list_extra$List_Extra$allDifferent = function (list) {
+	return A2(_elm_community$list_extra$List_Extra$allDifferentBy, _elm_lang$core$Basics$identity, list);
+};
+var _elm_community$list_extra$List_Extra$unique = function (list) {
+	return A4(
+		_elm_community$list_extra$List_Extra$uniqueHelp,
+		_elm_lang$core$Basics$identity,
+		_elm_lang$core$Set$empty,
+		list,
+		{ctor: '[]'});
+};
+var _elm_community$list_extra$List_Extra$dropWhile = F2(
+	function (predicate, list) {
+		dropWhile:
+		while (true) {
+			var _p76 = list;
+			if (_p76.ctor === '[]') {
+				return {ctor: '[]'};
+			} else {
+				if (predicate(_p76._0)) {
+					var _v75 = predicate,
+						_v76 = _p76._1;
+					predicate = _v75;
+					list = _v76;
+					continue dropWhile;
+				} else {
+					return list;
+				}
+			}
+		}
+	});
+var _elm_community$list_extra$List_Extra$takeWhile = function (predicate) {
+	var takeWhileMemo = F2(
+		function (memo, list) {
+			takeWhileMemo:
+			while (true) {
+				var _p77 = list;
+				if (_p77.ctor === '[]') {
+					return _elm_lang$core$List$reverse(memo);
+				} else {
+					var _p78 = _p77._0;
+					if (predicate(_p78)) {
+						var _v78 = {ctor: '::', _0: _p78, _1: memo},
+							_v79 = _p77._1;
+						memo = _v78;
+						list = _v79;
+						continue takeWhileMemo;
+					} else {
+						return _elm_lang$core$List$reverse(memo);
+					}
+				}
+			}
+		});
+	return takeWhileMemo(
+		{ctor: '[]'});
+};
+var _elm_community$list_extra$List_Extra$span = F2(
+	function (p, xs) {
+		return {
+			ctor: '_Tuple2',
+			_0: A2(_elm_community$list_extra$List_Extra$takeWhile, p, xs),
+			_1: A2(_elm_community$list_extra$List_Extra$dropWhile, p, xs)
+		};
+	});
+var _elm_community$list_extra$List_Extra$break = function (p) {
+	return _elm_community$list_extra$List_Extra$span(
+		function (_p79) {
+			return !p(_p79);
+		});
+};
+var _elm_community$list_extra$List_Extra$groupWhile = F2(
+	function (eq, xs_) {
+		var _p80 = xs_;
+		if (_p80.ctor === '[]') {
+			return {ctor: '[]'};
+		} else {
+			var _p82 = _p80._0;
+			var _p81 = A2(
+				_elm_community$list_extra$List_Extra$span,
+				eq(_p82),
+				_p80._1);
+			var ys = _p81._0;
+			var zs = _p81._1;
+			return {
+				ctor: '::',
+				_0: {ctor: '::', _0: _p82, _1: ys},
+				_1: A2(_elm_community$list_extra$List_Extra$groupWhile, eq, zs)
+			};
+		}
+	});
+var _elm_community$list_extra$List_Extra$group = _elm_community$list_extra$List_Extra$groupWhile(
+	F2(
+		function (x, y) {
+			return _elm_lang$core$Native_Utils.eq(x, y);
+		}));
+var _elm_community$list_extra$List_Extra$minimumBy = F2(
+	function (f, ls) {
+		var minBy = F2(
+			function (x, _p83) {
+				var _p84 = _p83;
+				var _p85 = _p84._1;
+				var fx = f(x);
+				return (_elm_lang$core$Native_Utils.cmp(fx, _p85) < 0) ? {ctor: '_Tuple2', _0: x, _1: fx} : {ctor: '_Tuple2', _0: _p84._0, _1: _p85};
+			});
+		var _p86 = ls;
+		if (_p86.ctor === '::') {
+			if (_p86._1.ctor === '[]') {
+				return _elm_lang$core$Maybe$Just(_p86._0);
+			} else {
+				var _p87 = _p86._0;
+				return _elm_lang$core$Maybe$Just(
+					_elm_lang$core$Tuple$first(
+						A3(
+							_elm_lang$core$List$foldl,
+							minBy,
+							{
+								ctor: '_Tuple2',
+								_0: _p87,
+								_1: f(_p87)
+							},
+							_p86._1)));
+			}
+		} else {
+			return _elm_lang$core$Maybe$Nothing;
+		}
+	});
+var _elm_community$list_extra$List_Extra$maximumBy = F2(
+	function (f, ls) {
+		var maxBy = F2(
+			function (x, _p88) {
+				var _p89 = _p88;
+				var _p90 = _p89._1;
+				var fx = f(x);
+				return (_elm_lang$core$Native_Utils.cmp(fx, _p90) > 0) ? {ctor: '_Tuple2', _0: x, _1: fx} : {ctor: '_Tuple2', _0: _p89._0, _1: _p90};
+			});
+		var _p91 = ls;
+		if (_p91.ctor === '::') {
+			if (_p91._1.ctor === '[]') {
+				return _elm_lang$core$Maybe$Just(_p91._0);
+			} else {
+				var _p92 = _p91._0;
+				return _elm_lang$core$Maybe$Just(
+					_elm_lang$core$Tuple$first(
+						A3(
+							_elm_lang$core$List$foldl,
+							maxBy,
+							{
+								ctor: '_Tuple2',
+								_0: _p92,
+								_1: f(_p92)
+							},
+							_p91._1)));
+			}
+		} else {
+			return _elm_lang$core$Maybe$Nothing;
+		}
+	});
+var _elm_community$list_extra$List_Extra$uncons = function (xs) {
+	var _p93 = xs;
+	if (_p93.ctor === '[]') {
+		return _elm_lang$core$Maybe$Nothing;
+	} else {
+		return _elm_lang$core$Maybe$Just(
+			{ctor: '_Tuple2', _0: _p93._0, _1: _p93._1});
+	}
+};
+var _elm_community$list_extra$List_Extra$swapAt = F3(
+	function (index1, index2, l) {
+		swapAt:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.eq(index1, index2) || (_elm_lang$core$Native_Utils.cmp(index1, 0) < 0)) {
+				return l;
+			} else {
+				if (_elm_lang$core$Native_Utils.cmp(index1, index2) > 0) {
+					var _v86 = index2,
+						_v87 = index1,
+						_v88 = l;
+					index1 = _v86;
+					index2 = _v87;
+					l = _v88;
+					continue swapAt;
+				} else {
+					var _p94 = A2(_elm_community$list_extra$List_Extra$splitAt, index1, l);
+					var part1 = _p94._0;
+					var tail1 = _p94._1;
+					var _p95 = A2(_elm_community$list_extra$List_Extra$splitAt, index2 - index1, tail1);
+					var head2 = _p95._0;
+					var tail2 = _p95._1;
+					var _p96 = {
+						ctor: '_Tuple2',
+						_0: _elm_community$list_extra$List_Extra$uncons(head2),
+						_1: _elm_community$list_extra$List_Extra$uncons(tail2)
+					};
+					if (((((_p96.ctor === '_Tuple2') && (_p96._0.ctor === 'Just')) && (_p96._0._0.ctor === '_Tuple2')) && (_p96._1.ctor === 'Just')) && (_p96._1._0.ctor === '_Tuple2')) {
+						return _elm_lang$core$List$concat(
+							{
+								ctor: '::',
+								_0: part1,
+								_1: {
+									ctor: '::',
+									_0: {ctor: '::', _0: _p96._1._0._0, _1: _p96._0._0._1},
+									_1: {
+										ctor: '::',
+										_0: {ctor: '::', _0: _p96._0._0._0, _1: _p96._1._0._1},
+										_1: {ctor: '[]'}
+									}
+								}
+							});
+					} else {
+						return l;
+					}
+				}
+			}
+		}
+	});
+var _elm_community$list_extra$List_Extra$cycleHelp = F3(
+	function (acc, n, list) {
+		cycleHelp:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(n, 0) > 0) {
+				var _v90 = A2(_elm_community$list_extra$List_Extra$reverseAppend, list, acc),
+					_v91 = n - 1,
+					_v92 = list;
+				acc = _v90;
+				n = _v91;
+				list = _v92;
+				continue cycleHelp;
+			} else {
+				return acc;
+			}
+		}
+	});
+var _elm_community$list_extra$List_Extra$cycle = F2(
+	function (len, list) {
+		var cycleLength = _elm_lang$core$List$length(list);
+		return (_elm_lang$core$Native_Utils.eq(cycleLength, 0) || _elm_lang$core$Native_Utils.eq(cycleLength, len)) ? list : ((_elm_lang$core$Native_Utils.cmp(cycleLength, len) < 0) ? _elm_lang$core$List$reverse(
+			A2(
+				_elm_community$list_extra$List_Extra$reverseAppend,
+				A2(
+					_elm_lang$core$List$take,
+					A2(_elm_lang$core$Basics$rem, len, cycleLength),
+					list),
+				A3(
+					_elm_community$list_extra$List_Extra$cycleHelp,
+					{ctor: '[]'},
+					(len / cycleLength) | 0,
+					list))) : A2(_elm_lang$core$List$take, len, list));
+	});
+var _elm_community$list_extra$List_Extra$initialize = F2(
+	function (n, f) {
+		var step = F2(
+			function (i, acc) {
+				step:
+				while (true) {
+					if (_elm_lang$core$Native_Utils.cmp(i, 0) < 0) {
+						return acc;
+					} else {
+						var _v93 = i - 1,
+							_v94 = {
+							ctor: '::',
+							_0: f(i),
+							_1: acc
+						};
+						i = _v93;
+						acc = _v94;
+						continue step;
+					}
+				}
+			});
+		return A2(
+			step,
+			n - 1,
+			{ctor: '[]'});
+	});
+var _elm_community$list_extra$List_Extra$iterate = F2(
+	function (f, x) {
+		var _p97 = f(x);
+		if (_p97.ctor === 'Just') {
+			return {
+				ctor: '::',
+				_0: x,
+				_1: A2(_elm_community$list_extra$List_Extra$iterate, f, _p97._0)
+			};
+		} else {
+			return {
+				ctor: '::',
+				_0: x,
+				_1: {ctor: '[]'}
+			};
+		}
+	});
+var _elm_community$list_extra$List_Extra$getAt = F2(
+	function (idx, xs) {
+		return (_elm_lang$core$Native_Utils.cmp(idx, 0) < 0) ? _elm_lang$core$Maybe$Nothing : _elm_lang$core$List$head(
+			A2(_elm_lang$core$List$drop, idx, xs));
+	});
+var _elm_community$list_extra$List_Extra_ops = _elm_community$list_extra$List_Extra_ops || {};
+_elm_community$list_extra$List_Extra_ops['!!'] = _elm_lang$core$Basics$flip(_elm_community$list_extra$List_Extra$getAt);
+var _elm_community$list_extra$List_Extra$init = function (items) {
+	var _p98 = items;
+	if (_p98.ctor === '[]') {
+		return _elm_lang$core$Maybe$Nothing;
+	} else {
+		return A2(
+			_elm_lang$core$Maybe$map,
+			_elm_lang$core$List$reverse,
+			_elm_lang$core$List$tail(
+				_elm_lang$core$List$reverse(_p98)));
+	}
+};
+var _elm_community$list_extra$List_Extra$last = function (items) {
+	last:
+	while (true) {
+		var _p99 = items;
+		if (_p99.ctor === '[]') {
+			return _elm_lang$core$Maybe$Nothing;
+		} else {
+			if (_p99._1.ctor === '[]') {
+				return _elm_lang$core$Maybe$Just(_p99._0);
+			} else {
+				var _v98 = _p99._1;
+				items = _v98;
+				continue last;
+			}
+		}
+	}
+};
+
 var _Bogdanp$elm_ast$Ast_Expression$op = F2(
 	function (ops, n) {
 		return A2(
@@ -7355,7 +7588,7 @@ var _Bogdanp$elm_ast$Ast_Expression$operatorOrAsBetween = _elm_community$parser_
 	});
 var _Bogdanp$elm_ast$Ast_Expression$countIndent = A2(
 	_elm_community$parser_combinators$Combine_ops['>>='],
-	_elm_community$parser_combinators$Combine$whitespace,
+	A2(_elm_community$parser_combinators$Combine_ops['*>'], _elm_community$parser_combinators$Combine_Char$newline, _Bogdanp$elm_ast$Ast_Helpers$spaces),
 	function (_p8) {
 		return _elm_community$parser_combinators$Combine$succeed(
 			_elm_lang$core$String$length(
@@ -7374,12 +7607,17 @@ var _Bogdanp$elm_ast$Ast_Expression$spacesOrIndentedNewline = function (indentat
 			var _p10 = _p9;
 			return A2(
 				_elm_community$parser_combinators$Combine$or,
-				_Bogdanp$elm_ast$Ast_Helpers$spaces_,
+				A2(
+					_elm_community$parser_combinators$Combine_ops['*>'],
+					_Bogdanp$elm_ast$Ast_Helpers$spaces_,
+					_elm_community$parser_combinators$Combine$succeed(
+						{ctor: '_Tuple0'})),
 				A2(
 					_elm_community$parser_combinators$Combine_ops['>>='],
 					_Bogdanp$elm_ast$Ast_Expression$countIndent,
 					function (column) {
-						return (_elm_lang$core$Native_Utils.cmp(column, indentation) < 0) ? _elm_community$parser_combinators$Combine$fail('Arguments have to be at least the same indentation as the function') : _elm_community$parser_combinators$Combine$whitespace;
+						return (_elm_lang$core$Native_Utils.cmp(column, indentation) < 0) ? _elm_community$parser_combinators$Combine$fail('Arguments have to be at least the same indentation as the function') : _elm_community$parser_combinators$Combine$succeed(
+							{ctor: '_Tuple0'});
 					}));
 		});
 };
@@ -7937,7 +8175,7 @@ var _Bogdanp$elm_ast$Ast_Expression$application = function (ops) {
 						A2(
 							_elm_community$parser_combinators$Combine_ops['<$'],
 							_Bogdanp$elm_ast$Ast_Expression$Application,
-							_Bogdanp$elm_ast$Ast_Expression$spacesOrIndentedNewline(l)),
+							_Bogdanp$elm_ast$Ast_Expression$spacesOrIndentedNewline(l + 1)),
 						_Bogdanp$elm_ast$Ast_Expression$term(ops));
 				});
 		});
@@ -8536,8 +8774,8 @@ var _Bogdanp$elm_ast$Ast_Statement$opTable = function (ops) {
 				return _elm_lang$core$Native_Utils.crashCase(
 					'Ast.Statement',
 					{
-						start: {line: 414, column: 13},
-						end: {line: 419, column: 45}
+						start: {line: 413, column: 13},
+						end: {line: 418, column: 45}
 					},
 					_p19)('impossible');
 			}
@@ -8859,9 +9097,9 @@ var _Bogdanp$elm_ast$Ast_Statement$statements = function (ops) {
 			_elm_community$parser_combinators$Combine_ops['<*'],
 			A2(
 				_elm_community$parser_combinators$Combine_ops['*>'],
-				_elm_community$parser_combinators$Combine$whitespace,
+				A2(_elm_community$parser_combinators$Combine$or, _elm_community$parser_combinators$Combine$whitespace, _Bogdanp$elm_ast$Ast_Helpers$spaces),
 				_Bogdanp$elm_ast$Ast_Statement$statement(ops)),
-			_elm_community$parser_combinators$Combine$whitespace),
+			A2(_elm_community$parser_combinators$Combine$or, _elm_community$parser_combinators$Combine$whitespace, _Bogdanp$elm_ast$Ast_Helpers$spaces)),
 		_elm_community$parser_combinators$Combine$end);
 };
 
@@ -13059,8 +13297,8 @@ var _user$project$Elchemy_Helpers$constructApplication = function (list) {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'Elchemy.Helpers',
 			{
-				start: {line: 526, column: 5},
-				end: {line: 534, column: 97}
+				start: {line: 517, column: 5},
+				end: {line: 525, column: 97}
 			},
 			_p1)('Wrong application');
 	} else {
@@ -13126,8 +13364,8 @@ var _user$project$Elchemy_Helpers$listToApplication = function (list) {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'Elchemy.Helpers',
 			{
-				start: {line: 499, column: 5},
-				end: {line: 507, column: 54}
+				start: {line: 490, column: 5},
+				end: {line: 498, column: 54}
 			},
 			_p4)('Empty list to expression conversion');
 	} else {
@@ -13171,191 +13409,155 @@ var _user$project$Elchemy_Helpers$reservedKernelFunctions = {
 			_0: 'apply',
 			_1: {
 				ctor: '::',
-				_0: 'apply',
+				_0: 'binary_part',
 				_1: {
 					ctor: '::',
-					_0: 'binary_part',
+					_0: 'bit_size',
 					_1: {
 						ctor: '::',
-						_0: 'bit_size',
+						_0: 'byte_size',
 						_1: {
 							ctor: '::',
-							_0: 'byte_size',
+							_0: 'div',
 							_1: {
 								ctor: '::',
-								_0: 'div',
+								_0: 'elem',
 								_1: {
 									ctor: '::',
-									_0: 'elem',
+									_0: 'exit',
 									_1: {
 										ctor: '::',
-										_0: 'exit',
+										_0: 'function_exported?',
 										_1: {
 											ctor: '::',
-											_0: 'function_exported?',
+											_0: 'get_and_update_in',
 											_1: {
 												ctor: '::',
-												_0: 'get_and_update_in',
+												_0: 'get_in',
 												_1: {
 													ctor: '::',
-													_0: 'get_in',
+													_0: 'hd',
 													_1: {
 														ctor: '::',
-														_0: 'hd',
+														_0: 'inspect',
 														_1: {
 															ctor: '::',
-															_0: 'inspect',
+															_0: 'is_atom',
 															_1: {
 																ctor: '::',
-																_0: 'inspect',
+																_0: 'is_binary',
 																_1: {
 																	ctor: '::',
-																	_0: 'is_atom',
+																	_0: 'is_bitstring',
 																	_1: {
 																		ctor: '::',
-																		_0: 'is_binary',
+																		_0: 'is_boolean',
 																		_1: {
 																			ctor: '::',
-																			_0: 'is_bitstring',
+																			_0: 'is_float',
 																			_1: {
 																				ctor: '::',
-																				_0: 'is_boolean',
+																				_0: 'is_function',
 																				_1: {
 																					ctor: '::',
-																					_0: 'is_float',
+																					_0: 'is_integer',
 																					_1: {
 																						ctor: '::',
-																						_0: 'is_function',
+																						_0: 'is_list',
 																						_1: {
 																							ctor: '::',
-																							_0: 'is_function',
+																							_0: 'is_map',
 																							_1: {
 																								ctor: '::',
-																								_0: 'is_integer',
+																								_0: 'is_number',
 																								_1: {
 																									ctor: '::',
-																									_0: 'is_list',
+																									_0: 'is_pid',
 																									_1: {
 																										ctor: '::',
-																										_0: 'is_map',
+																										_0: 'is_port',
 																										_1: {
 																											ctor: '::',
-																											_0: 'is_number',
+																											_0: 'is_reference',
 																											_1: {
 																												ctor: '::',
-																												_0: 'is_pid',
+																												_0: 'is_tuple',
 																												_1: {
 																													ctor: '::',
-																													_0: 'is_port',
+																													_0: 'length',
 																													_1: {
 																														ctor: '::',
-																														_0: 'is_reference',
+																														_0: 'macro_exported?',
 																														_1: {
 																															ctor: '::',
-																															_0: 'is_tuple',
+																															_0: 'make_ref',
 																															_1: {
 																																ctor: '::',
-																																_0: 'length',
+																																_0: 'map_size',
 																																_1: {
 																																	ctor: '::',
-																																	_0: 'macro_exported?',
+																																	_0: 'max',
 																																	_1: {
 																																		ctor: '::',
-																																		_0: 'make_ref',
+																																		_0: 'min',
 																																		_1: {
 																																			ctor: '::',
-																																			_0: 'map_size',
+																																			_0: 'node',
 																																			_1: {
 																																				ctor: '::',
-																																				_0: 'max',
+																																				_0: 'not',
 																																				_1: {
 																																					ctor: '::',
-																																					_0: 'min',
+																																					_0: 'pop_in',
 																																					_1: {
 																																						ctor: '::',
-																																						_0: 'node',
+																																						_0: 'put_elem',
 																																						_1: {
 																																							ctor: '::',
-																																							_0: 'node',
+																																							_0: 'put_in',
 																																							_1: {
 																																								ctor: '::',
-																																								_0: 'not',
+																																								_0: 'rem',
 																																								_1: {
 																																									ctor: '::',
-																																									_0: 'pop_in',
+																																									_0: 'round',
 																																									_1: {
 																																										ctor: '::',
-																																										_0: 'put_elem',
+																																										_0: 'self',
 																																										_1: {
 																																											ctor: '::',
-																																											_0: 'put_in',
+																																											_0: 'send',
 																																											_1: {
 																																												ctor: '::',
-																																												_0: 'rem',
+																																												_0: 'spawn',
 																																												_1: {
 																																													ctor: '::',
-																																													_0: 'round',
+																																													_0: 'spawn_link',
 																																													_1: {
 																																														ctor: '::',
-																																														_0: 'self',
+																																														_0: 'spawn_monitor',
 																																														_1: {
 																																															ctor: '::',
-																																															_0: 'send',
+																																															_0: 'struct',
 																																															_1: {
 																																																ctor: '::',
-																																																_0: 'spawn',
+																																																_0: 'struct!',
 																																																_1: {
 																																																	ctor: '::',
-																																																	_0: 'spawn',
+																																																	_0: 'throw',
 																																																	_1: {
 																																																		ctor: '::',
-																																																		_0: 'spawn_link',
+																																																		_0: 'tl',
 																																																		_1: {
 																																																			ctor: '::',
-																																																			_0: 'spawn_link',
+																																																			_0: 'trunc',
 																																																			_1: {
 																																																				ctor: '::',
-																																																				_0: 'spawn_monitor',
+																																																				_0: 'tuple_size',
 																																																				_1: {
 																																																					ctor: '::',
-																																																					_0: 'spawn_monitor',
-																																																					_1: {
-																																																						ctor: '::',
-																																																						_0: 'struct',
-																																																						_1: {
-																																																							ctor: '::',
-																																																							_0: 'struct',
-																																																							_1: {
-																																																								ctor: '::',
-																																																								_0: 'struct!',
-																																																								_1: {
-																																																									ctor: '::',
-																																																									_0: 'struct!',
-																																																									_1: {
-																																																										ctor: '::',
-																																																										_0: 'throw',
-																																																										_1: {
-																																																											ctor: '::',
-																																																											_0: 'tl',
-																																																											_1: {
-																																																												ctor: '::',
-																																																												_0: 'trunc',
-																																																												_1: {
-																																																													ctor: '::',
-																																																													_0: 'tuple_size',
-																																																													_1: {
-																																																														ctor: '::',
-																																																														_0: 'update_in',
-																																																														_1: {ctor: '[]'}
-																																																													}
-																																																												}
-																																																											}
-																																																										}
-																																																									}
-																																																								}
-																																																							}
-																																																						}
-																																																					}
+																																																					_0: 'update_in',
+																																																					_1: {ctor: '[]'}
 																																																				}
 																																																			}
 																																																		}
@@ -13747,8 +13949,8 @@ var _user$project$Elchemy_Helpers$replaceOp_ = function (op) {
 		return _elm_lang$core$Native_Utils.crashCase(
 			'Elchemy.Helpers',
 			{
-				start: {line: 465, column: 5},
-				end: {line: 472, column: 37}
+				start: {line: 456, column: 5},
+				end: {line: 463, column: 37}
 			},
 			_p9)('Illegal op');
 	}
@@ -20376,7 +20578,7 @@ var _user$project$Elchemy_Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Elchemy_Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elchemy', '\n'));
-var _user$project$Elchemy_Compiler$version = '0.7.4';
+var _user$project$Elchemy_Compiler$version = '0.8.4';
 var _user$project$Elchemy_Compiler$getCode = F2(
 	function (context, statements) {
 		var _p11 = A3(
