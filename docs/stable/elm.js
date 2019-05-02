@@ -19384,8 +19384,8 @@ var _user$project$Elchemy_Statement$duplicates = F2(
 			A2(_elm_lang$core$Basics$flip, _elm_lang$core$List$member, listB),
 			listA);
 	});
-var _user$project$Elchemy_Statement$elixirExportList = F2(
-	function (c, list) {
+var _user$project$Elchemy_Statement$elixirExportList = F3(
+	function (c, mod, list) {
 		var defineFor = F2(
 			function (name, arity) {
 				return A2(
@@ -19453,7 +19453,7 @@ var _user$project$Elchemy_Statement$elixirExportList = F2(
 											function (_) {
 												return _.functions;
 											},
-											A2(_elm_lang$core$Dict$get, c.mod, c.commons.modules))))))))));
+											A2(_elm_lang$core$Dict$get, mod, c.commons.modules))))))))));
 		};
 		return A2(_elm_lang$core$List$map, wrap, list);
 	});
@@ -20191,22 +20191,12 @@ var _user$project$Elchemy_Statement$elixirS = F2(
 													}(_p37)));
 										},
 										A2(_elm_lang$core$Dict$get, c.mod, c.commons.modules)));
-								var except = _elm_lang$core$Native_Utils.eq(
+								var importOrAlias = (_elm_lang$core$Native_Utils.eq(
+									imports,
+									{ctor: '[]'}) && _elm_lang$core$Native_Utils.eq(
 									excepts,
-									{ctor: '[]'}) ? {ctor: '[]'} : {
-									ctor: '::',
-									_0: A2(
-										_elm_lang$core$Basics_ops['++'],
-										'except: [',
-										A2(
-											_elm_lang$core$Basics_ops['++'],
-											A2(
-												_elm_lang$core$String$join,
-												', ',
-												A2(_user$project$Elchemy_Statement$elixirExportList, c, excepts)),
-											']')),
-									_1: {ctor: '[]'}
-								};
+									{ctor: '[]'})) ? 'alias ' : 'import ';
+								var mod = _user$project$Elchemy_Helpers$modulePath(_p39);
 								var only = _elm_lang$core$Native_Utils.eq(
 									imports,
 									{ctor: '[]'}) ? {ctor: '[]'} : {
@@ -20219,16 +20209,26 @@ var _user$project$Elchemy_Statement$elixirS = F2(
 											A2(
 												_elm_lang$core$String$join,
 												', ',
-												A2(_user$project$Elchemy_Statement$elixirExportList, c, imports)),
+												A3(_user$project$Elchemy_Statement$elixirExportList, c, mod, imports)),
 											']')),
 									_1: {ctor: '[]'}
 								};
-								var importOrAlias = (_elm_lang$core$Native_Utils.eq(
-									imports,
-									{ctor: '[]'}) && _elm_lang$core$Native_Utils.eq(
+								var except = _elm_lang$core$Native_Utils.eq(
 									excepts,
-									{ctor: '[]'})) ? 'alias ' : 'import ';
-								var mod = _user$project$Elchemy_Helpers$modulePath(_p39);
+									{ctor: '[]'}) ? {ctor: '[]'} : {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$core$Basics_ops['++'],
+										'except: [',
+										A2(
+											_elm_lang$core$Basics_ops['++'],
+											A2(
+												_elm_lang$core$String$join,
+												', ',
+												A3(_user$project$Elchemy_Statement$elixirExportList, c, mod, excepts)),
+											']')),
+									_1: {ctor: '[]'}
+								};
 								var newC = A3(
 									_user$project$Elchemy_Context$mergeTypes,
 									_p40,
@@ -20322,7 +20322,7 @@ var _user$project$Elchemy_Statement$elixirS = F2(
 												A2(
 													_elm_lang$core$String$join,
 													', ',
-													A2(_user$project$Elchemy_Statement$elixirExportList, c, excepts)),
+													A3(_user$project$Elchemy_Statement$elixirExportList, c, mod, excepts)),
 												']')),
 										_1: {ctor: '[]'}
 									};
@@ -20578,7 +20578,7 @@ var _user$project$Elchemy_Compiler$glueStart = A2(
 	_elm_lang$core$Basics_ops['++'],
 	_user$project$Elchemy_Helpers$ind(0),
 	A2(_elm_lang$core$Basics_ops['++'], 'use Elchemy', '\n'));
-var _user$project$Elchemy_Compiler$version = '0.8.7';
+var _user$project$Elchemy_Compiler$version = '0.8.8';
 var _user$project$Elchemy_Compiler$getCode = F2(
 	function (context, statements) {
 		var _p11 = A3(
