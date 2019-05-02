@@ -258,7 +258,7 @@ elixirS c s =
                         []
                     else
                         [ "only: ["
-                            ++ String.join ", " (elixirExportList c imports)
+                            ++ String.join ", " (elixirExportList c mod imports)
                             ++ "]"
                         ]
 
@@ -267,7 +267,7 @@ elixirS c s =
                         []
                     else
                         [ "except: ["
-                            ++ String.join ", " (elixirExportList c excepts)
+                            ++ String.join ", " (elixirExportList c mod excepts)
                             ++ "]"
                         ]
 
@@ -318,7 +318,7 @@ elixirS c s =
                         []
                     else
                         [ "except: ["
-                            ++ String.join ", " (elixirExportList c excepts)
+                            ++ String.join ", " (elixirExportList c mod excepts)
                             ++ "]"
                         ]
 
@@ -533,8 +533,8 @@ exportSetToList exp =
             []
 
 
-elixirExportList : Context -> List String -> List String
-elixirExportList c list =
+elixirExportList : Context -> String -> List String -> List String
+elixirExportList c mod list =
     let
         defineFor name arity =
             "{:'"
@@ -553,7 +553,7 @@ elixirExportList c list =
             else
                 defineFor (toSnakeCase True name) 0
                     ++ (c.commons.modules
-                            |> Dict.get c.mod
+                            |> Dict.get mod
                             |> Maybe.map .functions
                             |> Maybe.andThen (Dict.get name)
                             |> Maybe.map .arity
