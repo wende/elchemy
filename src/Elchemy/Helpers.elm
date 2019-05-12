@@ -83,6 +83,10 @@ capitalize s =
         |> Maybe.withDefault ""
 
 
+
+-- TODO Move when finished with project AST
+
+
 atomize : String -> String
 atomize s =
     ":" ++ toSnakeCase False s

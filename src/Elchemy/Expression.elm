@@ -11,10 +11,7 @@ import Elchemy.Context as Context
         , mergeVariables
         , onlyWithoutFlag
         )
-import Elchemy.Operator as Operator
-import Elchemy.Selector as Selector
-import Elchemy.Type as Type
-import Elchemy.Variable as Variable exposing (rememberVariables)
+import Elchemy.Elixir as Elixir exposing (EAst(..))
 import Elchemy.Helpers as Helpers
     exposing
         ( (=>)
@@ -31,6 +28,10 @@ import Elchemy.Helpers as Helpers
         , toSnakeCase
         , translateOperator
         )
+import Elchemy.Operator as Operator
+import Elchemy.Selector as Selector
+import Elchemy.Type as Type
+import Elchemy.Variable as Variable exposing (rememberVariables)
 
 
 {-| Encode any given expression
@@ -39,20 +40,17 @@ elixirE : Context -> Expression -> String
 elixirE c e =
     case e of
         Variable var ->
-            elixirVariable c var
+            Elixir.cheat <| elixirVariable c var
 
         -- Primitive types
         (Application name arg) as application ->
             tupleOrFunction c application
 
         RecordUpdate name keyValuePairs ->
-            "%{"
-                ++ toSnakeCase True name
-                ++ " | "
-                ++ (List.map (\( a, b ) -> toSnakeCase True a ++ ": " ++ elixirE c b) keyValuePairs
-                        |> String.join ", "
-                   )
-                ++ "}"
+            Elixir.cheat <|
+                EMapUpdate
+                    (EVar name)
+                    (List.map (\( a, b ) -> ( EVar <| toSnakeCase True a, ECheated (elixirE c b) )) keyValuePairs)
 
         -- Primitive operators
         Access (Variable modules) right ->
@@ -66,10 +64,11 @@ elixirE c e =
                 ++ String.join "." right
 
         AccessFunction name ->
-            "(fn a -> a." ++ toSnakeCase True name ++ " end)"
+            Elixir.cheat <|
+                ELambda [ EVar "x1" ] (EAccess (EVar "x1") (EVar <| toSnakeCase True name))
 
         BinOp (Variable [ op ]) l r ->
-            Operator.elixirBinop c elixirE op l r
+            Elixir.cheat <| Operator.elixirBinop c elixirE op l r
 
         -- Rest
         e ->
@@ -636,53 +635,63 @@ lambda c args body =
 {-| Produce a variable out of it's expression, considering some of the hardcoded values
 used for easier interaction with Elixir
 -}
-elixirVariable : Context -> List String -> String
+elixirVariable : Context -> List String -> Elixir.EAst
 elixirVariable c var =
     case var of
         [] ->
-            ""
+            EVar ""
 
         [ "()" ] ->
-            "{}"
+            EVar "{}"
 
         [ "Nothing" ] ->
-            "nil"
+            EAtom "nil"
 
         [ "Just" ] ->
-            "fn x1 -> {x1} end"
+            ELambda [ EVar "x1" ] (ETuple [ EVar "x1" ])
 
         [ "Err" ] ->
-            "fn x1 -> {:error, x1} end"
+            ELambda [ EVar "x1" ] (ETuple [ EAtom "error", EVar "x1" ])
 
         [ "Ok" ] ->
-            "fn x1 -> {:ok, x1} end"
+            ELambda [ EVar "x1" ] (ETuple [ EAtom "ok", EVar "x1" ])
 
         [ "curry" ] ->
-            "curried()"
+            EApp (EVar "curried") []
 
         [ "uncurry" ] ->
-            "uncurried()"
+            EApp (EVar "uncurried") []
 
         list ->
+            -- TODO move this out of this module
             Helpers.moduleAccess c.mod list
                 |> (\( mod, name ) ->
                         if isCapitilzed name then
                             aliasFor (Context.changeCurrentModule mod c) name []
-                                |> Maybe.withDefault (atomize name)
+                                |> Maybe.map ECheated
+                                |> Maybe.withDefault (EAtom <| toSnakeCase False name)
                         else if String.startsWith "@" name then
                             String.dropLeft 1 name
-                                |> atomize
+                                |> toSnakeCase False
+                                |> EAtom
                         else
                             case operatorType name of
                                 Builtin ->
                                     -- We need a curried version, so kernel won't work
                                     if name == "<|" then
-                                        "flip().((&|>/0).())"
+                                        ELambdaApp (ELambdaApp (EVar "flip") [ ELambdify 0 (EVar "|>") ]) []
                                     else
-                                        "(&XBasics." ++ translateOperator name ++ "/0).()"
+                                        ELambdaApp
+                                            (ELambdify 0
+                                                (EAccess
+                                                    (EModule "XBasics")
+                                                    (EVar <| translateOperator name)
+                                                )
+                                            )
+                                            []
 
                                 Custom ->
-                                    translateOperator name
+                                    translateOperator name |> EVar
 
                                 None ->
                                     name |> toSnakeCase True |> Variable.varOrNah c

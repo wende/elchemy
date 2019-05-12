@@ -2,71 +2,56 @@ module Elchemy.Operator exposing (elixirBinop)
 
 import Ast.Expression exposing (Expression(..))
 import Elchemy.Context as Context exposing (Context, Parser)
+import Elchemy.Elixir as Elixir exposing (EAst(..))
 import Elchemy.Helpers as Helpers exposing (Operator(..), ind, operatorType, translateOperator)
 
 
 {-| Encode binary operator inlcuding the researved ones
 -}
-elixirBinop : Context -> Parser -> String -> Expression -> Expression -> String
+elixirBinop : Context -> Parser -> String -> Expression -> Expression -> EAst
 elixirBinop c elixirE op l r =
     case op of
         "//" ->
-            "div(" ++ elixirE c l ++ ", " ++ elixirE c r ++ ")"
+            EApp (EVar "div") [ ECheated <| elixirE c l, ECheated <| elixirE c r ]
 
         "%" ->
-            "rem(" ++ elixirE c l ++ ", " ++ elixirE c r ++ ")"
+            EApp (EVar "rem") [ ECheated <| elixirE c l, ECheated <| elixirE c r ]
 
         "^" ->
-            ":math.pow(" ++ elixirE c l ++ ", " ++ elixirE c r ++ ")"
+            EApp (EAccess (EAtom "math") (EVar "")) [ ECheated <| elixirE c l, ECheated <| elixirE c r ]
 
         "::" ->
-            "["
-                ++ elixirE c l
-                ++ " | "
-                ++ elixirE c r
-                ++ "]"
+            ECons [ ECheated <| elixirE c l ] (ECheated <| elixirE c r)
 
         "<<" ->
             elixirBinop c elixirE ">>" r l
 
         "<|" ->
             if l == Variable [ "Do" ] then
-                "quote do " ++ elixirE c r ++ " end"
+                EQuoteBlock (ECheated <| elixirE c r)
             else
                 elixirBinop c elixirE "|>" r l
 
         "|>" ->
-            "("
-                ++ elixirE c l
-                ++ (flattenPipes r
-                        |> List.map (elixirE c)
-                        |> List.map ((++) (ind c.indent ++ "|> ("))
-                        |> List.map (flip (++) ").()")
-                        |> String.join ""
-                   )
-                ++ ")"
+            ECheated <|
+                "("
+                    ++ elixirE c l
+                    ++ (flattenPipes r
+                            |> List.map (elixirE c)
+                            |> List.map ((++) (ind c.indent ++ "|> ("))
+                            |> List.map (flip (++) ").()")
+                            |> String.join ""
+                       )
+                    ++ ")"
 
         "as" ->
-            elixirE c l
-                ++ " = "
-                ++ elixirE c r
+            EOp "=" (ECheated <| elixirE c l) (ECheated <| elixirE c r)
 
         op ->
-            case operatorType op of
-                Builtin ->
-                    [ "(", elixirE c l, " ", translateOperator op, " ", elixirE c r, ")" ]
-                        |> String.join ""
-
-                Custom ->
-                    translateOperator op
-                        ++ "("
-                        ++ elixirE c l
-                        ++ ", "
-                        ++ elixirE c r
-                        ++ ")"
-
-                None ->
-                    Context.crash c ("Illegal operator " ++ op)
+            if operatorType op == None then
+                Context.crash c ("Illegal operator " ++ op)
+            else
+                EOp (translateOperator op) (ECheated <| elixirE c l) (ECheated <| elixirE c r)
 
 
 {-| Flattens pipes into a list of expressions

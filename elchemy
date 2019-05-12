@@ -56,7 +56,9 @@ case "$1" in
             cp $SOURCE_DIR/templates/elchemy.exs ./.elchemy.exs
             mix archive.install "https://github.com/wende/elchemy/releases/download/$version/elchemy-$version.ez"
             mkdir -p elm
-            cp $SOURCE_DIR/templates/elm-package.json ./
+            if [ ! -a ./elm-package.json]; then
+                cp $SOURCE_DIR/templates/elm-package.json ./
+            fi
             cp $SOURCE_DIR/templates/Hello.elm ./elm/
             if [ -d ./test ]; then
                 cp $SOURCE_DIR/templates/elchemy_test.exs ./test/

@@ -1,3 +1,4 @@
+
 dev:
 	pkill -f http-server &
 	echo "Make sure to install http-server with npm i -g http-server"
@@ -52,7 +53,7 @@ compile-std-watch:
 	find elchemy-core -name "*.elm" | grep -v ".#" | grep -v "elm-stuff" | entr make compile-std
 
 compile-std-tests-watch:
-	find elchemy-core \( -name "*.elm" -or -name '*.ex*' \) | grep -v "elchemy.ex" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c "make compile && make compile-std && make test-std"
+	( find elchemy-core \( -name "*.elm" -or -name '*.ex*' \) | grep -v "elchemy.ex" | grep -v ".#" | grep -v "elm-stuff" ; find src -name "*.elm" ) | entr bash -c "make compile && make compile-std && make test-std"
 
 compile-incremental-std-tests-watch:
 	find elchemy-core \( -name "*.elm" -or -name '*.ex*' \) | grep -v "elchemy.ex" | grep -v ".#" | grep -v "elm-stuff" | entr bash -c "make compile && make compile-std-incremental && make test-std"

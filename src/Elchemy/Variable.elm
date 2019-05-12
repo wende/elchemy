@@ -9,6 +9,7 @@ module Elchemy.Variable
 
 import Ast.Expression exposing (..)
 import Elchemy.Context as Context exposing (Context, inArgs)
+import Elchemy.Elixir as Elixir exposing (EAst(..))
 import Elchemy.Helpers as Helpers exposing (toSnakeCase)
 import List.Extra
 import Set
@@ -32,14 +33,14 @@ rememberVariables list c =
 
 {-| Check if a string is a variable or no, based on remembered variables
 -}
-varOrNah : Context -> String -> String
+varOrNah : Context -> String -> Elixir.EAst
 varOrNah c var =
     if Set.member var c.variables || c.inArgs then
-        var
+        EVar var
     else if c.inMeta then
-        c.mod ++ "." ++ var ++ "()"
+        EApp (EAccess (EModule c.mod) (EVar var)) []
     else
-        var ++ "()"
+        EApp (EVar var) []
 
 
 {-| Extract variables from an expression
