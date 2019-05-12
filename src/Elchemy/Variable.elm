@@ -22,7 +22,7 @@ rememberVariables list c =
     let
         addToContext var context =
             { context
-                | variables = Set.insert (toSnakeCase True var) context.variables
+                | variables = Set.insert (toSnakeCase var) context.variables
             }
     in
         list

@@ -26,6 +26,7 @@ import Elchemy.Helpers as Helpers
         , modulePath
         , operatorType
         , toSnakeCase
+        , toSnakeCaseAtom
         , translateOperator
         )
 import Elchemy.Operator as Operator
@@ -50,13 +51,13 @@ elixirE c e =
             Elixir.cheat <|
                 EMapUpdate
                     (EVar name)
-                    (List.map (\( a, b ) -> ( EVar <| toSnakeCase True a, ECheated (elixirE c b) )) keyValuePairs)
+                    (List.map (\( a, b ) -> ( EVar <| toSnakeCase a, ECheated (elixirE c b) )) keyValuePairs)
 
         -- Primitive operators
         Access (Variable modules) right ->
             modulePath modules
                 ++ "."
-                ++ String.join "." (List.map (toSnakeCase True) right)
+                ++ String.join "." (List.map toSnakeCase right)
 
         Access left [] ->
             Elixir.cheat (ECheated <| elixirE c left)
@@ -66,7 +67,7 @@ elixirE c e =
 
         AccessFunction name ->
             Elixir.cheat <|
-                ELambda [ EVar "x1" ] (EAccess (EVar "x1") (EVar <| toSnakeCase True name))
+                ELambda [ EVar "x1" ] (EAccess (EVar "x1") (EVar <| toSnakeCase name))
 
         BinOp (Variable [ op ]) l r ->
             Elixir.cheat <| Operator.elixirBinop c elixirE op l r
@@ -141,7 +142,7 @@ elixirLetInMutualFunctions context expressionsList =
 
         names =
             expressionsList
-                |> List.map (Tuple.first >> Variable.extractName c >> toSnakeCase True)
+                |> List.map (Tuple.first >> Variable.extractName c >> toSnakeCase)
 
         c =
             rememberVariables vars context
@@ -168,7 +169,7 @@ elixirLetInMutualFunctions context expressionsList =
             ++ (expressionsList
                     |> List.map (\(( var, exp ) as v) -> ( Variable.extractName c var, v ))
                     |> List.map (Tuple.mapSecond <| letBranchToLambda (indent c))
-                    |> List.map (\( name, body ) -> ind (c.indent + 1) ++ toSnakeCase True name ++ ": " ++ body)
+                    |> List.map (\( name, body ) -> ind (c.indent + 1) ++ toSnakeCase name ++ ": " ++ body)
                     |> String.join ","
                )
             ++ ind c.indent
@@ -197,7 +198,7 @@ elixirLetInBranch c ( left, exp ) =
         case applicationToList left of
             [ (Variable [ name ]) as var ] ->
                 rememberVariables [ var ] c
-                    => toSnakeCase True name
+                    => toSnakeCase name
                     ++ " = "
                     ++ wrapElixirE (c |> rememberVariables [ var ]) exp
 
@@ -209,9 +210,9 @@ elixirLetInBranch c ( left, exp ) =
                         ++ wrapElixirE c exp
                 else
                     rememberVariables [ var ] c
-                        => toSnakeCase True name
+                        => toSnakeCase name
                         ++ " = rec "
-                        ++ toSnakeCase True name
+                        ++ toSnakeCase name
                         ++ ", "
                         ++ lambda (c |> rememberVariables [ var ]) args exp
 
@@ -285,7 +286,7 @@ elixirPrimitve c e =
 
         Record keyValuePairs ->
             "%{"
-                ++ (List.map (\( a, b ) -> toSnakeCase True a ++ ": " ++ elixirE c b) keyValuePairs
+                ++ (List.map (\( a, b ) -> toSnakeCase a ++ ": " ++ elixirE c b) keyValuePairs
                         |> String.join ", "
                    )
                 ++ "}"
@@ -382,7 +383,7 @@ functionApplication c left right =
             ((Variable [ fn ]) as function) :: args ->
                 -- Check if we're calling the function with all of its arguments, if yes then we don't need to curry it
                 if areMatchingArity c c.mod fn args then
-                    EApp (EVar <| toSnakeCase True fn) (reduceArgs c args)
+                    EApp (EVar <| toSnakeCase fn) (reduceArgs c args)
                 else if c.inMeta then
                     Context.crash c "You need to use full "
                 else
@@ -398,7 +399,7 @@ functionApplication c left right =
                         modulePath modules
 
                     fnName =
-                        toSnakeCase True fn
+                        toSnakeCase fn
                 in
                     -- Check if we're calling the function with all of its arguments, if yes then we don't need to curry it
                     if areMatchingArity c mod fn args then
@@ -417,7 +418,7 @@ encodeAccessMacroAndRest : Context -> ( Selector.AccessMacro, List Expression ) 
 encodeAccessMacroAndRest c ( Selector.AccessMacro t arity selectors, rest ) =
     let
         encodeSelector (Selector.Access s) =
-            ":" ++ toSnakeCase True s
+            ":" ++ toSnakeCase s
 
         encodedSelectors =
             selectors |> List.map encodeSelector |> String.join ", "
@@ -682,10 +683,10 @@ elixirVariable c var =
                         if isCapitilzed name then
                             aliasFor (Context.changeCurrentModule mod c) name []
                                 |> Maybe.map ECheated
-                                |> Maybe.withDefault (EAtom <| toSnakeCase False name)
+                                |> Maybe.withDefault (EAtom <| toSnakeCaseAtom name)
                         else if String.startsWith "@" name then
                             String.dropLeft 1 name
-                                |> toSnakeCase False
+                                |> toSnakeCaseAtom
                                 |> EAtom
                         else
                             case operatorType name of
@@ -707,5 +708,5 @@ elixirVariable c var =
                                     translateOperator name |> EVar
 
                                 None ->
-                                    name |> toSnakeCase True |> Variable.varOrNah c
+                                    name |> toSnakeCase |> Variable.varOrNah c
                    )

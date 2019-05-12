@@ -18,6 +18,7 @@ import Elchemy.Helpers as Helpers
         , isCustomOperator
         , operatorType
         , toSnakeCase
+        , toSnakeCaseAtom
         , translateOperator
         )
 import Elchemy.Variable as Variable exposing (rememberVariables)
@@ -173,7 +174,7 @@ genElixirFunc c elixirE name args missingArgs body =
                 , "def"
                 , privateOrPublic c name
                 , " "
-                , toSnakeCase True name
+                , toSnakeCase name
                 , "("
                 , args
                     ++ missingVarargs
@@ -220,7 +221,7 @@ functionCurry c elixirE name arity lambdasAt =
                     if isCustomOperator name then
                         translateOperator name
                     else
-                        toSnakeCase True name
+                        toSnakeCase name
 
                 p =
                     privateOrPublic c name

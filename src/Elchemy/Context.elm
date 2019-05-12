@@ -41,7 +41,7 @@ module Elchemy.Context
 import Ast.Expression exposing (Expression)
 import Ast.Statement exposing (ExportSet(..), Statement, Type(..))
 import Dict exposing (Dict)
-import Elchemy.Helpers as Helpers exposing (toSnakeCase)
+import Elchemy.Helpers as Helpers exposing (toSnakeCase, toSnakeCaseAtom)
 import Set exposing (Set)
 
 
@@ -429,9 +429,9 @@ listOfImports : List ( String, FunctionDefinition ) -> List String
 listOfImports shadowed =
     let
         importTuple ( name, arity ) =
-            toSnakeCase False name
+            toSnakeCaseAtom name
                 ++ ": 0, "
-                ++ toSnakeCase False name
+                ++ toSnakeCaseAtom name
                 ++ ": "
                 ++ toString arity
     in

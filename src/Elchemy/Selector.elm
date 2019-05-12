@@ -26,7 +26,7 @@ getSelector : Context -> Expression -> Selector
 getSelector c expression =
     case expression of
         AccessFunction name ->
-            Access (Helpers.toSnakeCase True name)
+            Access (Helpers.toSnakeCase name)
 
         _ ->
             Context.crash c "The only allowed selectors are: .field"

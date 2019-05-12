@@ -23,6 +23,7 @@ import Elchemy.Helpers as Helpers
         , operatorType
         , prependAll
         , toSnakeCase
+        , toSnakeCaseAtom
         , translateOperator
         , typeApplicationToList
         )
@@ -92,7 +93,7 @@ typeDefinition c name args types isUnion =
                 code
                     ++ ind c.indent
                     ++ "@type "
-                    ++ toSnakeCase True name
+                    ++ toSnakeCase name
                     ++ arguments
                     ++ " :: "
                     ++ (List.map mapType types |> String.join " | ")
@@ -167,7 +168,7 @@ elixirS c s =
                                                 onlyWithoutFlag newC "nospec" name <|
                                                     ind newC.indent
                                                         ++ "@spec "
-                                                        ++ toSnakeCase True name
+                                                        ++ toSnakeCase name
                                                         ++ Type.typespec newC def
                                             )
                                         |> Maybe.withDefault ""
@@ -551,14 +552,14 @@ elixirExportList c mod list =
             else if name == "ffi" then
                 ""
             else
-                defineFor (toSnakeCase True name) 0
+                defineFor (toSnakeCase name) 0
                     ++ (c.commons.modules
                             |> Dict.get mod
                             |> Maybe.map .functions
                             |> Maybe.andThen (Dict.get name)
                             |> Maybe.map .arity
                             |> filterMaybe ((/=) 0)
-                            |> Maybe.map (defineFor (toSnakeCase True name))
+                            |> Maybe.map (defineFor (toSnakeCase name))
                             |> Maybe.map ((++) ", ")
                             |> Maybe.withDefault ""
                        )

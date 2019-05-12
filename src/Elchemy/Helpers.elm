@@ -36,6 +36,7 @@ module Elchemy.Helpers
         , reservedKernelFunctions
         , reservedWords
         , toSnakeCase
+        , toSnakeCaseAtom
         , translateOperator
         , trimIndentations
         , typeApplicationToList
@@ -57,8 +58,16 @@ type MaybeUpper
 
 {-| Convert string to snakecase, if the flag is set to true then it won't replace reserved words
 -}
-toSnakeCase : Bool -> String -> String
-toSnakeCase isntAtom s =
+toSnakeCase : String -> String
+toSnakeCase =
+    toSnakeCase_ True
+
+
+toSnakeCaseAtom =
+    toSnakeCase_ False
+
+
+toSnakeCase_ isntAtom s =
     let
         safe x =
             if isntAtom then
@@ -89,7 +98,7 @@ capitalize s =
 
 atomize : String -> String
 atomize s =
-    ":" ++ toSnakeCase False s
+    ":" ++ toSnakeCaseAtom s
 
 
 {-| Returns if string start with uppercase
@@ -299,7 +308,7 @@ modulePath list =
             if isCapitilzed a then
                 a
             else
-                toSnakeCase True a
+                toSnakeCase a
     in
         list
             |> List.map snakeIfLower

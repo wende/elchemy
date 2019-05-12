@@ -11,7 +11,12 @@ import Ast.Statement exposing (Statement)
 import Dict exposing (Dict)
 import Elchemy.Alias as Alias
 import Elchemy.Context as Context exposing (Context)
-import Elchemy.Helpers as Helpers exposing (ind, toSnakeCase)
+import Elchemy.Helpers as Helpers
+    exposing
+        ( ind
+        , toSnakeCase
+        , toSnakeCaseAtom
+        )
 import Elchemy.Meta as Meta
 import Elchemy.Statement as Statement
 import Regex exposing (HowMany(..), Regex, regex)

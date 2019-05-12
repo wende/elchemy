@@ -12,6 +12,7 @@ import Elchemy.Helpers as Helpers
         , generateArguments_
         , ind
         , toSnakeCase
+        , toSnakeCaseAtom
         )
 import Elchemy.Type as Type
 import Elchemy.Variable as Variable exposing (rememberVariables)
@@ -68,7 +69,7 @@ generateFfi c elixirE name argTypes e =
                         ++ "def"
                         ++ Function.privateOrPublic c name
                         ++ " "
-                        ++ toSnakeCase True name
+                        ++ toSnakeCase name
                         ++ "("
                         ++ (arguments |> String.join ", ")
                         ++ ")"
@@ -92,7 +93,7 @@ generateFfi c elixirE name argTypes e =
                         "defmacro"
                             ++ Function.privateOrPublic c name
                             ++ " "
-                            ++ toSnakeCase True name
+                            ++ toSnakeCase name
                             ++ "("
                             ++ (arguments |> String.join ", ")
                             ++ ")"
@@ -116,7 +117,7 @@ generateFfi c elixirE name argTypes e =
                         ++ "def"
                         ++ Function.privateOrPublic c name
                         ++ " "
-                        ++ toSnakeCase True name
+                        ++ toSnakeCase name
                         ++ "("
                         ++ (generateArguments_ "a" def.arity |> String.join ", ")
                         ++ ")"

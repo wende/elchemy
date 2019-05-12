@@ -12,6 +12,7 @@ import Elchemy.Helpers as Helpers
         , ind
         , lastAndRest
         , toSnakeCase
+        , toSnakeCaseAtom
         , typeApplicationToList
         )
 
@@ -38,7 +39,7 @@ elixirT flatten c t =
         (TypeVariable name) as var ->
             case String.uncons name of
                 Just ( '@', name ) ->
-                    toSnakeCase True name
+                    toSnakeCase name
 
                 any ->
                     if c.inTypeDefiniton then
@@ -66,7 +67,7 @@ elixirT flatten c t =
             "%{"
                 ++ ind (c.indent + 1)
                 ++ (fields
-                        |> List.map (\( k, v ) -> toSnakeCase False k ++ ": " ++ elixirT flatten (indent c) v)
+                        |> List.map (\( k, v ) -> toSnakeCaseAtom k ++ ": " ++ elixirT flatten (indent c) v)
                         |> String.join ("," ++ ind (c.indent + 1))
                    )
                 ++ ind c.indent
@@ -206,11 +207,11 @@ elixirType flatten c name args =
                 "{:ok," ++ elixirT flatten c t ++ "}"
 
         ( t, [] ) ->
-            toSnakeCase True t
+            toSnakeCase t
 
         -- aliasOr c t [] (atomize t)
         ( t, list ) ->
-            toSnakeCase True t
+            toSnakeCase t
                 ++ "("
                 ++ (List.map (elixirT flatten c) list |> String.join ", ")
                 ++ ")"
