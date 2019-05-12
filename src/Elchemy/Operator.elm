@@ -48,10 +48,22 @@ elixirBinop c elixirE op l r =
             EOp "=" (ECheated <| elixirE c l) (ECheated <| elixirE c r)
 
         op ->
-            if operatorType op == None then
-                Context.crash c ("Illegal operator " ++ op)
-            else
-                EOp (translateOperator op) (ECheated <| elixirE c l) (ECheated <| elixirE c r)
+            ECheated <|
+                case operatorType op of
+                    Builtin ->
+                        [ "(", elixirE c l, " ", translateOperator op, " ", elixirE c r, ")" ]
+                            |> String.join ""
+
+                    Custom ->
+                        translateOperator op
+                            ++ "("
+                            ++ elixirE c l
+                            ++ ", "
+                            ++ elixirE c r
+                            ++ ")"
+
+                    None ->
+                        Context.crash c ("Illegal operator " ++ op)
 
 
 {-| Flattens pipes into a list of expressions

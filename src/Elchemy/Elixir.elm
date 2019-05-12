@@ -33,7 +33,7 @@ toString : EAst -> String
 toString ast =
     case ast of
         EApp exp args ->
-            toString exp ++ "(" ++ (List.map toString args |> String.join ",") ++ ")"
+            toString exp ++ "(" ++ (List.map toString args |> String.join ", ") ++ ")"
 
         ELambda args body ->
             "fn " ++ (List.map toString args |> joinWithComma) ++ " -> " ++ toString body ++ "end"

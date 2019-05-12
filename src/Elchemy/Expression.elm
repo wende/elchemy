@@ -58,10 +58,11 @@ elixirE c e =
                 ++ "."
                 ++ String.join "." (List.map (toSnakeCase True) right)
 
-        Access left right ->
-            elixirE c left
-                ++ "."
-                ++ String.join "." right
+        Access left [] ->
+            Elixir.cheat (ECheated <| elixirE c left)
+
+        Access left (right :: rest) ->
+            Elixir.cheat <| EAccess (ECheated <| elixirE c left) (ECheated <| elixirE c (Access (Variable [ right ]) rest))
 
         AccessFunction name ->
             Elixir.cheat <|
@@ -368,21 +369,29 @@ flattenApplication application =
 {-| Returns uncurried function application if arguments length is matching definition arity
 otherwise returns curried version
 -}
-functionApplication : Context -> Expression -> Expression -> String
+functionApplication : Context -> Expression -> Expression -> EAst
 functionApplication c left right =
     let
-        reduceArgs c args separator =
+        reduceArgs c args =
+            List.map (ECheated << elixirE c) args
+
+        reduceArgs2 c args separator =
             args |> List.map (elixirE c) |> String.join separator
     in
         case applicationToList (Application left right) of
-            (Variable [ fn ]) :: args ->
+            ((Variable [ fn ]) as function) :: args ->
+                -- Check if we're calling the function with all of its arguments, if yes then we don't need to curry it
                 if areMatchingArity c c.mod fn args then
-                    toSnakeCase True fn ++ "(" ++ reduceArgs c args ", " ++ ")"
+                    EApp (EVar <| toSnakeCase True fn) (reduceArgs c args)
                 else if c.inMeta then
                     Context.crash c "You need to use full "
                 else
-                    elixirE c left ++ ".(" ++ elixirE c right ++ ")"
+                    List.foldl
+                        (\a acc -> ELambdaApp acc [ ECheated <| elixirE c a ])
+                        (ECheated <| elixirE c function)
+                        args
 
+            -- Function in different module
             (Access (Variable modules) [ fn ]) :: args ->
                 let
                     mod =
@@ -391,13 +400,17 @@ functionApplication c left right =
                     fnName =
                         toSnakeCase True fn
                 in
+                    -- Check if we're calling the function with all of its arguments, if yes then we don't need to curry it
                     if areMatchingArity c mod fn args then
-                        mod ++ "." ++ fnName ++ "(" ++ reduceArgs c args ", " ++ ")"
+                        EApp (EAccess (EModule mod) (EVar fnName)) (reduceArgs c args)
                     else
-                        mod ++ "." ++ fnName ++ "().(" ++ reduceArgs c args ").(" ++ ")"
+                        List.foldl
+                            (\a acc -> ELambdaApp acc [ ECheated <| elixirE c a ])
+                            (EApp (EAccess (EModule mod) (EVar fnName)) [])
+                            args
 
             _ ->
-                elixirE c left ++ ".(" ++ elixirE c right ++ ")"
+                ELambdaApp (ECheated <| elixirE c left) [ ECheated <| elixirE c right ]
 
 
 encodeAccessMacroAndRest : Context -> ( Selector.AccessMacro, List Expression ) -> String
@@ -444,7 +457,7 @@ tupleOrFunction c a =
     case flattenApplication a of
         -- Not a macro
         (Application left right) :: [] ->
-            functionApplication c left right
+            Elixir.cheat <| functionApplication c left right
 
         -- A macro
         (Variable [ "ffi" ]) :: rest ->
