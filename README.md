@@ -23,7 +23,7 @@ Elchemy lets you write simple, fast and quality type safe code while leveraging 
 ## [Read Elchemy documentation here](https://wende.gitbooks.io/elchemy/content/)
 ## [Read a tutorial on using Elchemy here](https://medium.com/@krzysztof.wende/elmchemy-write-type-safe-elixir-code-with-elms-syntax-part-1-introduction-8968b76d721d)
 ## [Read our DevBlog on Medium here](https://medium.com/elchemy)
-## [Join Elchemy Slack Channel](https://join.slack.com/t/elchemy-lang/shared_invite/enQtNjE0NDQzNDE4NTM0LWQwMDNiYjBiOTg4YWE4NGE0MjQ2ZDkzZThiMGRkYjIyZjExMTA4MjQyMTc3ZTYzMDUyOGE3ZjVkNmI1YWMzYTQ)
+## [Join Elchemy Slack Channel](https://join.slack.com/t/elchemy-lang/shared_invite/enQtNjMzMDI0NzM3MzQ3LWVmZDZkMzY3OWZkMzJlOGIzZjMzMjcwMDgzNDFlZDYzY2NiYzE0ZjdhOTRmMmMyMjRiOTUzNjhhNWQ1M2VlMGY)
 
 ### In case of any questions about the project feel free to submit them in Issues with Q&A label
 
