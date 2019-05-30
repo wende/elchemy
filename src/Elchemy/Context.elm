@@ -16,7 +16,7 @@ module Elchemy.Context
         , areMatchingArity
         , changeCurrentModule
         , crash
-        , deindent
+        , outdent
         , empty
         , emptyCommons
         , getAlias
@@ -326,8 +326,8 @@ indent c =
 
 {-| Decreases current indenation level of a context
 -}
-deindent : Context -> Context
-deindent c =
+outdent : Context -> Context
+outdent c =
     { c | indent = c.indent - 1 }
 
 

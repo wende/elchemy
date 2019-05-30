@@ -5,7 +5,7 @@ import Elchemy.Context as Context
     exposing
         ( Context
         , areMatchingArity
-        , deindent
+        , outdent
         , inArgs
         , indent
         , mergeVariables

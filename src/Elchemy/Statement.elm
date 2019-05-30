@@ -6,7 +6,7 @@ import Ast.Expression exposing (Expression(..))
 import Ast.Statement exposing (ExportSet(..), Statement(..), Type(..))
 import Dict exposing (Dict)
 import Elchemy.Alias as Alias
-import Elchemy.Context as Context exposing (Context, deindent, indent, onlyWithoutFlag)
+import Elchemy.Context as Context exposing (Context, outdent, indent, onlyWithoutFlag)
 import Elchemy.Expression as Expression
 import Elchemy.Ffi as Ffi
 import Elchemy.Function as Function
