@@ -2,7 +2,7 @@
 
 ### Documentation
 * [Table Of Contents](./README.md)
-* [Installations](./INSTALLATION.md)
+* [Installation](./INSTALLATION.md)
 * Basics
     * [Syntax overview](./SYNTAX.md)
     * [Basic Types](./BASIC_TYPES.md)
