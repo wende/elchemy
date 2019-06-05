@@ -1,4 +1,4 @@
-# Elchemy 
+# Elchemy
 
 This page lists all of the ideas and solutions behind Elchemy to share the
 ideology as well as existing and incoming solutions to problems this project faced
@@ -22,7 +22,7 @@ or eventually will have to face
   - [Inlining Elixir](INLINING.md)
 
 ## Tooling
-  - [Installation](INSTALLATION.md)
+  - [Installation](./INSTALLATION.md)
   - [Troubleshooting](TROUBLESHOOTING.md)
 
 # Introduction
