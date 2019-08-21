@@ -173,7 +173,8 @@ Elchemy uses Elm to typecheck your program. It is possible to use it without Elm
 - Ideology - **70%** - We've got a pretty solid idea of where Elchemy is going 
 - Documentation - **80%** - There are two tutorials and a complete Gitbook documentation. Few entrance level tutorials though
 - Elchemy-effects - **20%** - You can't and shouldn't write anything with side-effects in Elchemy yet. We're working on finding the best solution for effects that would fit both Elm's and Elixir's community (see [#297](https://github.com/wende/elchemy/issues/297) for more info)
-- Elchemy-core for Erlang VM - **5%** (Everything for os related tasks like filesystem, OTP goodies etc are yet to be done)
+- Elchemy-core for Erlang VM - **5%** - Everything for os related tasks like filesystem, OTP goodies etc are yet to be done
+- Elchemy type checker - **15%** - Self-hosted elchemy type inference algorithm
 
 # Contributor credits:
 
