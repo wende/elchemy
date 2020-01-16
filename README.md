@@ -56,8 +56,7 @@ Elchemy lets you write simple, fast and quality type safe code while leveraging 
 - Documentation - **80%** - There are two tutorials and a complete Gitbook documentation. Few entrance level tutorials though, this project tries to change it. 
 - Elchemy-effects - **20%** - You can't and shouldn't write anything with side-effects in Elchemy yet. We're working on finding the best solution for effects that would fit both Elm's and Elixir's community (see [#297](https://github.com/wende/elchemy/issues/297) for more info)
 - Elchemy-core for Erlang VM - **5%** - Everything for os related tasks like filesystem, OTP goodies etc are yet to be done
-- Elchemy type checker - **20%** - Self-hosted elchemy type inference algorithm, lended by [our siblings project].
-
+- Elchemy type checker - **20%** - Self-hosted elchemy type inference algorithm, written by @wende and inspired by @Bogdanp.
 
 # Usage
 
@@ -225,13 +224,18 @@ Elchemy uses Elm to typecheck your program. It is possible to use it without Elm
 - Tomasz Cichociński - [@baransu](https://github.com/baransu)
 - Colin Bankier - [@colinbankier](https://github.com/colinbankier)
 - Nathaniel Knight - [@neganp](https://github.com/neganp)
-- [Elm-in-Elm](https://github.com/elm-in-elm/compiler) creator Martin Janiczek - [@janiczek](https://github.com/Janiczek)
+
+# Inspiration:
+
+- [Elm](https://github.com/elm/compiler) by Evan Czaplicki - [@evancz](https://github.com/evancz)
+- [Elixir](https://github.com/elixir-lang/elixir) by José Valim - [@josevalim](https://github.com/josevalim)
+- [Elm-in-Elm](https://github.com/bogdanp/elm-in-elm) by Bogdan Popa - [@bogdanp](https://github.com/bogdanp) 
 
 
 # Contributing Guide
 
 - Everyone is welcome to contribute :hugs:
-- Refer to http://bogdanp.github.io/elm-ast/example/ to have better understanding of parsed tokens.
+- Refer to https://bogdanp.github.io/elm-ast/example/ to have better understanding of parsed tokens.
 - Refer to https://wende.github.io/elchemy/stable/ to know the latest development version of the parser
 - For project management we use ZenHub. You can see the Kanban board, card estimates and all the reports by installing a browser extension here: [Opera/Chrome](https://chrome.google.com/webstore/detail/zenhub-for-github/ogcgkffhplmphkaahpmffcafajaocjbd), [Firefox](zenhub.com)
 
