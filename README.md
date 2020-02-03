@@ -229,7 +229,7 @@ Elchemy uses Elm to typecheck your program. It is possible to use it without Elm
 
 - [Elm](https://github.com/elm/compiler) by Evan Czaplicki - [@evancz](https://github.com/evancz)
 - [Elixir](https://github.com/elixir-lang/elixir) by José Valim - [@josevalim](https://github.com/josevalim)
-- [Elm-in-Elm](https://github.com/bogdanp/elm-in-elm) by Bogdan Popa - [@bogdanp](https://github.com/bogdanp) 
+- [Elm-AST](https://github.com/bogdanp/elm-ast) by Bogdan Popa - [@bogdanp](https://github.com/bogdanp) 
 
 
 # Contributing Guide
