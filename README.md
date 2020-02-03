@@ -3,12 +3,22 @@
 <img src="https://github.com/wende/elchemy/blob/master/logo.png?raw=true" width="250" height="250">
 </p>
 <p align="center">
-  <a href="https://gitter.im/elchemy-lang/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge">
-    <img src="https://badges.gitter.im/elchemy-lang/Lobby.svg">
+  <a href="https://join.slack.com/t/elchemy-lang/shared_invite/enQtNjMzMDI0NzM3MzQ3LWVmZDZkMzY3OWZkMzJlOGIzZjMzMjcwMDgzNDFlZDYzY2NiYzE0ZjdhOTRmMmMyMjRiOTUzNjhhNWQ1M2VlMGY">
+    <img src="https://img.shields.io/badge/chat-on%20slack-blueviolet.svg">
+  </a>
+  <a href="http://elchemy.neontree.pl">
+    <img src="https://img.shields.io/badge/try%20now-online-yellow.svg">
+  </a>
+  <a href="https://wende.gitbooks.io/elchemy/content/">
+    <img src="https://img.shields.io/badge/read-docs-informational.svg">
+  </a>
+  <a href="https://medium.com/@krzysztof.wende/elmchemy-write-type-safe-elixir-code-with-elms-syntax-part-1-introduction-8968b76d721d">
+    <img src="https://img.shields.io/badge/getting-started-green.svg">
   </a>
   <a href="https://travis-ci.org/wende/elchemy">
     <img src="https://travis-ci.org/wende/elchemy.svg?branch=master">
   </a>
+ 
 </p>
 
 #### Quick install
@@ -18,12 +28,6 @@ npm install -g elchemy
 
 # What is it?
 Elchemy lets you write simple, fast and quality type safe code while leveraging both the Elm's safety and Elixir's ecosystem
-
-## [Test Elchemy online here](http://elchemy.neontree.pl) or here [Old (stable, no type checking) version](https://wende.github.io/elchemy/stable)
-## [Read Elchemy documentation here](https://wende.gitbooks.io/elchemy/content/)
-## [Read a tutorial on using Elchemy here](https://medium.com/@krzysztof.wende/elmchemy-write-type-safe-elixir-code-with-elms-syntax-part-1-introduction-8968b76d721d)
-## [Read our DevBlog on Medium here](https://medium.com/elchemy)
-## [Join Elchemy Slack Channel](https://join.slack.com/t/elchemy-lang/shared_invite/enQtNjMzMDI0NzM3MzQ3LWVmZDZkMzY3OWZkMzJlOGIzZjMzMjcwMDgzNDFlZDYzY2NiYzE0ZjdhOTRmMmMyMjRiOTUzNjhhNWQ1M2VlMGY)
 
 ### In case of any questions about the project feel free to submit them in Issues with Q&A label
 
@@ -169,7 +173,8 @@ Elchemy uses Elm to typecheck your program. It is possible to use it without Elm
 - Ideology - **70%** - We've got a pretty solid idea of where Elchemy is going 
 - Documentation - **80%** - There are two tutorials and a complete Gitbook documentation. Few entrance level tutorials though
 - Elchemy-effects - **20%** - You can't and shouldn't write anything with side-effects in Elchemy yet. We're working on finding the best solution for effects that would fit both Elm's and Elixir's community (see [#297](https://github.com/wende/elchemy/issues/297) for more info)
-- Elchemy-core for Erlang VM - **5%** (Everything for os related tasks like filesystem, OTP goodies etc are yet to be done)
+- Elchemy-core for Erlang VM - **5%** - Everything for os related tasks like filesystem, OTP goodies etc are yet to be done
+- Elchemy type checker - **15%** - Self-hosted elchemy type inference algorithm
 
 # Contributor credits:
 
