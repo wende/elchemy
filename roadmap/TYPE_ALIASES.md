@@ -28,7 +28,7 @@ If a type alias represents a structure like
 ``` elm
 type alias Human = { name : String, age : Int }
 ```
-You can use the name of an alias as a function to quickly instatiate a struct
+You can use the name of an alias as a function to quickly instantiate a struct
 . For instance:
 
 ``` elm
